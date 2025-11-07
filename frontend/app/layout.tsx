@@ -15,11 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pixless - Collaborative Pixel Art Canvas",
+  title: "Pixelhub - Collaborative Pixel Art Canvas",
   description:
     "Collaborative pixel art canvas connected to a cloud-native serverless API gateway.",
   metadataBase: new URL("https://pixless.local"),
-  applicationName: "Pixless",
+  applicationName: "Pixelhub",
 };
 
 export default function RootLayout({

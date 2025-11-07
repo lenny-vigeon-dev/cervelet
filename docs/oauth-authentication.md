@@ -1,6 +1,6 @@
 # OAuth Authentication Documentation
 
-This document describes the Discord OAuth2 authentication implementation in the Pixless frontend application and how it integrates with the serverless API Gateway backend.
+This document describes the Discord OAuth2 authentication implementation in the Pixelhub frontend application and how it integrates with the serverless API Gateway backend.
 
 ## Architecture Overview
 

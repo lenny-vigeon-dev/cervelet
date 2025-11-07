@@ -1,4 +1,4 @@
-# Pixless Frontend
+# Pixelhub Frontend
 
 A collaborative real-time pixel canvas application built with Next.js 16, React 19, and Tailwind CSS v4. This frontend connects to a serverless API Gateway for real-time canvas synchronization and Discord OAuth2 authentication.
 

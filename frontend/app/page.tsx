@@ -41,7 +41,7 @@ export default async function HomePage() {
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-6 py-12">
       <header className="flex flex-col gap-4">
         <span className="inline-flex w-fit items-center gap-2 rounded-full border border-canvas-border/80 bg-canvas-surface/60 px-4 py-1 text-sm font-medium uppercase tracking-wide text-slate-700 dark:text-slate-200">
-          Pixless
+          Pixelhub
         </span>
         <h1 className="text-balance text-4xl font-semibold tracking-tight md:text-5xl">
           Construis un canvas collaboratif temps réel avec un backend serverless.

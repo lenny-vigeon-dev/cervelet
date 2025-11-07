@@ -1,5 +1,4 @@
-import { createEventStream } from "@/lib/api";
-import { serverApiRequest } from "@/lib/server-api";
+import { createEventStream, apiRequest } from "@/lib/api";
 import {
   CanvasSnapshotSchema,
   CanvasSummarySchema,
@@ -29,9 +28,11 @@ function extractData<T>(payload: T | ApiResponse<T>): T {
  * @throws {ZodError} If the API response doesn't match the expected schema
  */
 export async function fetchCanvasSnapshot(): Promise<CanvasSnapshot> {
-  const payload = await serverApiRequest<
+  const payload = await apiRequest<
     CanvasSnapshot | ApiResponse<CanvasSnapshot>
-  >(CANVAS_RESOURCE);
+  >(CANVAS_RESOURCE, {
+    cache: "no-store",
+  });
   const data = extractData(payload);
 
   // Validate response with Zod and return as CanvasSnapshot
@@ -46,9 +47,11 @@ export async function fetchCanvasSnapshot(): Promise<CanvasSnapshot> {
  * @throws {ZodError} If the API response doesn't match the expected schema
  */
 export async function fetchCanvasSummary(): Promise<CanvasSummary> {
-  const payload = await serverApiRequest<
+  const payload = await apiRequest<
     CanvasSummary | ApiResponse<CanvasSummary>
-  >(`${CANVAS_RESOURCE}/summary`);
+  >(`${CANVAS_RESOURCE}/summary`, {
+    cache: "no-store",
+  });
   const data = extractData(payload);
 
   // Validate response with Zod and return as CanvasSummary

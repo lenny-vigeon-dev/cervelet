@@ -1,5 +1,5 @@
 import type { Request } from "@google-cloud/functions-framework";
-import nacl from "tweetnacl";
+import * as nacl from "tweetnacl";
 
 const DISCORD_PUBLIC_KEY = process.env.DISCORD_PUBLIC_KEY;
 

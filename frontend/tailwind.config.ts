@@ -21,7 +21,9 @@ const config: Config = {
         mono: ["var(--font-geist-mono)", "monospace"],
       },
       boxShadow: {
-        surface: "0 10px 40px rgba(15, 23, 42, 0.25)",
+        surface:
+          "0 20px 65px rgba(0, 0, 0, 0.55), 0 0 45px rgba(255, 163, 33, 0.12)",
+        brand: "0 20px 35px rgba(255, 163, 33, 0.45)",
       },
     },
   },

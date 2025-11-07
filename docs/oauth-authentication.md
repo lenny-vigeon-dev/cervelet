@@ -59,7 +59,7 @@ User clicks the "Connect with Discord" button on the frontend:
 ```tsx
 <Link
   href="/auth/discord"
-  className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-400"
+  className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand to-brand-strong px-5 py-2.5 text-sm font-semibold text-black shadow-brand transition hover:opacity-95"
 >
   {isAuthenticated
     ? `Connecté en tant que ${session.user.username}`

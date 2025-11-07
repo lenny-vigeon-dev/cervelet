@@ -30,10 +30,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="h-full bg-canvas-bg text-slate-900 dark:text-slate-100"
+      className="h-full bg-canvas-bg text-foreground"
     >
       <body
-        className={`${geistSans.variable} ${geistMono.variable} flex min-h-full flex-col bg-canvas-bg font-sans text-base antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-full flex-col bg-canvas-bg text-foreground font-sans text-base antialiased`}
       >
         {children}
       </body>

@@ -13,20 +13,20 @@ export interface ToolbarProps {
  */
 export function Toolbar({ session, onSelectColor }: ToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-full border border-canvas-border bg-canvas-surface/80 px-4 py-2 text-sm text-slate-700 shadow-surface dark:text-slate-200">
-      <span className="font-semibold">
+    <div className="flex flex-wrap items-center gap-3 rounded-full border border-brand/30 bg-black/60 px-5 py-2 text-sm text-foreground shadow-surface backdrop-blur">
+      <span className="font-semibold text-brand-soft">
         {session.isAuthenticated && session.user
           ? session.user.username
           : "Anonyme"}
       </span>
       <div className="flex items-center gap-2">
-        {["#ef4444", "#f97316", "#22d3ee", "#a855f7", "#facc15"].map(
+        {["#ffd392", "#ffb347", "#ffa321", "#ff862e", "#f46a0b"].map(
           (color) => (
             <button
               key={color}
               type="button"
               aria-label={`Choisir ${color}`}
-              className="h-6 w-6 rounded-full transition hover:scale-110 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+              className="h-7 w-7 rounded-full border border-white/20 shadow-sm transition hover:scale-110 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-brand"
               style={{ backgroundColor: color }}
               onClick={() => onSelectColor?.(color)}
             />

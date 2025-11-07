@@ -40,12 +40,12 @@ export function PixelCanvas({
       return;
     }
 
-    context.fillStyle = "#0f172a";
+    context.fillStyle = "#050404";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     if (!snapshot) {
       // Draw placeholder grid to help visualise the canvas.
-      context.strokeStyle = "rgba(148, 163, 184, 0.15)";
+      context.strokeStyle = "rgba(255, 163, 33, 0.08)";
       for (let x = 0; x <= canvas.width; x += 16) {
         context.beginPath();
         context.moveTo(x + 0.5, 0);
@@ -69,9 +69,9 @@ export function PixelCanvas({
 
   return (
     <div
-      className={`relative isolate overflow-hidden rounded-3xl border border-canvas-border bg-canvas-surface shadow-surface ${className ?? ""}`}
+      className={`relative isolate overflow-hidden rounded-3xl border border-brand/20 bg-canvas-surface shadow-surface ${className ?? ""}`}
     >
-      <div className="absolute inset-0 bg-linear-to-br from-sky-500/10 via-transparent to-indigo-500/10" />
+      <div className="absolute inset-0 bg-linear-to-br from-brand/15 via-transparent to-brand-strong/10 blur-3xl" />
       <div className="relative inset-0 flex items-center justify-center p-6">
         <canvas
           ref={canvasRef}
@@ -80,7 +80,7 @@ export function PixelCanvas({
             height: dimensions.height * scale,
             imageRendering: "pixelated",
           }}
-          className="rounded-2xl border border-canvas-border/50 bg-slate-900 shadow-lg"
+          className="rounded-2xl border border-brand/25 bg-black shadow-lg shadow-brand/20"
           aria-label="Collaborative pixel canvas"
         />
       </div>

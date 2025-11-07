@@ -10,9 +10,9 @@ export default function Error({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-6">
       <div className="flex flex-col items-center gap-4 text-center">
-        <div className="rounded-full bg-red-500/10 p-4">
+        <div className="rounded-full bg-brand/10 p-4">
           <svg
-            className="h-12 w-12 text-red-500"
+            className="h-12 w-12 text-brand"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -25,19 +25,19 @@ export default function Error({
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="text-2xl font-semibold text-brand-soft">
           Une erreur est survenue
         </h2>
-        <p className="max-w-md text-sm text-slate-600 dark:text-slate-400">
+        <p className="max-w-md text-sm text-zinc-400">
           {error.message || "Une erreur inattendue s'est produite."}
         </p>
         {error.digest && (
-          <p className="font-mono text-xs text-slate-500">ID: {error.digest}</p>
+          <p className="font-mono text-xs text-zinc-500">ID: {error.digest}</p>
         )}
       </div>
       <button
         onClick={reset}
-        className="inline-flex items-center justify-center rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-400"
+        className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand to-brand-strong px-6 py-3 text-sm font-semibold text-black shadow-brand transition hover:opacity-90"
       >
         Réessayer
       </button>

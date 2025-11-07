@@ -7,3 +7,4 @@ export interface DiscordInteraction {
     options?: any[];
   };
 }
+

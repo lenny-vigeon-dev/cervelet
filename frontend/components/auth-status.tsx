@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "@/hooks/use-session";
 
 /**
@@ -30,9 +31,11 @@ export function AuthStatus() {
             </p>
             <div className="mt-2 flex items-center gap-3">
               {session.user.avatarUrl && (
-                <img
+                <Image
                   src={session.user.avatarUrl}
                   alt={session.user.username}
+                  width={40}
+                  height={40}
                   className="h-10 w-10 rounded-full"
                 />
               )}

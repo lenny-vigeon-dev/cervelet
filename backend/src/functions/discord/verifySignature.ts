@@ -46,7 +46,7 @@ function getBodyBuffer(req: Request): Buffer | null {
       : Buffer.from(req.rawBody);
   }
 
-  const body = (req as Request & { body?: unknown }).body;
+  const body: unknown = (req as Request & { body?: unknown }).body;
 
   if (!body) return null;
   if (Buffer.isBuffer(body)) return body;

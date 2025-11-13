@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -20,22 +19,22 @@ model Canvas {
   height       Int
   version      Int
   createdAt    DateTime @default(now())
-  lastModified DateTime @updatedAt
+  updatedAt    DateTime @updatedAt
 
   pixels       Pixel[]
   pixelHistory PixelHistory[]
 }
 
 model Pixel {
-  canvasId String
-  x        Int
-  y        Int
-  color    Int
-  userId   String?
+  canvasId  String
+  x         Int
+  y         Int
+  color     Int
+  userId    String?
   updatedAt DateTime @updatedAt
 
-  canvas   Canvas @relation(fields: [canvasId], references: [id])
-  user     User?  @relation(fields: [userId], references: [id])
+  canvas    Canvas @relation(fields: [canvasId], references: [id])
+  user      User?  @relation(fields: [userId], references: [id])
 
   @@id([canvasId, x, y])
   @@index([canvasId, updatedAt(sort: Desc)])

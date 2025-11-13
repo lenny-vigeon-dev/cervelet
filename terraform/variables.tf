@@ -1,5 +1,5 @@
 variable "project_id" {
-  description = "Your GCP project ID"
+  description = "PixelHub"
   type        = string
   default     = "serverless-tek89"
 }
@@ -13,7 +13,7 @@ variable "region" {
 variable "invokers" {
   description = "List of users allowed to invoke the function"
   type        = list(string)
-  default     = [
+  default = [
     "user:lenny.vigeon@gmail.com",
     "user:arospars77@gmail.com",
     "user:lebib.yann@gmail.com",

@@ -11,11 +11,11 @@ provider "google" {
 }
 
 module "hello_world" {
-  source       = "./modules/hello-world-cloud-function"
-  source_dir   = "../applications/hello-world-cloud-function"
-  project_id   = var.project_id
-  region       = var.region
-  name         = "hello-world"
-  entry_point  = "helloWorld"
-  invokers     = var.invokers
+  source      = "./modules/hello-world-cloud-function"
+  source_dir  = "../applications/hello-world-cloud-function"
+  project_id  = var.project_id
+  region      = var.region
+  name        = "hello-world"
+  entry_point = "helloWorld"
+  invokers    = var.invokers
 }

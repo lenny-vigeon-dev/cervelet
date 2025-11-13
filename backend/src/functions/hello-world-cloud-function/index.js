@@ -1,6 +1,6 @@
 /**
  * Responds to any HTTP request with "Hello World!"
  */
-exports.helloWorld = (req, res) => {
+export const helloWorld = (_req, res) => {
   res.send('Hello World!');
 };

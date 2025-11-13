@@ -1,33 +1,36 @@
-import type { Request } from "@google-cloud/functions-framework";
-import * as nacl from "tweetnacl";
+import type { Request } from '@google-cloud/functions-framework';
+import nacl from 'tweetnacl';
 
 const DISCORD_PUBLIC_KEY = process.env.DISCORD_PUBLIC_KEY;
 
 if (!DISCORD_PUBLIC_KEY) {
-  throw new Error("DISCORD_PUBLIC_KEY env var must be set");
+  throw new Error('DISCORD_PUBLIC_KEY env var must be set');
 }
 
-const DISCORD_PUBLIC_KEY_BUFFER = Buffer.from(DISCORD_PUBLIC_KEY, "hex");
+const DISCORD_PUBLIC_KEY_BUFFER = Buffer.from(DISCORD_PUBLIC_KEY, 'hex');
 
 export function verifyDiscordSignature(req: Request): boolean {
-  const signatureHeader = req.header("X-Signature-Ed25519");
-  const timestampHeader = req.header("X-Signature-Timestamp");
+  const signatureHeader = req.header('X-Signature-Ed25519');
+  const timestampHeader = req.header('X-Signature-Timestamp');
   const rawBody = getBodyBuffer(req);
 
   if (
-    typeof signatureHeader !== "string" ||
-    typeof timestampHeader !== "string" ||
+    typeof signatureHeader !== 'string' ||
+    typeof timestampHeader !== 'string' ||
     !rawBody
   ) {
     return false;
   }
 
-  const message = Buffer.concat([Buffer.from(timestampHeader, "utf8"), rawBody]);
+  const message = Buffer.concat([
+    Buffer.from(timestampHeader, 'utf8'),
+    rawBody,
+  ]);
 
   return nacl.sign.detached.verify(
     message,
-    Buffer.from(signatureHeader, "hex"),
-    DISCORD_PUBLIC_KEY_BUFFER
+    Buffer.from(signatureHeader, 'hex'),
+    DISCORD_PUBLIC_KEY_BUFFER,
   );
 }
 
@@ -43,11 +46,11 @@ function getBodyBuffer(req: Request): Buffer | null {
       : Buffer.from(req.rawBody);
   }
 
-  const body = (req as Request & { body?: unknown }).body;
+  const body: unknown = (req as Request & { body?: unknown }).body;
 
   if (!body) return null;
   if (Buffer.isBuffer(body)) return body;
-  if (typeof body === "string") return Buffer.from(body, "utf8");
+  if (typeof body === 'string') return Buffer.from(body, 'utf8');
   if (body instanceof Uint8Array) return Buffer.from(body);
 
   try {

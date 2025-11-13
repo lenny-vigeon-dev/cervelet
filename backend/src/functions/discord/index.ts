@@ -1,10 +1,10 @@
-import type { HttpFunction } from "@google-cloud/functions-framework";
-import { verifyDiscordSignature } from "./verifySignature";
-import type { DiscordInteraction } from "./types";
+import type { HttpFunction } from '@google-cloud/functions-framework';
+import { verifyDiscordSignature } from './verifySignature';
+import type { DiscordInteraction } from './types';
 
-export const discordAcknowledge: HttpFunction = async (req, res) => {
+export const discordAcknowledge: HttpFunction = (req, res) => {
   if (!verifyDiscordSignature(req)) {
-    return res.status(401).send("Invalid request signature");
+    return res.status(401).send('Invalid request signature');
   }
 
   const body = req.body as DiscordInteraction;

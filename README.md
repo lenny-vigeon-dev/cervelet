@@ -24,8 +24,13 @@ cervelet/
 │       ├── firestore/    # Firestore database module
 │       └── hello-world-cloud-function/
 ├── scripts/              # Deployment and utility scripts
-└── docs/                 # Project documentation
+├── docs/                 # Project documentation
+├── firebase.json         # Firebase CLI config (emulator settings)
+├── firestore.rules       # Firestore security rules
+└── firestore.indexes.json # Index definitions (synced from Terraform)
 ```
+
+**Note:** Firebase configuration files must be at the project root for Firebase CLI to function properly. See [docs/FIREBASE-TERRAFORM.md](docs/FIREBASE-TERRAFORM.md) for details on how Firebase CLI and Terraform work together.
 
 ## 🚀 Quick Start
 

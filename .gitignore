@@ -30,6 +30,8 @@ secrets/
 *.key
 *.crt
 credentials.json
+firestore-key.json
+*-key.json
 
 # IDE
 .vscode/

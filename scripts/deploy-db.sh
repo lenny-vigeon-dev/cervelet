@@ -1,22 +1,12 @@
 #!/bin/bash
 set -e
 
-# Deploy Cloud SQL database using Terraform
+# Deploy Firestore database using Terraform
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TERRAFORM_DIR="$SCRIPT_DIR/../terraform"
 
-echo "🚀 Deploying Cloud SQL Database..."
-
-# Check if terraform.tfvars exists
-if [ ! -f "$TERRAFORM_DIR/terraform.tfvars" ]; then
-    echo "❌ terraform.tfvars not found!"
-    echo "📝 Please copy terraform.tfvars.example to terraform.tfvars and configure it:"
-    echo "   cd terraform"
-    echo "   cp terraform.tfvars.example terraform.tfvars"
-    echo "   # Edit terraform.tfvars with your values"
-    exit 1
-fi
+echo "🚀 Deploying Firestore Database..."
 
 # Check if gcloud is authenticated
 if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" &>/dev/null; then
@@ -27,8 +17,8 @@ fi
 
 # Enable required APIs
 echo "🔧 Enabling required GCP APIs..."
-gcloud services enable sqladmin.googleapis.com
-gcloud services enable servicenetworking.googleapis.com
+gcloud services enable firestore.googleapis.com
+gcloud services enable appengine.googleapis.com
 
 # Navigate to terraform directory
 cd "$TERRAFORM_DIR"
@@ -57,14 +47,24 @@ rm tfplan
 
 # Display outputs
 echo ""
-echo "✅ Database deployed successfully!"
+echo "✅ Firestore database deployed successfully!"
 echo ""
 echo "📊 Database Information:"
-terraform output database_instance_name
-terraform output database_connection_name
-terraform output database_public_ip
+terraform output firestore_database_name
+terraform output firestore_database_location
+terraform output firestore_project_id
+
+# Check if service account was created
+if terraform output firestore_service_account_email &>/dev/null; then
+    echo ""
+    echo "🔑 Service Account Created:"
+    terraform output firestore_service_account_email
+fi
 
 echo ""
 echo "📝 Next steps:"
-echo "1. Set up Cloud SQL Proxy: ./scripts/setup-db-proxy.sh"
-echo "2. Run Prisma migrations: ./scripts/migrate-db.sh"
+echo "1. Set up service account credentials: ./scripts/setup-firestore-credentials.sh"
+echo "2. Update your .env file with GCP_PROJECT_ID"
+echo "3. Start your application: cd backend && npm run start:dev"
+echo ""
+echo "📚 See docs/database/firestore-setup.md for detailed setup instructions"

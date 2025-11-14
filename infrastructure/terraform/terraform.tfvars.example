@@ -7,27 +7,6 @@ region     = "europe-west1"
 # Environment (dev, staging, prod)
 environment = "dev"
 
-# Database configuration
-database_name     = "pixelhub"
-database_user     = "pixelhub_user"
-database_password = "YOUR_SECURE_PASSWORD_HERE" # CHANGE THIS!
-
-# Database tier
-# Development: db-f1-micro (shared CPU, 614MB RAM)
-# Small prod: db-g1-small (1 vCPU, 1.7GB RAM)
-# Medium prod: db-custom-2-7680 (2 vCPU, 7.5GB RAM)
-# Large prod: db-custom-4-15360 (4 vCPU, 15GB RAM)
-db_tier = "db-f1-micro"
-
-# Authorized networks for database access (add your IP addresses)
-# Find your IP: curl ifconfig.me
-authorized_networks = [
-  {
-    name = "office"
-    cidr = "0.0.0.0/0" # CHANGE THIS to your actual IP/CIDR for security!
-  }
-]
-
 # Cloud Function invokers
 invokers = [
   "user:lenny.vigeon@gmail.com",

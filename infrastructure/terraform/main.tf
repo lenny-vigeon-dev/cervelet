@@ -22,7 +22,7 @@ module "firestore" {
   # Configuration
   concurrency_mode       = var.firestore_concurrency_mode
   enable_pitr            = var.firestore_enable_pitr
-  deletion_protection    = var.environment == "prod" ? true : false
+  deletion_protection    = var.environment != "dev"
   create_service_account = var.firestore_create_service_account
 }
 

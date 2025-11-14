@@ -6,7 +6,7 @@ set -e
 # Production Firestore database is managed by Terraform
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$SCRIPT_DIR/.."
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "🔥 Setting up Firestore Emulator..."
 

@@ -4,7 +4,7 @@ set -e
 # Setup Firestore service account credentials for local development
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$SCRIPT_DIR/.."
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TERRAFORM_DIR="$PROJECT_ROOT/infrastructure/terraform"
 CREDENTIALS_DIR="$PROJECT_ROOT/backend"
 

@@ -629,33 +629,81 @@ Unexpected high charges on GCP billing
 
 ### 2. Firestore Security Rules
 
-Create security rules to control client access:
+Production-ready security rules are defined in `firestore.rules` at the project root. The rules implement:
 
+**Security Features:**
+- ✅ Public read access for canvases, pixels, and user profiles (collaborative viewing)
+- ✅ Authentication required for pixel placement
+- ✅ User ownership validation (users can only write their own pixels)
+- ✅ Admin role for canvas management
+- ✅ Data validation (coordinates, colors, required fields)
+- ✅ Privilege escalation prevention (users cannot change their own role)
+- ✅ Append-only pixel history (audit trail integrity)
+
+**Key Rules by Collection:**
+
+**`canvases`**:
+- Read: Public
+- Write: Admins only
+
+**`pixels`**:
+- Read: Public (anyone can view the canvas)
+- Create: Authenticated users, must own the pixel (`userId == auth.uid`)
+- Update: Authenticated users, cannot change pixel ownership
+- Delete: Admins only
+
+**`users`**:
+- Read: Public (leaderboards, user info)
+- Create: Users can create their own profile on first login
+- Update: Users can only update their own profile, cannot change role
+- Delete: Admins only
+
+**`pixelHistory`**:
+- Read: Public (canvas replay feature)
+- Create: Authenticated users (append-only)
+- Update/Delete: Forbidden (preserves audit trail)
+
+**Deploy Security Rules:**
+```bash
+# Test rules locally with emulator first
+firebase emulators:start --only firestore
+
+# Deploy to production
+firebase deploy --only firestore:rules
+
+# Verify rules are active
+firebase firestore:rules:list
+```
+
+**Testing Security Rules:**
 ```javascript
-// firestore.rules
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Authenticated users can read all, write their own data
-    match /pixels/{pixelId} {
-      allow read: if true;
-      allow write: if request.auth != null
-                   && request.resource.data.userId == request.auth.uid;
-    }
+// Example: Test in Firestore Rules Playground
+// https://console.cloud.google.com/firestore/rules
 
-    match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth != null
-                   && request.auth.uid == userId;
-    }
+// Should SUCCEED: Authenticated user placing pixel
+{
+  "auth": {"uid": "user123"},
+  "operation": "create",
+  "path": "/pixels/main-canvas_10_20",
+  "data": {
+    "canvasId": "main-canvas",
+    "x": 10,
+    "y": 20,
+    "color": 255,
+    "userId": "user123",
+    "updatedAt": "2025-11-14T10:00:00Z"
   }
+}
+
+// Should FAIL: User trying to place pixel with different userId
+{
+  "auth": {"uid": "user123"},
+  "operation": "create",
+  "data": {"userId": "different-user"}  // Validation error!
 }
 ```
 
-Deploy rules:
-```bash
-firebase deploy --only firestore:rules
-```
+See `firestore.rules` in the project root for complete implementation.
 
 ### 3. Network Security
 

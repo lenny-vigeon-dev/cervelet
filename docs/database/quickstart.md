@@ -21,10 +21,10 @@ cp .env.example .env
 # Set GCP_PROJECT_ID and GOOGLE_APPLICATION_CREDENTIALS
 
 # 5. Install dependencies
-npm install
+pnpm install
 
 # 6. Start the application
-npm run start:dev
+pnpm run start:dev
 ```
 
 ---
@@ -34,7 +34,7 @@ npm run start:dev
 ```bash
 # Start the application
 cd backend
-npm run start:dev
+pnpm run start:dev
 
 # The application will automatically connect to Firestore using
 # Application Default Credentials (ADC) or the service account key

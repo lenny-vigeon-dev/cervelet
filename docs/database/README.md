@@ -117,8 +117,8 @@ cp .env.example .env
 # Edit .env with your settings
 
 # Install and start
-npm install
-npm run start:dev
+pnpm install
+pnpm run start:dev
 ```
 
 ### Verify Connection
@@ -145,13 +145,13 @@ gcloud firestore documents list pixels --limit 10
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     PixelHub Application                     │
-│                         (NestJS)                             │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐    │
-│  │            FirestoreService                        │    │
-│  │         (Firebase Admin SDK)                       │    │
-│  └────────────────────────────────────────────────────┘    │
+│                     PixelHub Application                    │
+│                         (NestJS)                            │
+│                                                             │
+│  ┌────────────────────────────────────────────────────┐     │
+│  │            FirestoreService                        │     │
+│  │         (Firebase Admin SDK)                       │     │
+│  └────────────────────────────────────────────────────┘     │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       │ Application Default Credentials (ADC)
@@ -160,19 +160,19 @@ gcloud firestore documents list pixels --limit 10
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
 │              Google Cloud Firestore                         │
-│                  (Native Mode)                               │
-│                                                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
-│  │  canvases   │  │   pixels    │  │    users    │        │
-│  │ collection  │  │ collection  │  │ collection  │        │
-│  └─────────────┘  └─────────────┘  └─────────────┘        │
-│                                                              │
-│  ┌─────────────┐  ┌─────────────┐                          │
-│  │pixelHistory │  │   indexes   │                          │
-│  │ collection  │  │(composite)  │                          │
-│  └─────────────┘  └─────────────┘                          │
-│                                                              │
-│  Features: Auto-scaling, PITR, Real-time, Security Rules   │
+│                  (Native Mode)                              │
+│                                                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
+│  │  canvases   │  │   pixels    │  │    users    │          │
+│  │ collection  │  │ collection  │  │ collection  │          │
+│  └─────────────┘  └─────────────┘  └─────────────┘          │
+│                                                             │
+│  ┌─────────────┐  ┌─────────────┐                           │
+│  │pixelHistory │  │   indexes   │                           │
+│  │ collection  │  │(composite)  │                           │
+│  └─────────────┘  └─────────────┘                           │
+│                                                             │
+│  Features: Auto-scaling, PITR, Real-time, Security Rules    │
 └─────────────────────────────────────────────────────────────┘
 ```
 

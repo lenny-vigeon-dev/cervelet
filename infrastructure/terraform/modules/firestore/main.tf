@@ -137,19 +137,8 @@ resource "google_firestore_index" "pixel_history_by_coordinates" {
   depends_on = [google_firestore_database.database]
 }
 
-# Index 5: users by username (for username lookups)
-resource "google_firestore_index" "users_by_username" {
-  project    = var.project_id
-  database   = google_firestore_database.database.name
-  collection = "users"
-
-  fields {
-    field_path = "username"
-    order      = "ASCENDING"
-  }
-
-  depends_on = [google_firestore_database.database]
-}
+# Note: Single-field indexes like username are automatically created by Firestore
+# and don't need to be explicitly defined here.
 
 # Create a service account for Firestore access (if needed)
 resource "google_service_account" "firestore_sa" {

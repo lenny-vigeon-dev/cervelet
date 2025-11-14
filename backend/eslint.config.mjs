@@ -32,13 +32,14 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/firestore/**/*.ts', 'src/firestore/**/*.ts'],
+    files: ['**/firestore/**/*.ts', 'src/firestore/**/*.ts', 'src/types/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
     },
   },
 );

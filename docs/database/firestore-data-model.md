@@ -70,6 +70,7 @@ Stores user information and statistics.
 {
   id: string;              // Document ID
   username: string;        // Unique username
+  role: string;            // User role: 'user' or 'admin' (extensible for future roles)
   lastPixelPlaced: Timestamp | null;  // Last pixel placement time
   totalPixelsPlaced: number;           // Total count of pixels placed
   createdAt: Timestamp;    // Account creation timestamp
@@ -141,26 +142,6 @@ users/{userId}
 
 ---
 
-## Data Migration Strategy
-
-### From PostgreSQL (Prisma) to Firestore:
-
-1. **Canvas Table → `canvases` Collection**
-   - Direct mapping, add `totalPixels` field (calculate on migration)
-
-2. **Pixel Table (Composite Key) → `pixels` Collection**
-   - Convert composite key `(canvasId, x, y)` to document ID: `{canvasId}_{x}_{y}`
-   - All other fields map directly
-
-3. **User Table → `users` Collection**
-   - Direct mapping, UUID becomes document ID
-
-4. **PixelHistory Table → `pixelHistory` Collection**
-   - Direct mapping, auto-increment ID becomes auto-generated document ID
-   - All other fields map directly
-
----
-
 ## Firestore-Specific Considerations
 
 ### Document Size Limits
@@ -205,7 +186,7 @@ service cloud.firestore {
     // Canvases are readable by all, writable by admins only
     match /canvases/{canvasId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.token.admin == true;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     // Pixels are readable by all, writable by authenticated users
@@ -277,30 +258,15 @@ service cloud.firestore {
 
 ---
 
-## Comparison: PostgreSQL vs Firestore
-
-| Aspect | PostgreSQL (Cloud SQL) | Firestore |
-|--------|------------------------|-----------|
-| **Data Model** | Relational tables with foreign keys | NoSQL document collections |
-| **Queries** | SQL with JOINs | NoSQL queries (no JOINs) |
-| **Scalability** | Vertical scaling (upgrade instance) | Automatic horizontal scaling |
-| **Cost** | Fixed instance cost (~$10-500/month) | Pay-per-usage ($0.18/GB storage, $0.06/100K reads) |
-| **Real-time** | Requires additional setup (WebSockets) | Built-in real-time listeners |
-| **Transactions** | ACID transactions | ACID transactions (limited) |
-| **Composite Keys** | Native support | Workaround with document IDs |
-| **Schema** | Rigid schema (migrations required) | Flexible schema (schemaless) |
-| **Backup** | Automated backups, PITR | Automated daily backups |
-| **Best For** | Complex relational data, strong consistency | Real-time apps, flexible schema, auto-scaling |
-
----
-
 ## Conclusion
 
-The Firestore data model maintains the same logical structure as the PostgreSQL schema but adapts it for NoSQL best practices:
-- Uses collections instead of tables
-- Leverages document IDs for composite keys
-- Optimizes for read/write patterns
-- Enables real-time capabilities
-- Provides automatic scaling
+The Firestore data model is designed specifically for the collaborative pixel art application (r/place clone) with the following key features:
 
-This design supports the r/place use case efficiently while taking advantage of Firestore's strengths.
+- **Collections-based structure**: Four main collections (canvases, pixels, users, pixelHistory) for organizing data
+- **Composite document IDs**: Pixels use `{canvasId}_{x}_{y}` format for efficient lookups
+- **Optimized indexes**: Composite indexes for common query patterns
+- **Real-time capabilities**: Built-in support for live pixel updates
+- **Automatic scaling**: Handles traffic spikes without manual intervention
+- **Flexible schema**: Easy to adapt as requirements evolve
+
+This design efficiently supports the r/place use case while taking full advantage of Firestore's strengths.

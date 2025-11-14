@@ -1,3 +1,11 @@
+/**
+ * Firestore Service
+ *
+ * Provides a wrapper around Firebase Admin SDK for Firestore operations.
+ *
+ * For Firestore document type definitions, import from:
+ *   import { Canvas, Pixel, User, PixelHistory, UserRole } from '../types';
+ */
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { initializeApp, getApps, getApp, deleteApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';

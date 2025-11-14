@@ -43,3 +43,12 @@ firestore-key.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Firebase
+.firebaserc
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+.firebase/
+# Note: firebase.json, firestore.rules, and firestore.indexes.json are tracked
+# These files are needed at project root for Firebase CLI to work properly

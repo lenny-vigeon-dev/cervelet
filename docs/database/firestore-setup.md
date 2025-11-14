@@ -322,34 +322,30 @@ FIRESTORE_EMULATOR_HOST="localhost:8080"
 
 ## Production Deployment
 
-### Cloud Run / Cloud Functions
+### Cloud Run (recommended)
 
-For production deployment on Cloud Run or Cloud Functions, use Application Default Credentials (ADC):
+For production deployment on Cloud Run, use **Application Default Credentials (ADC)**.  
+Cloud Run automatically injects credentials for its service account, so:
 
-**Remove the service account key:**
-- Do NOT include `firestore-key.json` in your deployment
-- Do NOT set `GOOGLE_APPLICATION_CREDENTIALS` in production
+- ❌ Do **NOT** deploy `firestore-key.json`
+- ❌ Do **NOT** set `GOOGLE_APPLICATION_CREDENTIALS` in production
+- ✅ Let the Cloud Run **service account** authenticate to Firestore
 
-**Grant permissions to the Cloud Run service account:**
+---
+
+### 1. Grant Firestore permissions to the Cloud Run service account
+
+By default, Cloud Run uses the Compute Engine default service account:
 
 ```bash
-# Get your Cloud Run service account
 PROJECT_ID="serverless-tek89"
-SERVICE_ACCOUNT="PROJECT_NUMBER-compute@developer.gserviceaccount.com"
+PROJECT_NUMBER="$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')"
+SERVICE_ACCOUNT="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
 
-# Grant Firestore permissions
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SERVICE_ACCOUNT" \
+# Grant Firestore (Datastore) user permissions
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
   --role="roles/datastore.user"
-```
-
-**Deploy with correct configuration:**
-
-```yaml
-# app.yaml or Cloud Run configuration
-env_variables:
-  GCP_PROJECT_ID: "serverless-tek89"
-  NODE_ENV: "production"
 ```
 
 ---
@@ -363,18 +359,7 @@ env_variables:
 2. Navigate to Firestore → Data
 3. Browse collections and documents
 
-**Option 2: gcloud CLI**
-
-```bash
-# List collections
-gcloud firestore collections list
-
-# Query documents
-gcloud firestore documents list canvases
-gcloud firestore documents describe canvases/main-canvas
-```
-
-**Option 3: Firebase Console** (requires Firebase project)
+**Option 2: Firebase Console** (requires Firebase project)
 
 1. Go to [Firebase Console](https://console.firebase.google.com/)
 2. Select your project

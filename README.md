@@ -10,6 +10,7 @@ Complete documentation is available in the [`docs/`](docs/) directory:
 - **[Database Quick Start](docs/database/quickstart.md)** - Quick reference for database operations
 - **[Firestore Setup Guide](docs/database/firestore-setup.md)** - Complete Firestore setup guide
 - **[Firestore Data Model](docs/database/firestore-data-model.md)** - Database schema and collections
+- **[Firebase vs Terraform](docs/FIREBASE-TERRAFORM.md)** - How Firebase CLI and Terraform work together
 - **[OAuth Authentication](docs/oauth-authentication.md)** - Authentication setup
 
 ## 🏗️ Project Structure
@@ -83,6 +84,7 @@ terraform apply
 
 - **Database Setup**: See [docs/database/firestore-setup.md](docs/database/firestore-setup.md)
 - **Daily Development**: See [docs/database/quickstart.md](docs/database/quickstart.md)
+- **Firebase vs Terraform**: See [docs/FIREBASE-TERRAFORM.md](docs/FIREBASE-TERRAFORM.md) - Understanding how they work together
 - **Backend Documentation**: See [backend/README.md](backend/README.md)
 - **Frontend Documentation**: See [frontend/README.md](frontend/README.md)
 

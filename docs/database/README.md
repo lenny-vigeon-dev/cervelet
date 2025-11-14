@@ -117,8 +117,8 @@ cp .env.example .env
 # Edit .env with your settings
 
 # Install and start
-npm install
-npm run start:dev
+pnpm install
+pnpm run start:dev
 ```
 
 ### Verify Connection

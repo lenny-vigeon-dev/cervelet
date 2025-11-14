@@ -12,7 +12,7 @@ echo "🔥 Setting up Firestore Emulator..."
 if ! command -v firebase &> /dev/null; then
     echo "❌ Firebase CLI not found"
     echo "📦 Installing Firebase CLI..."
-    npm install -g firebase-tools
+    pnpm add -g firebase-tools
 fi
 
 echo "✅ Firebase CLI installed"

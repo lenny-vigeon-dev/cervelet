@@ -6,6 +6,7 @@ import { FeaturesGrid } from "@/components/features-grid";
 import { fetchCanvasSnapshot, fetchCanvasSummary } from "@/lib/canvas";
 import { safeFetch } from "@/hooks/use-safe-fetch";
 import type { CanvasSnapshot, CanvasSummary } from "@/types/canvas";
+import Link from "next/link";
 
 // Revalidate canvas data every 30 seconds for better performance
 // while keeping it relatively fresh for collaborative updates
@@ -44,7 +45,34 @@ export default async function HomePage() {
       <section className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           <ToolbarWrapper />
-          <PixelCanvas snapshot={snapshot ?? undefined} />
+          <div className="relative group">
+            <PixelCanvas snapshot={snapshot ?? undefined} className="aspect-square overflow-scroll" />
+            <Link
+              href="/canva"
+              className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-brand"
+                >
+                  <polyline points="15 3 21 3 21 9" />
+                  <polyline points="9 21 3 21 3 15" />
+                  <line x1="21" y1="3" x2="14" y2="10" />
+                  <line x1="3" y1="21" x2="10" y2="14" />
+                </svg>
+                <span className="text-brand font-semibold text-lg">Ouvrir en plein écran</span>
+              </div>
+            </Link>
+          </div>
         </div>
         <aside className="flex flex-col gap-6">
           <APIStatusCard snapshot={snapshot} summary={summary} />

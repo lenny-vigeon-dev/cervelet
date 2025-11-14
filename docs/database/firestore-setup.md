@@ -297,21 +297,7 @@ async function initializeCanvas() {
 }
 ```
 
-#### Option 2: Using gcloud CLI
-
-Create documents directly via gcloud:
-
-```bash
-# Create a canvas document
-gcloud firestore documents create canvases/main-canvas \
-  --project=serverless-tek89 \
-  --data='{"id":"main-canvas","width":1000,"height":1000,"version":1,"totalPixels":0}'
-
-# Verify collection was created
-gcloud firestore documents list canvases --project=serverless-tek89
-```
-
-#### Option 3: Using Firebase Console
+#### Option 2: Using Firebase Console
 
 1. Go to [Firestore Console](https://console.cloud.google.com/firestore)
 2. Click "Start collection"

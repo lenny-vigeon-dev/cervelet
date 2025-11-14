@@ -3,30 +3,33 @@ output "hello_world_function_url" {
   value       = module.hello_world.function_url
 }
 
-# Cloud SQL outputs
-output "database_instance_name" {
-  description = "Cloud SQL instance name"
-  value       = module.cloud_sql.instance_name
+# Firestore outputs
+output "firestore_database_name" {
+  description = "Firestore database name"
+  value       = module.firestore.database_name
 }
 
-output "database_connection_name" {
-  description = "Cloud SQL connection name for Cloud SQL Proxy"
-  value       = module.cloud_sql.connection_name
+output "firestore_database_id" {
+  description = "Firestore database ID"
+  value       = module.firestore.database_id
 }
 
-output "database_public_ip" {
-  description = "Public IP address of the Cloud SQL instance"
-  value       = module.cloud_sql.public_ip_address
+output "firestore_database_location" {
+  description = "Firestore database location"
+  value       = module.firestore.database_location
 }
 
-output "database_url_cloudsql" {
-  description = "Database URL for Cloud Run/Functions (Unix socket)"
-  value       = module.cloud_sql.database_url_cloudsql
-  sensitive   = true
+output "firestore_project_id" {
+  description = "GCP project ID for Firestore"
+  value       = module.firestore.project_id
 }
 
-output "database_url_external" {
-  description = "Database URL for external connections"
-  value       = module.cloud_sql.database_url_external
-  sensitive   = true
+output "firestore_service_account_email" {
+  description = "Firestore service account email (if created)"
+  value       = module.firestore.service_account_email
+}
+
+output "firestore_connection_info" {
+  description = "Firestore connection information"
+  value       = module.firestore.connection_info
 }

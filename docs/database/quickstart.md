@@ -1,123 +1,353 @@
-# Database Quick Reference 🚀
+# Firestore Quick Reference
 
-## Initial Setup (One Time)
+Quick reference guide for working with Firestore in the PixelHub project.
+
+## One-Time Setup
 
 ```bash
-# 1. Configure variables
-cd terraform
-cp terraform.tfvars.example terraform.tfvars
-# Edit: Set password & add your IP (curl ifconfig.me)
+# 1. Authenticate with GCP
+gcloud auth application-default login
 
-# 2. Deploy database (~10 min)
+# 2. Deploy Firestore database
 ./scripts/deploy-db.sh
 
-# 3. Configure backend
+# 3. Set up service account credentials (for local development)
+./scripts/setup-firestore-credentials.sh
+
+# 4. Configure environment variables
 cd backend
 cp .env.example .env
-# Edit: Add your database password
+# Edit .env with your configuration
+# Set GCP_PROJECT_ID and GOOGLE_APPLICATION_CREDENTIALS
 
-# 4. Start proxy
-./scripts/setup-db-proxy.sh
+# 5. Install dependencies
+npm install
 
-# 5. Run migrations
-./scripts/migrate-db.sh
+# 6. Start the application
+npm run start:dev
 ```
 
-## Daily Development
+---
+
+## Daily Development Workflow
 
 ```bash
-# Start Cloud SQL Proxy (keep running)
-./scripts/setup-db-proxy.sh
+# Start the application
+cd backend
+npm run start:dev
 
-# Run backend
-cd backend && pnpm dev
-
-# View database (optional)
-cd backend && pnpm prisma studio
+# The application will automatically connect to Firestore using
+# Application Default Credentials (ADC) or the service account key
 ```
+
+---
 
 ## Common Commands
 
+### Firestore Operations
+
 ```bash
-# Database Management
-./scripts/setup-db-proxy.sh       # Start proxy
-./scripts/stop-db-proxy.sh        # Stop proxy
-./scripts/migrate-db.sh           # Apply migrations
-./scripts/migrate-db.sh dev       # Create new migration
+# View database information
+gcloud firestore databases describe '(default)'
 
-# Prisma Commands (in backend/)
-pnpm prisma studio                # GUI database viewer
-pnpm prisma generate              # Regenerate client
-pnpm prisma migrate dev           # Create migration
-pnpm prisma migrate deploy        # Apply migrations
-pnpm prisma db push               # Sync schema (dev only)
+# List collections
+gcloud firestore collections list
 
-# Terraform Commands (in terraform/)
-terraform plan                    # Preview changes
-terraform apply                   # Apply changes
-terraform output                  # Show all outputs
-terraform output database_url_external  # Get connection string
-terraform destroy                 # Delete infrastructure
+# View documents in a collection
+gcloud firestore documents list canvases
+gcloud firestore documents list users
+gcloud firestore documents list pixels --limit 10
 
-# GCloud Commands
-gcloud sql instances list                          # List instances
-gcloud sql instances describe pixelhub-db-dev      # Instance details
-gcloud sql connect pixelhub-db-dev --user=pixelhub_user  # Connect via psql
-gcloud sql backups list --instance=pixelhub-db-dev  # List backups
+# Get a specific document
+gcloud firestore documents describe canvases/main-canvas
+
+# Check index status
+gcloud firestore indexes composite list
 ```
 
-## Connection Strings
+---
 
-**Local (with Cloud SQL Proxy):**
-```
-postgresql://pixelhub_user:PASSWORD@127.0.0.1:5432/pixelhub
+### Terraform Commands
+
+```bash
+cd terraform
+
+# View current infrastructure
+terraform show
+
+# View outputs (database info)
+terraform output
+
+# View specific output
+terraform output firestore_database_name
+terraform output firestore_service_account_email
+
+# Update infrastructure
+terraform plan
+terraform apply
+
+# Destroy infrastructure (WARNING: Deletes all data!)
+terraform destroy
 ```
 
-**Direct (public IP):**
-```
-postgresql://pixelhub_user:PASSWORD@PUBLIC_IP:5432/pixelhub
+---
+
+### Application Scripts
+
+```bash
+# Deploy Firestore database
+./scripts/deploy-db.sh
+
+# Set up service account credentials
+./scripts/setup-firestore-credentials.sh
+
+# Verify Firestore connection
+./scripts/verify-firestore-connection.sh
+
+# Start Firestore emulator (for local development)
+./scripts/setup-firestore-emulator.sh
 ```
 
-**Production (Cloud Run/Functions):**
+---
+
+## Environment Variables
+
+### Local Development (.env)
+
+```bash
+NODE_ENV="development"
+PORT="3000"
+GCP_PROJECT_ID="serverless-tek89"
+
+# For service account authentication (local development)
+GOOGLE_APPLICATION_CREDENTIALS="/absolute/path/to/firestore-key.json"
+
+# OR use Application Default Credentials (no key file needed)
+# Just run: gcloud auth application-default login
 ```
-postgresql://pixelhub_user:PASSWORD@/pixelhub?host=/cloudsql/CONNECTION_NAME
+
+### Production (Cloud Run/Functions)
+
+```bash
+NODE_ENV="production"
+GCP_PROJECT_ID="serverless-tek89"
+
+# GOOGLE_APPLICATION_CREDENTIALS is NOT needed in production
+# Application Default Credentials (ADC) are used automatically
 ```
+
+---
+
+## Data Model Overview
+
+### Collections
+
+1. **canvases**: Canvas metadata
+   - Document ID: Auto-generated or custom (e.g., `main-canvas`)
+   - Fields: `id`, `width`, `height`, `version`, `createdAt`, `updatedAt`, `totalPixels`
+
+2. **pixels**: Individual pixel data
+   - Document ID: `{canvasId}_{x}_{y}` (e.g., `main-canvas_100_250`)
+   - Fields: `canvasId`, `x`, `y`, `color`, `userId`, `updatedAt`
+
+3. **users**: User information and statistics
+   - Document ID: Auto-generated or custom user ID
+   - Fields: `id`, `username`, `lastPixelPlaced`, `totalPixelsPlaced`, `createdAt`
+
+4. **pixelHistory**: Audit trail of pixel changes
+   - Document ID: Auto-generated
+   - Fields: `id`, `canvasId`, `x`, `y`, `color`, `userId`, `createdAt`
+
+---
+
+## Quick Code Examples
+
+### Using FirestoreService
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { FirestoreService } from './firestore/firestore.service';
+
+@Injectable()
+export class PixelsService {
+  constructor(private readonly firestore: FirestoreService) {}
+
+  // Get a pixel
+  async getPixel(canvasId: string, x: number, y: number) {
+    const pixelId = FirestoreService.createPixelId(canvasId, x, y);
+    const doc = await this.firestore.doc('pixels', pixelId).get();
+    return doc.data();
+  }
+
+  // Create/update a pixel
+  async setPixel(canvasId: string, x: number, y: number, color: number, userId: string) {
+    const pixelId = FirestoreService.createPixelId(canvasId, x, y);
+    await this.firestore.doc('pixels', pixelId).set({
+      canvasId,
+      x,
+      y,
+      color,
+      userId,
+      updatedAt: this.firestore.timestamp(),
+    });
+  }
+
+  // Query pixels by canvas
+  async getCanvasPixels(canvasId: string, limit = 100) {
+    const snapshot = await this.firestore
+      .collection('pixels')
+      .where('canvasId', '==', canvasId)
+      .limit(limit)
+      .get();
+
+    return snapshot.docs.map(doc => doc.data());
+  }
+
+  // Batch write multiple pixels
+  async setMultiplePixels(pixels: any[]) {
+    const batch = this.firestore.batch();
+
+    pixels.forEach(pixel => {
+      const pixelId = FirestoreService.createPixelId(pixel.canvasId, pixel.x, pixel.y);
+      const ref = this.firestore.doc('pixels', pixelId);
+      batch.set(ref, pixel);
+    });
+
+    await batch.commit();
+  }
+}
+```
+
+---
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| Can't connect | `./scripts/setup-db-proxy.sh` |
-| Migrations fail | Check `backend/.env` has correct DATABASE_URL |
-| IP not authorized | Add IP to `terraform/terraform.tfvars` and run `terraform apply` |
-| Proxy won't start | `./scripts/stop-db-proxy.sh` then restart |
-| Forgot password | Set new one in terraform.tfvars, run `terraform apply` |
-
-## Quick Links
-
-- [Full Deployment Guide](deployment.md)
-- [Cloud SQL Module Docs](../../terraform/modules/cloud-sql/README.md)
-- [Cloud Console](https://console.cloud.google.com/sql/instances/pixelhub-db-dev)
-- [Prisma Docs](https://www.prisma.io/docs)
-
-## Cost Estimate
-
-- Development (db-f1-micro): ~$10/month
-- Production (db-custom-2-7680): ~$140/month
-- Storage: ~$0.17/GB/month
-
-## Need Help?
+### Connection Issues
 
 ```bash
-# Check proxy status
-ps aux | grep cloud-sql-proxy
+# Check authentication
+gcloud auth list
+gcloud auth application-default login
 
-# Test database connection
-psql "postgresql://pixelhub_user:PASSWORD@127.0.0.1:5432/pixelhub" -c "SELECT version();"
+# Verify credentials
+echo $GOOGLE_APPLICATION_CREDENTIALS
+ls -la $GOOGLE_APPLICATION_CREDENTIALS
 
-# View Terraform state
-cd terraform && terraform show
-
-# View Cloud SQL logs
-gcloud sql operations list --instance=pixelhub-db-dev --limit=10
+# Verify Firestore connection
+./scripts/verify-firestore-connection.sh
 ```
+
+### Permission Issues
+
+```bash
+# Check service account permissions
+gcloud projects get-iam-policy serverless-tek89 \
+  --flatten="bindings[].members" \
+  --filter="bindings.members:serviceAccount:YOUR_SA_EMAIL"
+
+# Grant required permissions
+gcloud projects add-iam-policy-binding serverless-tek89 \
+  --member="serviceAccount:YOUR_SA_EMAIL" \
+  --role="roles/datastore.user"
+```
+
+### Index Issues
+
+```bash
+# Check index build status
+gcloud firestore indexes composite list
+
+# Indexes take 5-10 minutes to build after deployment
+# Wait for status to change from "CREATING" to "READY"
+
+# Manually create an index if needed
+gcloud firestore indexes composite create \
+  --collection-group=pixels \
+  --field-config field-path=canvasId,order=ascending \
+  --field-config field-path=updatedAt,order=descending
+```
+
+---
+
+## Cost Estimation
+
+Firestore uses pay-per-usage pricing:
+
+### Storage
+- **$0.18 per GB/month**: Stored data
+- **$0.12 per GB/month**: PITR backup (if enabled)
+
+### Operations
+- **Reads**: $0.06 per 100,000 reads
+- **Writes**: $0.18 per 100,000 writes
+- **Deletes**: $0.02 per 100,000 deletes
+
+### Example (Small App)
+- 1 GB storage: $0.18/month
+- 1M reads/day: ~$18/month
+- 100K writes/day: ~$5.40/month
+- **Total**: ~$24/month
+
+### Free Tier (Daily)
+- 50,000 reads
+- 20,000 writes
+- 20,000 deletes
+- 1 GB storage
+
+---
+
+## Backup and Recovery
+
+### Automatic Backups
+
+Firestore automatically creates daily backups with PITR enabled.
+
+```bash
+# List backups
+gcloud firestore backups list
+
+# View backup details
+gcloud firestore backups describe BACKUP_NAME
+```
+
+### Manual Export
+
+```bash
+# Export all data
+gcloud firestore export gs://your-backup-bucket/firestore-backup
+
+# Export specific collections
+gcloud firestore export gs://your-backup-bucket/firestore-backup \
+  --collection-ids='canvases,pixels,users'
+```
+
+### Restore
+
+```bash
+# Import from backup
+gcloud firestore import gs://your-backup-bucket/firestore-backup
+```
+
+---
+
+## Performance Tips
+
+1. **Use Batch Writes**: Group multiple writes into a single batch (up to 500 operations)
+2. **Implement Caching**: Cache frequently accessed data client-side
+3. **Pagination**: Use cursors for large result sets
+4. **Optimize Queries**: Ensure all queries have appropriate indexes
+5. **Denormalize Data**: Store redundant data to avoid multiple reads
+
+---
+
+## Additional Resources
+
+- [Firestore Setup Guide](./firestore-setup.md) - Detailed setup instructions
+- [Firestore Data Model](./firestore-data-model.md) - Complete data model documentation
+- [Migration Guide](./firestore-migration.md) - Migrating from Cloud SQL
+- [Firestore Documentation](https://cloud.google.com/firestore/docs) - Official Google docs
+- [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup) - SDK documentation
+
+---
+
+**Need help?** See [firestore-setup.md](./firestore-setup.md) for detailed troubleshooting.

@@ -34,35 +34,26 @@ variable "environment" {
   default     = "dev"
 }
 
-variable "database_name" {
-  description = "Name of the PostgreSQL database"
+variable "firestore_location" {
+  description = "Location for Firestore database (e.g., 'europe-west1', 'nam5' for multi-region)"
   type        = string
-  default     = "pixelhub"
+  default     = "europe-west1"
 }
 
-variable "database_user" {
-  description = "Database user name"
+variable "firestore_concurrency_mode" {
+  description = "Firestore concurrency mode: OPTIMISTIC (lower latency) or PESSIMISTIC (stronger consistency)"
   type        = string
-  default     = "pixelhub_user"
+  default     = "OPTIMISTIC"
 }
 
-variable "database_password" {
-  description = "Database user password (should be set via tfvars or environment variable)"
-  type        = string
-  sensitive   = true
+variable "firestore_enable_pitr" {
+  description = "Enable Point-in-Time Recovery for Firestore"
+  type        = bool
+  default     = true
 }
 
-variable "db_tier" {
-  description = "Cloud SQL instance tier (db-f1-micro for dev, db-custom-2-7680 for prod)"
-  type        = string
-  default     = "db-f1-micro"
-}
-
-variable "authorized_networks" {
-  description = "List of authorized networks for database access"
-  type = list(object({
-    name = string
-    cidr = string
-  }))
-  default = []
+variable "firestore_create_service_account" {
+  description = "Create a service account for Firestore access"
+  type        = bool
+  default     = true
 }

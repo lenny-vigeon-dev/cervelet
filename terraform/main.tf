@@ -10,31 +10,20 @@ provider "google" {
   region  = var.region
 }
 
-# Cloud SQL Database
-module "cloud_sql" {
-  source = "./modules/cloud-sql"
+# Firestore Database
+module "firestore" {
+  source = "./modules/firestore"
 
-  project_id      = var.project_id
-  project_name    = "pixelhub"
-  environment     = var.environment
-  region          = var.region
-  database_name   = var.database_name
-  database_user   = var.database_user
-  database_password = var.database_password
+  project_id   = var.project_id
+  project_name = "pixelhub"
+  environment  = var.environment
+  location_id  = var.firestore_location
 
-  # Instance configuration
-  tier               = var.db_tier
-  database_version   = "POSTGRES_15"
-  initial_disk_size  = 10
-  max_disk_size      = 100
-  max_connections    = "100"
-
-  # Security
-  deletion_protection = var.environment == "prod" ? true : false
-  public_ip_enabled   = true
-
-  # Allow connections from authorized IPs (add your IPs here)
-  authorized_networks = var.authorized_networks
+  # Configuration
+  concurrency_mode        = var.firestore_concurrency_mode
+  enable_pitr            = var.firestore_enable_pitr
+  deletion_protection    = var.environment == "prod" ? true : false
+  create_service_account = var.firestore_create_service_account
 }
 
 module "hello_world" {

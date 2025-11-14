@@ -8,7 +8,7 @@ variable "project_id" {
 }
 
 variable "project_name" {
-  description = "The project name (used for resource naming)"
+  description = "The project name used for resource naming and labels"
   type        = string
 }
 

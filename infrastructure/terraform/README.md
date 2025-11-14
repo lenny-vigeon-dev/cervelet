@@ -44,8 +44,7 @@ infrastructure/
     │   ├── variables.tf
     │   ├── openapi.yaml       # API routing specification
     │   └── README.md
-    ├── firestore/             # Firestore database module
-    └── hello-world-cloud-function/  # Example Cloud Function
+    └── firestore/             # Firestore database module
 ```
 
 ## Modules
@@ -59,9 +58,6 @@ infrastructure/
 ### 2. Firestore (`modules/firestore/`)
 - **Purpose**: NoSQL database for application data
 - **Features**: Point-in-Time Recovery, service account management
-
-### 3. Hello World Cloud Function (`modules/hello-world-cloud-function/`)
-- **Purpose**: Example serverless function
 
 ## Prerequisites
 
@@ -139,7 +135,6 @@ terraform output
 Key outputs:
 - **`api_gateway_url`**: Your public API Gateway URL
 - **`firestore_database_name`**: Firestore database name
-- **`hello_world_function_url`**: Test function URL
 
 ## Configuration Details
 

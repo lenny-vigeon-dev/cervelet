@@ -1,5 +1,5 @@
 variable "project_id" {
-  description = "PixelHub"
+  description = "The GCP project ID where resources will be deployed"
   type        = string
   default     = "serverless-tek89"
 }

@@ -26,16 +26,6 @@ module "firestore" {
   create_service_account = var.firestore_create_service_account
 }
 
-module "hello_world" {
-  source      = "./modules/hello-world-cloud-function"
-  source_dir  = "../applications/hello-world-cloud-function"
-  project_id  = var.project_id
-  region      = var.region
-  name        = "hello-world"
-  entry_point = "helloWorld"
-  invokers    = var.invokers
-}
-
 # API Gateway - Single public entry point for the application
 module "api_gateway" {
   source = "./modules/api-gateway"

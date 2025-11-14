@@ -54,7 +54,7 @@ brew install node
 terraform --version
 gcloud --version
 node --version
-npm --version
+pnpm --version
 ```
 
 ---
@@ -79,10 +79,10 @@ cp .env.example .env
 # Edit .env with your configuration
 
 # 5. Install dependencies
-npm install
+pnpm install
 
 # 6. Start the application
-npm run start:dev
+pnpm run start:dev
 
 # 7. Verify connection
 cd ..
@@ -215,7 +215,7 @@ Install the backend application dependencies.
 cd backend
 
 # Install dependencies
-npm install
+pnpm install
 ```
 
 **What this installs:**
@@ -231,11 +231,11 @@ Start the NestJS application in development mode.
 
 ```bash
 # Start in development mode (with hot reload)
-npm run start:dev
+pnpm run start:dev
 
 # Alternative: Start in production mode
-npm run build
-npm run start:prod
+pnpm run build
+pnpm run start:prod
 ```
 
 **Expected output:**
@@ -296,7 +296,7 @@ For offline development and testing, use the Firestore Emulator:
 
 ```bash
 # Install Firebase CLI (if not already installed)
-npm install -g firebase-tools
+pnpm install -g firebase-tools
 
 # Start the emulator
 ./scripts/setup-firestore-emulator.sh
@@ -660,20 +660,43 @@ await batch.commit(); // Single network call
 
 ---
 
-## Migration from Cloud SQL
+## Database Schema and Types
 
-If you're migrating from the previous Cloud SQL setup:
+### TypeScript Types
 
-1. **Export PostgreSQL data**
-2. **Transform relational data to NoSQL documents**
-3. **Import into Firestore using batch writes**
-4. **Verify data integrity**
-5. **Update application code**
-6. **Test thoroughly**
-7. **Switch traffic**
-8. **Decommission Cloud SQL**
+All Firestore document types are defined in `backend/src/types/firestore.types.ts`:
 
-See `firestore-migration.md` for detailed migration instructions.
+```typescript
+import { Canvas, Pixel, User, PixelHistory, COLLECTIONS } from './types';
+
+// Use strongly-typed interfaces
+const canvas: Canvas = {
+  id: 'main-canvas',
+  width: 1000,
+  height: 1000,
+  version: 1,
+  createdAt: Timestamp.now(),
+  updatedAt: Timestamp.now(),
+  totalPixels: 0,
+};
+```
+
+### Firestore Indexes
+
+Composite indexes are defined in `backend/firestore.indexes.json` and can be deployed using:
+
+```bash
+# Deploy indexes
+./scripts/deploy-firestore-indexes.sh
+
+# Or manually via Firebase Console
+# https://console.firebase.google.com/project/serverless-tek89/firestore/indexes
+```
+
+**Required indexes:**
+- `pixels`: `(canvasId, updatedAt DESC)`, `(userId, updatedAt DESC)`
+- `pixelHistory`: `(canvasId, createdAt DESC)`, `(canvasId, x, y, createdAt DESC)`
+- `users`: `username` (single field)
 
 ---
 
@@ -693,7 +716,7 @@ See `firestore-migration.md` for detailed migration instructions.
 For issues or questions:
 1. Check this documentation and troubleshooting section
 2. Review the [Firestore documentation](https://cloud.google.com/firestore/docs)
-3. Check application logs: `npm run start:dev`
+3. Check application logs: `pnpm run start:dev`
 4. Verify Firestore connection: `./scripts/verify-firestore-connection.sh`
 5. Open an issue in the project repository
 

@@ -8,7 +8,8 @@ Complete documentation is available in the [`docs/`](docs/) directory:
 
 - **[Documentation Index](docs/README.md)** - Overview of all documentation
 - **[Database Quick Start](docs/database/quickstart.md)** - Quick reference for database operations
-- **[Database Deployment](docs/database/deployment.md)** - Complete Cloud SQL deployment guide
+- **[Firestore Setup Guide](docs/database/firestore-setup.md)** - Complete Firestore setup guide
+- **[Firestore Data Model](docs/database/firestore-data-model.md)** - Database schema and collections
 - **[OAuth Authentication](docs/oauth-authentication.md)** - Authentication setup
 
 ## 🏗️ Project Structure
@@ -19,7 +20,7 @@ cervelet/
 ├── frontend/             # Next.js frontend application
 ├── terraform/            # Infrastructure as Code
 │   └── modules/
-│       ├── cloud-sql/    # PostgreSQL database module
+│       ├── firestore/    # Firestore database module
 │       └── hello-world-cloud-function/
 ├── scripts/              # Deployment and utility scripts
 └── docs/                 # Project documentation
@@ -31,11 +32,12 @@ cervelet/
 
 ```bash
 # Install required tools
-brew install terraform cloud-sql-proxy pnpm  # macOS
+brew install terraform pnpm  # macOS
 
 # Authenticate with GCP
 gcloud auth login
 gcloud config set project serverless-tek89
+gcloud auth application-default login
 ```
 
 ### 1. Initial GCP Setup
@@ -49,28 +51,20 @@ gsutil versioning set on gs://serverless-tek89-terraform-state-bucket/
 ### 2. Deploy Database
 
 ```bash
-# Configure database settings
-cd terraform
-cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your settings
-
-# Deploy Cloud SQL
+# Deploy Firestore database
 ./scripts/deploy-db.sh
 ```
 
 ### 3. Set Up Local Development
 
 ```bash
-# Start Cloud SQL Proxy
-./scripts/setup-db-proxy.sh
+# Set up Firestore credentials
+./scripts/setup-firestore-credentials.sh
 
 # Configure backend
 cd backend
 cp .env.example .env
-# Edit .env with your database password
-
-# Run migrations
-./scripts/migrate-db.sh
+# Edit .env with your GCP project ID
 
 # Start backend
 pnpm install
@@ -87,7 +81,7 @@ terraform apply
 
 ## 📖 Detailed Guides
 
-- **Database Setup**: See [docs/database/deployment.md](docs/database/deployment.md)
+- **Database Setup**: See [docs/database/firestore-setup.md](docs/database/firestore-setup.md)
 - **Daily Development**: See [docs/database/quickstart.md](docs/database/quickstart.md)
 - **Backend Documentation**: See [backend/README.md](backend/README.md)
 - **Frontend Documentation**: See [frontend/README.md](frontend/README.md)
@@ -96,16 +90,15 @@ terraform apply
 
 All scripts are located in the `scripts/` directory:
 
-- `./scripts/deploy-db.sh` - Deploy Cloud SQL database
-- `./scripts/setup-db-proxy.sh` - Start Cloud SQL Proxy for local development
-- `./scripts/stop-db-proxy.sh` - Stop Cloud SQL Proxy
-- `./scripts/migrate-db.sh` - Run Prisma migrations
+- `./scripts/deploy-db.sh` - Deploy Firestore database
+- `./scripts/setup-firestore-credentials.sh` - Set up service account credentials for local development
+- `./scripts/verify-firestore-connection.sh` - Verify Firestore connection and configuration
 
 ## 🏛️ Architecture
 
 - **Frontend**: Next.js with Server Actions
 - **Backend**: NestJS REST API
-- **Database**: PostgreSQL on Google Cloud SQL
+- **Database**: Firestore (NoSQL Document Database)
 - **Infrastructure**: Google Cloud Platform (Cloud Functions, Cloud Run)
 - **IaC**: Terraform
 

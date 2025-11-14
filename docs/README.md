@@ -6,8 +6,9 @@ Welcome to the PixelHub documentation! This directory contains all project docum
 
 ### Database
 - **[Quick Start Guide](database/quickstart.md)** - Quick reference for daily database operations
-- **[Deployment Guide](database/deployment.md)** - Complete guide for deploying PostgreSQL with Cloud SQL
-- **[Module Documentation](../terraform/modules/cloud-sql/README.md)** - Terraform Cloud SQL module details
+- **[Setup Guide](database/firestore-setup.md)** - Complete guide for setting up Firestore
+- **[Data Model](database/firestore-data-model.md)** - Firestore schema and collections documentation
+- **[Database Overview](database/README.md)** - Complete database documentation index
 
 ### Authentication
 - **[OAuth Authentication](oauth-authentication.md)** - OAuth setup and configuration
@@ -21,7 +22,7 @@ Welcome to the PixelHub documentation! This directory contains all project docum
 New to the project? Start here:
 
 1. Read the main [README](../README.md) for project overview
-2. Follow the [Database Deployment Guide](database/deployment.md) to set up your database
+2. Follow the [Firestore Setup Guide](database/firestore-setup.md) to set up your database
 3. Use the [Database Quick Start](database/quickstart.md) for daily development
 4. Check [OAuth Authentication](oauth-authentication.md) for auth setup
 
@@ -31,12 +32,14 @@ New to the project? Start here:
 docs/
 ├── README.md                          # This file
 ├── database/
+│   ├── README.md                     # Database documentation index
 │   ├── quickstart.md                 # Quick reference for database operations
-│   └── deployment.md                 # Full database deployment guide
+│   ├── firestore-setup.md            # Complete Firestore setup guide
+│   └── firestore-data-model.md       # Firestore schema and collections
 └── oauth-authentication.md           # OAuth setup guide
 
-terraform/modules/cloud-sql/
-└── README.md                         # Cloud SQL module documentation
+terraform/modules/firestore/
+└── README.md                         # Firestore module documentation
 ```
 
 ## 💡 Contributing to Documentation
@@ -50,7 +53,7 @@ When adding new documentation:
 
 ## 🔗 External Resources
 
-- [Prisma Documentation](https://www.prisma.io/docs)
-- [Google Cloud SQL](https://cloud.google.com/sql/docs)
+- [Firestore Documentation](https://cloud.google.com/firestore/docs)
+- [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup)
 - [Terraform Documentation](https://developer.hashicorp.com/terraform/docs)
 - [r/place Technical Discussion](https://www.reddit.com/r/redditdev/comments/txqr7y/rplace_architecture/)

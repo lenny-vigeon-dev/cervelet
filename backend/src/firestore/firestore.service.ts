@@ -22,28 +22,63 @@ import type {
 export class FirestoreService implements OnModuleInit, OnModuleDestroy {
   private firestore!: Firestore;
   private app!: App;
+  private initPromise: Promise<void> | null = null;
+  private isInitialized = false;
 
   onModuleInit(): void {
-    // Initialize Firebase Admin SDK
-    // Uses Application Default Credentials (ADC) in production
-    // For local development, set GOOGLE_APPLICATION_CREDENTIALS env variable
-    const apps = getApps();
-    if (apps.length === 0) {
-      this.app = initializeApp({
-        projectId: process.env.GCP_PROJECT_ID || 'serverless-tek89',
-      });
-    } else {
-      this.app = getApp();
+    // Start initialization in background, don't block app startup
+    this.initPromise = this.initialize().catch((err) => {
+      console.error('Failed to initialize Firestore:', err);
+      // Don't throw - let the app start anyway
+    });
+  }
+
+  private async initialize(): Promise<void> {
+    if (this.isInitialized) {
+      return;
     }
 
-    this.firestore = getFirestore(this.app);
+    try {
+      // Initialize Firebase Admin SDK
+      // Uses Application Default Credentials (ADC) in production
+      // For local development, set GOOGLE_APPLICATION_CREDENTIALS env variable
+      const apps = getApps();
+      if (apps.length === 0) {
+        this.app = initializeApp({
+          projectId: process.env.GCP_PROJECT_ID || process.env.GCP_PROJECT || 'serverless-tek89',
+        });
+      } else {
+        this.app = getApp();
+      }
 
-    // Configure Firestore settings
-    this.firestore.settings({
-      ignoreUndefinedProperties: true, // Ignore undefined values in documents
-    });
+      this.firestore = getFirestore(this.app);
 
-    console.log('Firestore connection initialized');
+      // Configure Firestore settings
+      this.firestore.settings({
+        ignoreUndefinedProperties: true, // Ignore undefined values in documents
+      });
+
+      this.isInitialized = true;
+      console.log('Firestore connection initialized');
+    } catch (error) {
+      console.error('Firestore initialization error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Ensure Firestore is initialized before use
+   * @private
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+    if (this.initPromise) {
+      await this.initPromise;
+    } else {
+      await this.initialize();
+    }
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -58,7 +93,8 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
    * Get the Firestore instance
    * @returns Firestore instance for database operations
    */
-  getFirestore(): Firestore {
+  async getFirestore(): Promise<Firestore> {
+    await this.ensureInitialized();
     return this.firestore;
   }
 
@@ -67,7 +103,8 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
    * @param collectionName - Name of the collection
    * @returns CollectionReference
    */
-  collection(collectionName: string) {
+  async collection(collectionName: string) {
+    await this.ensureInitialized();
     return this.firestore.collection(collectionName);
   }
 
@@ -77,7 +114,8 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
    * @param documentId - ID of the document
    * @returns DocumentReference
    */
-  doc(collectionName: string, documentId: string) {
+  async doc(collectionName: string, documentId: string) {
+    await this.ensureInitialized();
     return this.firestore.collection(collectionName).doc(documentId);
   }
 
@@ -86,9 +124,10 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
    * @param updateFunction - Function to execute in the transaction
    * @returns Promise with transaction result
    */
-  runTransaction<T>(
+  async runTransaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>,
   ): Promise<T> {
+    await this.ensureInitialized();
     return this.firestore.runTransaction(updateFunction);
   }
 
@@ -96,7 +135,8 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
    * Create a batch write
    * @returns WriteBatch instance
    */
-  batch(): WriteBatch {
+  async batch(): Promise<WriteBatch> {
+    await this.ensureInitialized();
     return this.firestore.batch();
   }
 

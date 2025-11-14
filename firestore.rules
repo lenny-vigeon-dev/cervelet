@@ -1,18 +1,119 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2025, 12, 14);
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Validate pixel coordinates and color
+    function isValidPixel(canvasWidth, canvasHeight) {
+      let data = request.resource.data;
+      return data.x >= 0 && data.x < canvasWidth &&
+             data.y >= 0 && data.y < canvasHeight &&
+             data.color >= 0 && data.color <= 16777215;  // Valid RGB color (0x000000 to 0xFFFFFF)
+    }
+
+    // Validate required pixel fields
+    function hasRequiredPixelFields() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['canvasId', 'x', 'y', 'color', 'userId', 'updatedAt']);
+    }
+
+    // Validate user cannot change other user's pixel ownership
+    function isPixelOwnershipValid() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId']);
+    }
+
+    // ===========================================
+    // CANVASES COLLECTION
+    // ===========================================
+    // Canvas metadata - readable by all, writable only by admins
+    match /canvases/{canvasId} {
+      // Anyone can read canvas metadata
+      allow read: if true;
+
+      // Only admins can create, update, or delete canvases
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ===========================================
+    // PIXELS COLLECTION
+    // ===========================================
+    // Individual pixels - readable by all, writable by authenticated users
+    match /pixels/{pixelId} {
+      // Anyone can read pixels (public canvas viewing)
+      allow read: if true;
+
+      // Authenticated users can create pixels
+      allow create: if isAuthenticated() &&
+                      hasRequiredPixelFields() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      exists(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId));
+
+      // Authenticated users can update pixels
+      // Must preserve userId (cannot change pixel ownership)
+      // Must validate coordinates and color
+      allow update: if isAuthenticated() &&
+                      hasRequiredPixelFields() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      isPixelOwnershipValid();
+
+      // Only admins can delete pixels
+      allow delete: if isAdmin();
+    }
+
+    // ===========================================
+    // USERS COLLECTION
+    // ===========================================
+    // User profiles and statistics
+    match /users/{userId} {
+      // Anyone can read user profiles (public leaderboards, user info)
+      allow read: if true;
+
+      // Users can create their own profile on first login
+      allow create: if isOwner(userId) &&
+                      request.resource.data.id == userId &&
+                      request.resource.data.keys().hasAll(['id', 'username', 'role', 'createdAt']);
+
+      // Users can only update their own profile
+      // Cannot change their own role (prevents privilege escalation)
+      allow update: if isOwner(userId) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['id', 'role', 'createdAt']);
+
+      // Only admins can delete user accounts
+      allow delete: if isAdmin();
+    }
+
+    // ===========================================
+    // PIXEL HISTORY COLLECTION
+    // ===========================================
+    // Audit trail - readable by all, append-only (write through backend)
+    match /pixelHistory/{historyId} {
+      // Anyone can read pixel history (canvas replay feature)
+      allow read: if true;
+
+      // Only authenticated users can create history entries
+      // This should primarily be done through backend/Cloud Functions
+      // to ensure data integrity
+      allow create: if isAuthenticated() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['canvasId', 'x', 'y', 'color', 'userId', 'createdAt']);
+
+      // History is append-only - no updates or deletes allowed
+      // This preserves the audit trail integrity
+      allow update, delete: if false;
     }
   }
 }

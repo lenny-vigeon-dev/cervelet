@@ -5,7 +5,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR/.."
-TERRAFORM_DIR="$PROJECT_ROOT/terraform"
+TERRAFORM_DIR="$PROJECT_ROOT/infrastructure/terraform"
 CREDENTIALS_DIR="$PROJECT_ROOT/backend"
 
 echo "🔑 Setting up Firestore service account credentials..."

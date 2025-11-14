@@ -70,7 +70,7 @@ gcloud firestore indexes composite list
 ### Terraform Commands
 
 ```bash
-cd terraform
+cd infrastructure/terraform
 
 # View current infrastructure
 terraform show

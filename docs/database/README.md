@@ -81,7 +81,7 @@ This directory contains documentation for the PixelHub database infrastructure u
 
 ### For DevOps/Infrastructure
 
-1. Review Terraform module: `../../terraform/modules/firestore/`
+1. Review Terraform module: `../../infrastructure/terraform/modules/firestore/`
 2. Check deployment scripts: `../../scripts/`
 3. See [firestore-setup.md](./firestore-setup.md) for production deployment
 
@@ -287,12 +287,12 @@ When updating database documentation:
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 2.0.0 | 2025-01-14 | Migrated from Cloud SQL to Firestore |
-| 1.0.0 | 2024-12-XX | Initial Cloud SQL documentation |
+| 2.0.0 | 2025-11-14 | Migrated from Cloud SQL to Firestore |
+| 1.0.0 | 2024-12-01 | Initial Cloud SQL documentation |
 
 ---
 
-**Last Updated**: January 14, 2025
+**Last Updated**: November 14, 2025
 
 **Database**: Firestore Native Mode (v2.0)
 

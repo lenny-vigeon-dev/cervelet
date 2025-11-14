@@ -10,7 +10,7 @@ Complete documentation is available in the [`docs/`](docs/) directory:
 - **[Database Quick Start](docs/database/quickstart.md)** - Quick reference for database operations
 - **[Firestore Setup Guide](docs/database/firestore-setup.md)** - Complete Firestore setup guide
 - **[Firestore Data Model](docs/database/firestore-data-model.md)** - Database schema and collections
-- **[Firebase vs Terraform](docs/FIREBASE-TERRAFORM.md)** - How Firebase CLI and Terraform work together
+- **[Firebase vs Terraform](docs/firebase-terraform.md)** - How Firebase CLI and Terraform work together
 - **[OAuth Authentication](docs/oauth-authentication.md)** - Authentication setup
 
 ## 🏗️ Project Structure
@@ -19,10 +19,11 @@ Complete documentation is available in the [`docs/`](docs/) directory:
 cervelet/
 ├── backend/              # NestJS backend application
 ├── frontend/             # Next.js frontend application
-├── terraform/            # Infrastructure as Code
-│   └── modules/
-│       ├── firestore/    # Firestore database module
-│       └── hello-world-cloud-function/
+├── infrastructure/       # Infrastructure as Code
+│   └── terraform/        # Terraform configuration
+│       └── modules/
+│           ├── api-gateway/  # API Gateway module
+│           └── firestore/    # Firestore database module
 ├── scripts/              # Deployment and utility scripts
 ├── docs/                 # Project documentation
 ├── firebase.json         # Firebase CLI config (emulator settings)
@@ -30,7 +31,7 @@ cervelet/
 └── firestore.indexes.json # Index definitions (synced from Terraform)
 ```
 
-**Note:** Firebase configuration files must be at the project root for Firebase CLI to function properly. See [docs/FIREBASE-TERRAFORM.md](docs/FIREBASE-TERRAFORM.md) for details on how Firebase CLI and Terraform work together.
+**Note:** Firebase configuration files must be at the project root for Firebase CLI to function properly. See [docs/firebase-terraform.md](docs/firebase-terraform.md) for details on how Firebase CLI and Terraform work together.
 
 ## 🚀 Quick Start
 
@@ -80,7 +81,7 @@ pnpm dev
 ### 4. Deploy Infrastructure
 
 ```bash
-cd terraform
+cd infrastructure/terraform
 terraform init
 terraform apply
 ```
@@ -89,7 +90,7 @@ terraform apply
 
 - **Database Setup**: See [docs/database/firestore-setup.md](docs/database/firestore-setup.md)
 - **Daily Development**: See [docs/database/quickstart.md](docs/database/quickstart.md)
-- **Firebase vs Terraform**: See [docs/FIREBASE-TERRAFORM.md](docs/FIREBASE-TERRAFORM.md) - Understanding how they work together
+- **Firebase vs Terraform**: See [docs/firebase-terraform.md](docs/firebase-terraform.md) - Understanding how they work together
 - **Backend Documentation**: See [backend/README.md](backend/README.md)
 - **Frontend Documentation**: See [frontend/README.md](frontend/README.md)
 

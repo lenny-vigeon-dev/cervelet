@@ -20,7 +20,7 @@ This document explains how Firebase CLI and Terraform work together without conf
 
 | File | Managed By | Purpose |
 |------|-----------|---------|
-| `terraform/modules/firestore/main.tf` | **Terraform** | Production database & indexes |
+| `infrastructure/terraform/modules/firestore/main.tf` | **Terraform** | Production database & indexes |
 | `firebase.json` | **Git tracked** | Emulator config + project reference |
 | `firestore.rules` | **Git tracked** | Security rules (for emulator & production) |
 | `firestore.indexes.json` | **Git tracked** | Index definitions (synced from Terraform) |
@@ -44,15 +44,16 @@ This document explains how Firebase CLI and Terraform work together without conf
 
 ```bash
 # 1. Update Terraform files
-vim terraform/modules/firestore/main.tf
+vim infrastructure/terraform/modules/firestore/main.tf
 
 # 2. Deploy via Terraform
-cd terraform
+cd infrastructure/terraform
 terraform plan
 terraform apply
 
 # 3. Sync indexes to firestore.indexes.json (optional)
-gcloud firestore indexes composite list --format=json > ../firestore.indexes.json
+cd ../..
+gcloud firestore indexes composite list --format=json > firestore.indexes.json
 ```
 
 ### 2. Security Rules Changes
@@ -92,12 +93,13 @@ If `firestore.indexes.json` doesn't match Terraform:
 
 ```bash
 # Pull current indexes from production
-cd terraform
+cd infrastructure/terraform
 terraform output
 
 # Update firestore.indexes.json manually to match
 # Or regenerate from production:
-gcloud firestore indexes composite list --format=json > ../firestore.indexes.json
+cd ../..
+gcloud firestore indexes composite list --format=json > firestore.indexes.json
 ```
 
 ### Accidentally Deployed Indexes via Firebase
@@ -106,7 +108,7 @@ If you accidentally ran `firebase deploy --only firestore:indexes`:
 
 ```bash
 # Re-apply Terraform to ensure state matches
-cd terraform
+cd infrastructure/terraform
 terraform apply
 ```
 

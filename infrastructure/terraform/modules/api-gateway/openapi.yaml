@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  title: Cervelet API Gateway
+  description: |
+    Single public entry point for the Cervelet serverless application.
+    All incoming traffic (Discord webhooks, web requests, etc.) is routed
+    to the cf-proxy Cloud Run service, which acts as a lightweight proxy
+    and request handler.
+  version: 1.0.0
+
+servers:
+  - url: https://api-gateway.cervelet.app
+    description: Production API Gateway
+
+# ===========================================================================
+# Security Schemes
+# ===========================================================================
+# Note: Authentication is handled by the cf-proxy service.
+# The API Gateway enforces HTTPS and IAM-based Cloud Run invocation.
+
+# ===========================================================================
+# Paths and Routing
+# ===========================================================================
+paths:
+  # Specific path for Discord webhook traffic
+  /discord/webhook:
+    post:
+      summary: Discord webhook endpoint
+      description: Receives Discord interaction webhooks and routes to cf-proxy
+      operationId: discordWebhook
+      x-google-backend:
+        address: ${backend_url}
+        path_translation: CONSTANT_ADDRESS
+        deadline: 30.0
+        protocol: h2
+      responses:
+        '200':
+          description: Webhook processed successfully
+        '400':
+          description: Invalid webhook payload
+        '401':
+          description: Unauthorized - invalid signature
+        '500':
+          description: Internal server error
+
+  # Additional Discord routes (if needed)
+  /discord/{proxy+}:
+    x-google-backend:
+      address: ${backend_url}
+      path_translation: APPEND_PATH_TO_ADDRESS
+      deadline: 30.0
+      protocol: h2
+    get:
+      summary: Discord GET requests
+      operationId: discordGet
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+    post:
+      summary: Discord POST requests
+      operationId: discordPost
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Discord PUT requests
+      operationId: discordPut
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Discord DELETE requests
+      operationId: discordDelete
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+    patch:
+      summary: Discord PATCH requests
+      operationId: discordPatch
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+
+  # Catch-all route: All other traffic goes to cf-proxy
+  # This ensures the API Gateway routes ALL requests to the proxy service
+  /{proxy+}:
+    x-google-backend:
+      address: ${backend_url}
+      path_translation: APPEND_PATH_TO_ADDRESS
+      deadline: 30.0
+      protocol: h2
+    get:
+      summary: Catch-all GET requests
+      operationId: catchAllGet
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+    post:
+      summary: Catch-all POST requests
+      operationId: catchAllPost
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Catch-all PUT requests
+      operationId: catchAllPut
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Catch-all DELETE requests
+      operationId: catchAllDelete
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+    patch:
+      summary: Catch-all PATCH requests
+      operationId: catchAllPatch
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+    options:
+      summary: Catch-all OPTIONS requests (CORS preflight)
+      operationId: catchAllOptions
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path to append to backend
+      responses:
+        '200':
+          description: Success
+
+# ===========================================================================
+# Components (Reusable Schemas)
+# ===========================================================================
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Error code
+        message:
+          type: string
+          description: Error message
+      required:
+        - code
+        - message

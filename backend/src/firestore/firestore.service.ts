@@ -1,25 +1,34 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import * as admin from 'firebase-admin';
-import { Firestore } from 'firebase-admin/firestore';
+import { initializeApp, getApps, getApp, deleteApp } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import type { App } from 'firebase-admin/app';
+import type {
+  Firestore,
+  Transaction,
+  WriteBatch,
+  Query,
+  QuerySnapshot,
+} from 'firebase-admin/firestore';
 
 @Injectable()
 export class FirestoreService implements OnModuleInit, OnModuleDestroy {
-  private firestore: Firestore;
-  private app: admin.app.App;
+  private firestore!: Firestore;
+  private app!: App;
 
-  async onModuleInit() {
+  onModuleInit(): void {
     // Initialize Firebase Admin SDK
     // Uses Application Default Credentials (ADC) in production
     // For local development, set GOOGLE_APPLICATION_CREDENTIALS env variable
-    if (!admin.apps.length) {
-      this.app = admin.initializeApp({
+    const apps = getApps();
+    if (apps.length === 0) {
+      this.app = initializeApp({
         projectId: process.env.GCP_PROJECT_ID || 'serverless-tek89',
       });
     } else {
-      this.app = admin.apps[0];
+      this.app = getApp();
     }
 
-    this.firestore = admin.firestore();
+    this.firestore = getFirestore(this.app);
 
     // Configure Firestore settings
     this.firestore.settings({
@@ -29,10 +38,10 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
     console.log('Firestore connection initialized');
   }
 
-  async onModuleDestroy() {
+  async onModuleDestroy(): Promise<void> {
     // Clean up Firebase Admin SDK
     if (this.app) {
-      await this.app.delete();
+      await deleteApp(this.app);
       console.log('Firestore connection closed');
     }
   }
@@ -69,8 +78,8 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
    * @param updateFunction - Function to execute in the transaction
    * @returns Promise with transaction result
    */
-  async runTransaction<T>(
-    updateFunction: (transaction: admin.firestore.Transaction) => Promise<T>,
+  runTransaction<T>(
+    updateFunction: (transaction: Transaction) => Promise<T>,
   ): Promise<T> {
     return this.firestore.runTransaction(updateFunction);
   }
@@ -79,7 +88,7 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
    * Create a batch write
    * @returns WriteBatch instance
    */
-  batch(): admin.firestore.WriteBatch {
+  batch(): WriteBatch {
     return this.firestore.batch();
   }
 
@@ -87,8 +96,8 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
    * Get server timestamp
    * @returns FieldValue for server timestamp
    */
-  timestamp(): admin.firestore.FieldValue {
-    return admin.firestore.FieldValue.serverTimestamp();
+  timestamp(): FieldValue {
+    return FieldValue.serverTimestamp();
   }
 
   /**
@@ -125,7 +134,7 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
     const query = collectionRef.limit(batchSize);
 
     return new Promise((resolve, reject) => {
-      this.deleteQueryBatch(query, resolve, reject);
+      void this.deleteQueryBatch(query, resolve, reject);
     });
   }
 
@@ -133,19 +142,19 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
    * Helper function to delete documents in batches
    */
   private async deleteQueryBatch(
-    query: admin.firestore.Query,
+    query: Query,
     resolve: () => void,
     reject: (error: Error) => void,
-  ) {
+  ): Promise<void> {
     try {
-      const snapshot = await query.get();
+      const snapshot: QuerySnapshot = await query.get();
 
       if (snapshot.size === 0) {
         resolve();
         return;
       }
 
-      const batch = this.firestore.batch();
+      const batch: WriteBatch = this.firestore.batch();
       snapshot.docs.forEach((doc) => {
         batch.delete(doc.ref);
       });
@@ -154,10 +163,10 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
 
       // Recurse on the next batch
       process.nextTick(() => {
-        this.deleteQueryBatch(query, resolve, reject);
+        void this.deleteQueryBatch(query, resolve, reject);
       });
     } catch (error) {
-      reject(error);
+      reject(error instanceof Error ? error : new Error(String(error)));
     }
   }
 

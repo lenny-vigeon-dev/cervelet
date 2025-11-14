@@ -114,3 +114,27 @@ output "snapshot_schedule" {
   description = "Snapshot generation schedule"
   value       = var.enable_snapshot_scheduler ? module.scheduler[0].schedule : null
 }
+
+# ===========================================================================
+# Service Account Outputs
+# ===========================================================================
+
+output "proxy_service_account_email" {
+  description = "Email of proxy service account"
+  value       = google_service_account.proxy.email
+}
+
+output "write_pixels_service_account_email" {
+  description = "Email of write-pixels service account"
+  value       = google_service_account.write_pixels.email
+}
+
+output "snap_service_account_email" {
+  description = "Email of snap service account"
+  value       = google_service_account.snap.email
+}
+
+output "discord_cmd_service_account_email" {
+  description = "Email of discord-cmd service account"
+  value       = google_service_account.discord_cmd.email
+}

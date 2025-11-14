@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-import { FirestoreService } from '../services/firestore.service';
-import { DiscordService } from '../services/discord.service';
+import { FirestoreService } from './services/firestore.service';
+import { DiscordService } from './services/discord.service';
 import { WritePixelService } from './write-pixel.service';
 import { PixelPayload, PubSubMessage } from './types';
 

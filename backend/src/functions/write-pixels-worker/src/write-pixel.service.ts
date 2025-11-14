@@ -1,6 +1,6 @@
 import { Timestamp } from '@google-cloud/firestore';
-import { FirestoreService } from '../services/firestore.service';
-import { DiscordService } from '../services/discord.service';
+import { FirestoreService } from './services/firestore.service';
+import { DiscordService } from './services/discord.service';
 import { PixelPayload } from './types';
 import { COOLDOWN_MS } from './config';
 

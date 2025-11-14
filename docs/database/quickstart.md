@@ -25,7 +25,19 @@ pnpm install
 
 # 6. Start the application
 pnpm run start:dev
+
+# 7. Initialize collections (optional - create initial canvas)
+# Collections are created automatically when you write the first document
+# Option A: Via gcloud CLI
+cd ..
+gcloud firestore documents create canvases/main-canvas \
+  --project=serverless-tek89 \
+  --data='{"id":"main-canvas","width":1000,"height":1000,"version":1,"totalPixels":0}'
+
+# Option B: Let your application create it on first use (recommended)
 ```
+
+**Note**: Only `canvases` needs initial setup. Other collections (`pixels`, `users`, `pixelHistory`) are populated automatically by your application.
 
 ---
 
@@ -60,6 +72,10 @@ gcloud firestore documents list pixels --limit 10
 
 # Get a specific document
 gcloud firestore documents describe canvases/main-canvas
+
+# Create a document (initialize collection)
+gcloud firestore documents create canvases/main-canvas \
+  --data='{"id":"main-canvas","width":1000,"height":1000,"version":1,"totalPixels":0}'
 
 # Check index status
 gcloud firestore indexes composite list

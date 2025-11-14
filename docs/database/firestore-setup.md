@@ -265,6 +265,76 @@ Verify that Firestore is properly configured and accessible.
 
 ---
 
+### Step 8: Initialize Collections (Optional)
+
+Firestore collections are created automatically when you write the first document. However, you may want to create initial data for testing.
+
+**Important**: In Firestore, collections don't need to be explicitly created - they are created implicitly when you add the first document.
+
+#### Option 1: Using Application Code
+
+The best practice is to let your application create documents as needed:
+
+```typescript
+// Example: Create initial canvas via your NestJS application
+import { FirestoreService } from './firestore/firestore.service';
+
+async function initializeCanvas() {
+  const firestore = new FirestoreService();
+
+  // Create main canvas
+  await firestore.doc('canvases', 'main-canvas').set({
+    id: 'main-canvas',
+    width: 1000,
+    height: 1000,
+    version: 1,
+    createdAt: firestore.timestamp(),
+    updatedAt: firestore.timestamp(),
+    totalPixels: 0,
+  });
+
+  console.log('Canvas initialized!');
+}
+```
+
+#### Option 2: Using gcloud CLI
+
+Create documents directly via gcloud:
+
+```bash
+# Create a canvas document
+gcloud firestore documents create canvases/main-canvas \
+  --project=serverless-tek89 \
+  --data='{"id":"main-canvas","width":1000,"height":1000,"version":1,"totalPixels":0}'
+
+# Verify collection was created
+gcloud firestore documents list canvases --project=serverless-tek89
+```
+
+#### Option 3: Using Firebase Console
+
+1. Go to [Firestore Console](https://console.cloud.google.com/firestore)
+2. Click "Start collection"
+3. Enter collection ID: `canvases`
+4. Add first document with fields:
+   - `id`: string → `main-canvas`
+   - `width`: number → `1000`
+   - `height`: number → `1000`
+   - `version`: number → `1`
+   - `totalPixels`: number → `0`
+   - `createdAt`: timestamp → (auto)
+   - `updatedAt`: timestamp → (auto)
+
+**Required Collections:**
+- `canvases` - Canvas configuration (create first)
+- `pixels` - Individual pixels (created automatically when users place pixels)
+- `users` - User accounts (created automatically on first login)
+- `pixelHistory` - Audit trail (created automatically when pixels change)
+
+**Note**: Only `canvases` needs initial setup. Other collections will be populated automatically by your application.
+
+---
+
 ## Local Development
 
 ### Using Application Default Credentials (ADC)

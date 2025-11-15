@@ -10,6 +10,11 @@ provider "google" {
   region  = var.region
 }
 
+provider "google-beta" {
+  project = var.project_id
+  region  = var.region
+}
+
 # Firestore Database
 module "firestore" {
   source = "./modules/firestore"

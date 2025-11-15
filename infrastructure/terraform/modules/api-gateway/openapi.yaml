@@ -1,222 +1,89 @@
-openapi: 3.0.3
+swagger: "2.0"
 info:
   title: Cervelet API Gateway
-  description: |
-    Single public entry point for the Cervelet serverless application.
-    All incoming traffic (Discord webhooks, web requests, etc.) is routed
-    to the cf-proxy Cloud Run service, which acts as a lightweight proxy
-    and request handler.
+  description: Single public entry point for the Cervelet serverless application
   version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
 
-servers:
-  - url: https://api-gateway.cervelet.app
-    description: Production API Gateway
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: x-api-key
+    in: header
 
-# ===========================================================================
-# Security Schemes
-# ===========================================================================
-# Note: Authentication is handled by the cf-proxy service.
-# The API Gateway enforces HTTPS and IAM-based Cloud Run invocation.
+security:
+  - api_key: []
 
-# ===========================================================================
-# Paths and Routing
-# ===========================================================================
+x-google-backend:
+  address: ${backend_url}
+  deadline: 30.0
+
 paths:
-  # Specific path for Discord webhook traffic
   /discord/webhook:
     post:
       summary: Discord webhook endpoint
-      description: Receives Discord interaction webhooks and routes to cf-proxy
       operationId: discordWebhook
-      x-google-backend:
-        address: ${backend_url}
-        path_translation: CONSTANT_ADDRESS
-        deadline: 30.0
-        protocol: h2
+      security:
+        - api_key: []
       responses:
-        '200':
-          description: Webhook processed successfully
-        '400':
-          description: Invalid webhook payload
-        '401':
-          description: Unauthorized - invalid signature
-        '500':
-          description: Internal server error
+        200:
+          description: Success
+        400:
+          description: Bad Request
+        401:
+          description: Unauthorized
+        500:
+          description: Internal Server Error
 
-  # Additional Discord routes (if needed)
-  /discord/{proxy+}:
-    x-google-backend:
-      address: ${backend_url}
-      path_translation: APPEND_PATH_TO_ADDRESS
-      deadline: 30.0
-      protocol: h2
+  /**:
     get:
-      summary: Discord GET requests
-      operationId: discordGet
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
-      responses:
-        '200':
-          description: Success
-    post:
-      summary: Discord POST requests
-      operationId: discordPost
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
-      responses:
-        '200':
-          description: Success
-    put:
-      summary: Discord PUT requests
-      operationId: discordPut
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
-      responses:
-        '200':
-          description: Success
-    delete:
-      summary: Discord DELETE requests
-      operationId: discordDelete
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
-      responses:
-        '200':
-          description: Success
-    patch:
-      summary: Discord PATCH requests
-      operationId: discordPatch
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
-      responses:
-        '200':
-          description: Success
-
-  # Catch-all route: All other traffic goes to cf-proxy
-  # This ensures the API Gateway routes ALL requests to the proxy service
-  /{proxy+}:
-    x-google-backend:
-      address: ${backend_url}
-      path_translation: APPEND_PATH_TO_ADDRESS
-      deadline: 30.0
-      protocol: h2
-    get:
-      summary: Catch-all GET requests
+      summary: Catch-all GET
       operationId: catchAllGet
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
+      security:
+        - api_key: []
       responses:
-        '200':
+        200:
           description: Success
     post:
-      summary: Catch-all POST requests
+      summary: Catch-all POST
       operationId: catchAllPost
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
+      security:
+        - api_key: []
       responses:
-        '200':
+        200:
           description: Success
     put:
-      summary: Catch-all PUT requests
+      summary: Catch-all PUT
       operationId: catchAllPut
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
+      security:
+        - api_key: []
       responses:
-        '200':
+        200:
           description: Success
     delete:
-      summary: Catch-all DELETE requests
+      summary: Catch-all DELETE
       operationId: catchAllDelete
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
+      security:
+        - api_key: []
       responses:
-        '200':
+        200:
           description: Success
     patch:
-      summary: Catch-all PATCH requests
+      summary: Catch-all PATCH
       operationId: catchAllPatch
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
+      security:
+        - api_key: []
       responses:
-        '200':
+        200:
           description: Success
     options:
-      summary: Catch-all OPTIONS requests (CORS preflight)
+      summary: Catch-all OPTIONS
       operationId: catchAllOptions
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Path to append to backend
+      security:
+        - api_key: []
       responses:
-        '200':
+        200:
           description: Success
-
-# ===========================================================================
-# Components (Reusable Schemas)
-# ===========================================================================
-components:
-  schemas:
-    Error:
-      type: object
-      properties:
-        code:
-          type: integer
-          description: Error code
-        message:
-          type: string
-          description: Error message
-      required:
-        - code
-        - message

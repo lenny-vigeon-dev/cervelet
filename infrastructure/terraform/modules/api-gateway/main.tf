@@ -42,7 +42,7 @@ resource "google_cloud_run_service_iam_member" "api_gateway_invoker" {
 # ============================================================================
 
 resource "google_api_gateway_api" "api" {
-  provider = google
+  provider = google-beta
 
   api_id       = var.api_gateway_id
   display_name = var.api_gateway_display_name
@@ -56,7 +56,7 @@ resource "google_api_gateway_api" "api" {
 # ============================================================================
 
 resource "google_api_gateway_api_config" "api_config" {
-  provider = google
+  provider = google-beta
 
   api           = google_api_gateway_api.api.api_id
   api_config_id = "${var.api_gateway_id}-config-v1"
@@ -98,7 +98,7 @@ resource "google_api_gateway_api_config" "api_config" {
 # ============================================================================
 
 resource "google_api_gateway_gateway" "gateway" {
-  provider = google
+  provider = google-beta
 
   gateway_id   = "${var.api_gateway_id}-gateway"
   display_name = "Gateway for ${var.api_gateway_display_name}"

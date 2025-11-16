@@ -169,7 +169,7 @@ gcloud firestore documents list pixels --limit 10
 │                                                             │
 │  ┌─────────────┐  ┌─────────────┐                           │
 │  │pixelHistory │  │   indexes   │                           │
-│  │ collection  │  │(composite)  │                           │
+│  │ collection  │  │ (composite) │                           │
 │  └─────────────┘  └─────────────┘                           │
 │                                                             │
 │  Features: Auto-scaling, PITR, Real-time, Security Rules    │

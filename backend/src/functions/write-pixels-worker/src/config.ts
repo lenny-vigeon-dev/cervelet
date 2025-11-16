@@ -13,7 +13,7 @@ export const CANVAS_COLLECTION = 'canvas';
 export const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || '';
 
 // Google Cloud Project ID
-export const PROJECT_ID = process.env.PROJECT_ID || process.env.GCLOUD_PROJECT || '';
+export const PROJECT_ID = process.env.GCLOUD_PROJECT_ID || '';
 
 // Discord API Base URL
 export const DISCORD_API_BASE_URL = 'https://discord.com/api/v10';

@@ -26,10 +26,8 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
   private isInitialized = false;
 
   onModuleInit(): void {
-    // Start initialization in background, don't block app startup
     this.initPromise = this.initialize().catch((err) => {
       console.error('Failed to initialize Firestore:', err);
-      // Don't throw - let the app start anyway
     });
   }
 
@@ -39,13 +37,10 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
     }
 
     try {
-      // Initialize Firebase Admin SDK
-      // Uses Application Default Credentials (ADC) in production
-      // For local development, set GOOGLE_APPLICATION_CREDENTIALS env variable
       const apps = getApps();
       if (apps.length === 0) {
         this.app = initializeApp({
-          projectId: process.env.GCP_PROJECT_ID || process.env.GCP_PROJECT || 'serverless-tek89',
+          projectId: process.env.GCP_PROJECT_ID || 'serverless-tek89',
         });
       } else {
         this.app = getApp();
@@ -53,9 +48,8 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
 
       this.firestore = getFirestore(this.app);
 
-      // Configure Firestore settings
       this.firestore.settings({
-        ignoreUndefinedProperties: true, // Ignore undefined values in documents
+        ignoreUndefinedProperties: true,
       });
 
       this.isInitialized = true;
@@ -82,7 +76,6 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    // Clean up Firebase Admin SDK
     if (this.app) {
       await deleteApp(this.app);
       console.log('Firestore connection closed');

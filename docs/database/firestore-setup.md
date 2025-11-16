@@ -193,7 +193,7 @@ nano .env  # or use your preferred editor
 ```bash
 # .env file
 NODE_ENV="development"
-PORT="3000"
+PORT="8081"
 GCP_PROJECT_ID="serverless-tek89"
 
 # Path to your service account key

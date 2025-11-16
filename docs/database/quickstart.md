@@ -132,7 +132,7 @@ terraform destroy
 
 ```bash
 NODE_ENV="development"
-PORT="3000"
+PORT="8081"
 GCP_PROJECT_ID="serverless-tek89"
 
 # For service account authentication (local development)

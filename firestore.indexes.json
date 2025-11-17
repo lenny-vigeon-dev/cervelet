@@ -1,0 +1,89 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "pixelHistory",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "canvasId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "pixelHistory",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "canvasId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "x",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "y",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "pixels",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "canvasId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "pixels",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    }
+  ],
+  "fieldOverrides": []
+}

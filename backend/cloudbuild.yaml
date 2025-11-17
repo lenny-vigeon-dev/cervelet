@@ -1,0 +1,49 @@
+# Cloud Build configuration for building AMD64 Docker images
+# This runs on GCP infrastructure which natively supports AMD64
+
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'europe-west1-docker.pkg.dev/serverless-tek89/cloud-run-source-deploy/cf-proxy:latest'
+      - '.'
+    id: 'build-image'
+
+  # Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'europe-west1-docker.pkg.dev/serverless-tek89/cloud-run-source-deploy/cf-proxy:latest'
+    id: 'push-latest'
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'cf-proxy'
+      - '--image=europe-west1-docker.pkg.dev/serverless-tek89/cloud-run-source-deploy/cf-proxy:latest'
+      - '--platform=managed'
+      - '--region=europe-west1'
+      - '--no-allow-unauthenticated'
+      - '--ingress=internal'
+      - '--port=8080'
+      - '--memory=2Gi'
+      - '--cpu=2'
+      - '--min-instances=0'
+      - '--max-instances=10'
+      - '--timeout=300s'
+      - '--service-account=proxy-svc@serverless-tek89.iam.gserviceaccount.com'
+      - '--set-env-vars=NODE_ENV=production,GCP_PROJECT=serverless-tek89'
+      - '--no-cpu-throttling'
+      - '--quiet'
+    id: 'deploy-cloud-run'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+images:
+  - 'europe-west1-docker.pkg.dev/serverless-tek89/cloud-run-source-deploy/cf-proxy:latest'

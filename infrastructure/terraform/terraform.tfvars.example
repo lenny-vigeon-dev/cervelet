@@ -1,0 +1,29 @@
+# Copy this file to terraform.tfvars and fill in your values
+# terraform.tfvars is gitignored and will not be committed
+
+project_id = "serverless-tek89"
+region     = "europe-west1"
+
+# Environment (dev, staging, prod)
+environment = "dev"
+
+# Cloud Function invokers
+invokers = [
+  "user:lenny.vigeon@gmail.com",
+  "user:arospars77@gmail.com",
+  "user:lebib.yann@gmail.com",
+  "user:jeanpierre.janopoulos@gmail.com",
+  "user:dev.ethan.nguyen@gmail.com",
+]
+
+# ===========================================================================
+# API Gateway Configuration
+# ===========================================================================
+
+# Backend Cloud Run service (the proxy that handles all requests)
+proxy_cloud_run_service_name = "cf-proxy"
+proxy_cloud_run_service_url  = "https://cf-proxy-xxxxx-ew.a.run.app" # Get this from: gcloud run services describe cf-proxy --region=europe-west1 --format='value(status.url)'
+
+# API Gateway settings
+api_gateway_id           = "cervelet-api-gateway"
+api_gateway_display_name = "Cervelet API Gateway"

@@ -1,2 +1,54 @@
 *.zip
+
+# Terraform
 .terraform
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+tfplan
+.terraformrc
+terraform.rc
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+*.local
+
+# Secrets and credentials
+secrets/
+*.pem
+*.key
+*.crt
+credentials.json
+firestore-key.json
+*-key.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Firebase
+.firebaserc
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+.firebase/
+# Note: firebase.json, firestore.rules, and firestore.indexes.json are tracked
+# These files are needed at project root for Firebase CLI to work properly

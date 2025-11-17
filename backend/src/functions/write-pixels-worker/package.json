@@ -1,0 +1,45 @@
+{
+  "name": "write-pixels-worker",
+  "version": "1.0.0",
+  "description": "Cloud Run worker for writing pixels - r/place clone",
+  "main": "dist/src/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/main.js",
+    "start:dev": "ts-node src/main.ts",
+    "test": "jest",
+    "lint": "eslint \"{src,services}/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"services/**/*.ts\""
+  },
+  "keywords": [
+    "cloud-run",
+    "serverless",
+    "pubsub",
+    "typescript",
+    "firestore"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.20.0",
+  "dependencies": {
+    "@google-cloud/firestore": "^8.0.0",
+    "axios": "^1.13.2",
+    "express": "^4.21.2",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.7",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "prettier": "^3.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

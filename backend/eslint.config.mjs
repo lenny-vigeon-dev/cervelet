@@ -31,4 +31,15 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'warn'
     },
   },
+  {
+    files: ['**/firestore/**/*.ts', 'src/firestore/**/*.ts', 'src/types/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+    },
+  },
 );

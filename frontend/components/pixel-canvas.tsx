@@ -132,7 +132,7 @@ export function PixelCanvas({
     setSelectedPixel({ x, y });
     console.log(`Pixel clicked: (${x}, ${y})`);
     setIsPanning(false);
-  }
+  };
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();

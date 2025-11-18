@@ -30,7 +30,7 @@ export function PixelCanvas({
   
   // Selected pixel
   const [selectedPixel, setSelectedPixel] = useState<{ x: number; y: number } | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string| null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [drawnPixels, setDrawnPixels] = useState<Array<{ x: number; y: number; color: string }>>([]);
 
   // Zoom

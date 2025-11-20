@@ -36,7 +36,6 @@ export function PixelCanvas({
   // Zoom
   const [zoom, setZoom] = useState(1);
   const [[originX, originY], setOrigin] = useState<[number, number]>([0, 0]);
-  const [disablePageZoom, setDisablePageZoom] = useState(false);
   const MIN_ZOOM = 0.5;
   const MAX_ZOOM = 5;
 

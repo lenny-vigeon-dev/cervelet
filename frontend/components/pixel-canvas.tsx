@@ -193,7 +193,7 @@ export function PixelCanvas({
     setDrawnPixels([...drawnPixels, { x: pixel.x, y: pixel.y, color: selectedColor }]);
     setSelectedPixel(null);
     setSelectedColor(null);
-  }
+  };
 
   return (
     <div className={`w-full rounded-3xl border border-brand/20 bg-canvas-surface overflow-hidden select-none`}>

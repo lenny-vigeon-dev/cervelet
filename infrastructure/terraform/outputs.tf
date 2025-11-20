@@ -47,3 +47,32 @@ output "api_gateway_service_account" {
   description = "The service account email used by API Gateway"
   value       = module.api_gateway.service_account_email
 }
+
+# ===========================================================================
+# Pub/Sub Outputs
+# ===========================================================================
+
+output "pubsub_topic_names" {
+  description = "List of all Pub/Sub topic names"
+  value       = module.pubsub.all_topic_names
+}
+
+output "discord_cmd_requests_topic" {
+  description = "Discord command requests topic name"
+  value       = module.pubsub.discord_cmd_requests_topic_name
+}
+
+output "write_pixel_requests_topic" {
+  description = "Write pixel requests topic name"
+  value       = module.pubsub.write_pixel_requests_topic_name
+}
+
+output "snapshot_requests_topic" {
+  description = "Snapshot requests topic name"
+  value       = module.pubsub.snapshot_requests_topic_name
+}
+
+output "pixel_updates_events_topic" {
+  description = "Pixel updates events topic name"
+  value       = module.pubsub.pixel_updates_events_topic_name
+}

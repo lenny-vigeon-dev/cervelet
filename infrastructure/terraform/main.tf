@@ -48,3 +48,16 @@ module "api_gateway" {
     application = "cervelet"
   }
 }
+
+# Pub/Sub Topics - Asynchronous messaging for the application
+module "pubsub" {
+  source = "./modules/pubsub"
+
+  project_id = var.project_id
+
+  labels = {
+    environment = var.environment
+    managed_by  = "terraform"
+    application = "cervelet"
+  }
+}

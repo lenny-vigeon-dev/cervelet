@@ -186,7 +186,6 @@ export function PixelCanvas({
 
   const drawPixel = (pixel: { x: number; y: number }) => {
     if (!selectedColor) {
-      console.log("No color selected");
       return;
     }
 

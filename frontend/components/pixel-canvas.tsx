@@ -250,32 +250,31 @@ export function PixelCanvas({
     const colorInt = parseInt(selectedColor.replace('#', ''), 16);
 
     // Optimistic update: show pixel immediately
-    setDrawnPixels([...drawnPixels, { x: pixel.x, y: pixel.y, color: selectedColor }]);
+    const optimisticPixel = { x: pixel.x, y: pixel.y, color: selectedColor };
+    setDrawnPixels((prev) => [...prev, optimisticPixel]);
     setSelectedPixel(null);
     setSelectedColor(null);
     setIsDrawing(true);
     setDrawError(null);
 
     try {
-      // Write to Firestore
+      // Call serverless worker (handles cooldown + write)
       const result = await writePixel({
-        canvasId,
         x: pixel.x,
         y: pixel.y,
         color: colorInt,
-        userId: session.user.id,
       });
 
       if (!result.success) {
         // Revert optimistic update on error
-        setDrawnPixels(drawnPixels.filter(p => p.x !== pixel.x || p.y !== pixel.y));
+        setDrawnPixels((prev) => prev.filter(p => p.x !== pixel.x || p.y !== pixel.y));
         setDrawError(result.error || 'Failed to place pixel');
       } else {
         console.log('✅ Pixel placed successfully!');
       }
     } catch (error) {
       // Revert optimistic update on error
-      setDrawnPixels(drawnPixels.filter(p => p.x !== pixel.x || p.y !== pixel.y));
+      setDrawnPixels((prev) => prev.filter(p => p.x !== pixel.x || p.y !== pixel.y));
       setDrawError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setIsDrawing(false);

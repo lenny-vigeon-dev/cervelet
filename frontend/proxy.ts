@@ -31,6 +31,8 @@ export function proxy(request: NextRequest) {
       (process.env.NEXT_PUBLIC_API_URL || "") + " " +
       "https://firestore.googleapis.com " +
       "https://storage.googleapis.com " +
+      "https://identitytoolkit.googleapis.com " +
+      "https://securetoken.googleapis.com " +
       "wss://firestore.googleapis.com",
     "frame-ancestors 'none'",
   ].join("; ");

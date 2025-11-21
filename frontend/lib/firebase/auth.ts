@@ -26,8 +26,9 @@ export async function signInWithDiscord(discordUser: UserProfile) {
     console.log('🔐 Signing in to Firebase with Discord user:', discordUser.id);
 
     // 1. Get Firebase Custom Token from backend
+    // Use local API route to avoid CORS issues
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/firebase-auth-token`,
+      `/api/firebase-auth-token`,
       {
         method: 'POST',
         headers: {

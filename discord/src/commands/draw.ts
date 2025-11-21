@@ -5,8 +5,8 @@ const pubsub = new PubSub({ projectId: process.env.GCLOUD_PROJECT_ID });
 const TOPIC_NAME = process.env.PUBSUB_TOPIC || 'write-pixels-topic';
 
 export const data = new SlashCommandBuilder()
-  .setName('place')
-  .setDescription('Place a pixel on the canvas')
+  .setName('draw')
+  .setDescription('Draw a pixel on the canvas')
   .addIntegerOption((opt) => opt.setName('x').setDescription('X coord').setRequired(true))
   .addIntegerOption((opt) => opt.setName('y').setDescription('Y coord').setRequired(true))
   .addStringOption((opt) =>
@@ -14,7 +14,7 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  console.log('[/place] Command triggered by', interaction.user?.id);
+  console.log('[/draw] Command triggered by', interaction.user?.id);
 
   await interaction.deferReply({ ephemeral: true });
 
@@ -50,10 +50,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   try {
     await pubsub.topic(TOPIC_NAME).publishMessage({ data: dataBuffer });
 
-    console.log('[/place] Published message to', TOPIC_NAME, 'payload:', payload);
+    console.log('[/draw] Published message to', TOPIC_NAME, 'payload:', payload);
     await interaction.editReply({ content: '✅ Requête envoyée, le pixel sera placé si le cooldown est OK.' });
   } catch (err) {
-    console.error('[/place] Error publishing to Pub/Sub:', err instanceof Error ? err.message : String(err));
+    console.error('[/draw] Error publishing to Pub/Sub:', err instanceof Error ? err.message : String(err));
     if (err instanceof Error && err.stack) console.error(err.stack);
 
     await interaction.editReply({ content: "❌ Échec lors de l'envoi de la requête. Réessayez plus tard (voir logs serveur pour les détails)." });

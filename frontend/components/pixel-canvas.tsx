@@ -38,6 +38,7 @@ export function PixelCanvas({
   const [[originX, originY], setOrigin] = useState<[number, number]>([0, 0]);
   const MIN_ZOOM = 0.5;
   const MAX_ZOOM = 5;
+  const disablePageZoom = true; // Prevent browser zoom when using Ctrl+wheel on canvas
 
   // Pan (drag to move)
   const [isPanning, setIsPanning] = useState(false);
@@ -103,7 +104,8 @@ export function PixelCanvas({
     
     window.addEventListener("wheel", handler, { passive: false });
     return () => window.removeEventListener("wheel", handler);
-  }, [disablePageZoom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {

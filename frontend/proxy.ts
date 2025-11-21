@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server";
  * Next.js proxy for security headers and request processing.
  * Runs on every request before reaching the route handlers.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 

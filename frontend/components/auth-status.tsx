@@ -9,17 +9,7 @@ import { useSession } from "@/hooks/use-session";
  * Uses client-side session from localStorage.
  */
 export function AuthStatus() {
-  const { session, isLoading, logout } = useSession();
-
-  if (isLoading) {
-    return (
-      <div className="mt-6 flex flex-col gap-3">
-        <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand/50 to-brand-strong/50 px-5 py-2.5 text-sm font-semibold text-black/50">
-          Chargement...
-        </div>
-      </div>
-    );
-  }
+  const { session, logout } = useSession();
 
   return (
     <div className="mt-6 flex flex-col gap-3">
@@ -65,7 +55,7 @@ export function AuthStatus() {
             Se connecter avec Discord
           </Link>
           <p className="text-xs text-zinc-400">
-            L'authentification est gérée via OAuth2 Discord. Vos informations
+            L&apos;authentification est gérée via OAuth2 Discord. Vos informations
             sont stockées localement dans votre navigateur.
           </p>
         </>

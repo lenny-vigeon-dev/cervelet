@@ -19,7 +19,7 @@ export function APIStatusCard({ snapshot, summary }: APIStatusCardProps) {
         Statut API Gateway
       </h2>
       <p className="mt-2 text-sm text-zinc-400">
-        Exemple d'appel réalisé côté serveur lors du rendu initial.
+        Exemple d&apos;appel réalisé côté serveur lors du rendu initial.
       </p>
       <dl className="mt-6 space-y-3 text-sm">
         <div className="flex items-center justify-between">
@@ -47,7 +47,7 @@ export function APIStatusCard({ snapshot, summary }: APIStatusCardProps) {
       </dl>
       {!apiReachable && (
         <p className="mt-4 rounded-2xl border border-brand/30 bg-black/70 p-4 text-xs text-brand-soft shadow-inner shadow-brand/20">
-          Impossible de joindre l'API pour le moment. Vérifie{" "}
+          Impossible de joindre l&apos;API pour le moment. Vérifie{" "}
           <code className="rounded border border-white/10 bg-black/70 px-1 py-0.5 font-mono text-brand-soft">
             NEXT_PUBLIC_API_URL
           </code>{" "}

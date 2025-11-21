@@ -17,17 +17,20 @@ export interface PixelPayload {
  * Document ID = {userId}
  */
 export interface UserDoc {
-  lastPixelAt: Timestamp;
+  lastPixelPlaced: Timestamp;
 }
 
 /**
- * Firestore document for 'canvas' collection
- * Document ID = {x}_{y}
+ * Firestore document for 'pixels' collection
+ * Document ID = {canvasId}_{x}_{y}
  */
 export interface PixelDoc {
+  canvasId: string;
+  x: number;
+  y: number;
   color: number;
   userId: string;
-  lastUpdatedAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 /**

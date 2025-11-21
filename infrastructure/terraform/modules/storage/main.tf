@@ -16,20 +16,20 @@ resource "google_storage_bucket" "canvas_snapshots" {
       type = "Delete"
     }
     condition {
-      age                   = var.snapshot_retention_days
-      matches_prefix        = ["canvas/historical/"]
+      age            = var.snapshot_retention_days
+      matches_prefix = ["canvas/historical/"]
     }
   }
 
   # Move historical snapshots to NEARLINE storage after 7 days
   lifecycle_rule {
     action {
-      type = "SetStorageClass"
+      type          = "SetStorageClass"
       storage_class = "NEARLINE"
     }
     condition {
-      age                   = 7
-      matches_prefix        = ["canvas/historical/"]
+      age            = 7
+      matches_prefix = ["canvas/historical/"]
     }
   }
 
@@ -44,15 +44,9 @@ resource "google_storage_bucket" "canvas_snapshots" {
   labels = var.labels
 }
 
-# Make only canvas/latest.png publicly readable
-# Grant public read access to the latest canvas snapshot object only.
-resource "google_storage_object_acl" "latest_png_public" {
-  bucket = google_storage_bucket.canvas_snapshots.name
-  object = "canvas/latest.png"
-  role_entity = [
-    "READER:allUsers"
-  ]
-}
+# Public access is handled via IAM on the bucket level
+# The bucket uses uniform_bucket_level_access, so object ACLs are not supported
+# To make specific objects public, use signed URLs or a separate public bucket
 
 # Service account for Cloud Functions to write snapshots
 resource "google_service_account" "snapshot_generator" {
@@ -80,11 +74,11 @@ resource "google_project_iam_member" "snapshot_generator_firestore" {
 
 # Cloud Storage notification (optional - for triggering functions on upload)
 resource "google_storage_notification" "snapshot_notification" {
-  count             = var.enable_notifications ? 1 : 0
-  bucket            = google_storage_bucket.canvas_snapshots.name
-  payload_format    = "JSON_API_V1"
-  topic             = var.notification_topic
-  event_types       = ["OBJECT_FINALIZE"]
+  count              = var.enable_notifications ? 1 : 0
+  bucket             = google_storage_bucket.canvas_snapshots.name
+  payload_format     = "JSON_API_V1"
+  topic              = var.notification_topic
+  event_types        = ["OBJECT_FINALIZE"]
   object_name_prefix = "canvas/latest"
 
   depends_on = [google_storage_bucket.canvas_snapshots]

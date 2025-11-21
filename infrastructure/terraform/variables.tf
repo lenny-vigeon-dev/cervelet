@@ -105,7 +105,7 @@ variable "storage_snapshot_retention_days" {
 variable "storage_cors_origins" {
   description = "Allowed CORS origins for the storage bucket"
   type        = list(string)
-  default     = ["*"]  # Restrict this in production
+  default     = ["*"] # Restrict this in production
 }
 
 variable "storage_create_service_account" {
@@ -121,23 +121,69 @@ variable "storage_create_service_account" {
 variable "enable_snapshot_scheduler" {
   description = "Enable Cloud Scheduler for periodic canvas snapshots"
   type        = bool
-  default     = false  # Disabled by default until Cloud Function is deployed
+  default     = false # Disabled by default until Cloud Function is deployed
 }
 
 variable "snapshot_function_url" {
   description = "URL of the canvas snapshot generator Cloud Function"
   type        = string
-  default     = ""  # Must be set after deploying the Cloud Function
+  default     = "" # Must be set after deploying the Cloud Function
 }
 
 variable "snapshot_schedule" {
   description = "Cron schedule for canvas snapshots"
   type        = string
-  default     = "*/5 * * * *"  # Every 5 minutes
+  default     = "*/5 * * * *" # Every 5 minutes
 }
 
 variable "snapshot_schedule_interval" {
   description = "Human-readable description of snapshot schedule"
   type        = string
   default     = "5 minutes"
+}
+
+# ===========================================================================
+# Monitoring Variables
+# ===========================================================================
+
+variable "monitoring_notification_channels" {
+  description = "List of notification channel IDs for alerting"
+  type        = list(string)
+  default     = []
+}
+
+variable "monitoring_cloud_functions" {
+  description = "List of Cloud Function names to monitor"
+  type        = list(string)
+  default     = ["discord-acknowledge", "canvas-snapshot-generator"]
+}
+
+variable "monitoring_queue_depth_threshold" {
+  description = "Threshold for Pub/Sub undelivered messages alert"
+  type        = number
+  default     = 1000
+}
+
+variable "monitoring_function_error_rate_threshold" {
+  description = "Threshold for function error rate (percentage)"
+  type        = number
+  default     = 5
+}
+
+variable "monitoring_function_execution_time_threshold_ms" {
+  description = "Threshold for function execution time in milliseconds"
+  type        = number
+  default     = 30000
+}
+
+variable "monitoring_api_error_rate_threshold" {
+  description = "Threshold for API Gateway error rate (percentage)"
+  type        = number
+  default     = 5
+}
+
+variable "monitoring_enable_api_gateway_alert" {
+  description = "Enable API Gateway alert (set to true after gateway has traffic)"
+  type        = bool
+  default     = false
 }

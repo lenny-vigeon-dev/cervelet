@@ -71,10 +71,10 @@ module "storage" {
   region       = var.region
   environment  = var.environment
 
-  enable_versioning        = var.storage_enable_versioning
-  snapshot_retention_days  = var.storage_snapshot_retention_days
-  cors_origins             = var.storage_cors_origins
-  create_service_account   = var.storage_create_service_account
+  enable_versioning       = var.storage_enable_versioning
+  snapshot_retention_days = var.storage_snapshot_retention_days
+  cors_origins            = var.storage_cors_origins
+  create_service_account  = var.storage_create_service_account
 
   labels = {
     environment = var.environment
@@ -97,4 +97,28 @@ module "scheduler" {
   schedule          = var.snapshot_schedule
   schedule_interval = var.snapshot_schedule_interval
   canvas_id         = "main-canvas"
+}
+
+# Monitoring and Alerting
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  project_id            = var.project_id
+  notification_channels = var.monitoring_notification_channels
+
+  pubsub_subscriptions = [
+    "discord-cmd-requests-sub",
+    "write-pixel-requests-sub",
+    "snapshot-requests-sub"
+  ]
+
+  cloud_functions = var.monitoring_cloud_functions
+
+  api_gateway_name = var.api_gateway_id
+
+  queue_depth_threshold                = var.monitoring_queue_depth_threshold
+  function_error_rate_threshold        = var.monitoring_function_error_rate_threshold
+  function_execution_time_threshold_ms = var.monitoring_function_execution_time_threshold_ms
+  api_error_rate_threshold             = var.monitoring_api_error_rate_threshold
+  enable_api_gateway_alert             = var.monitoring_enable_api_gateway_alert
 }

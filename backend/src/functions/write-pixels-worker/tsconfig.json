@@ -11,10 +11,9 @@
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "baseUrl": "./",
+    "rootDir": "./src",
     "paths": {
-      "@/*": ["src/*"],
-      "@services/*": ["services/*"],
-      "@types/*": ["types/*"]
+      "@/*": ["src/*"]
     },
 
     /* Emit */
@@ -59,9 +58,7 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
   "include": [
-    "src/**/*",
-    "services/**/*",
-    "types/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",

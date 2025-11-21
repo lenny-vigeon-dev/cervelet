@@ -109,7 +109,7 @@ export class WritePixelService {
     private async checkCooldown(payload: PixelPayload): Promise<boolean> {
         const user = await this.firestoreService.getUser(payload.userId);
 
-        if (!user || !user.lastPixelAt) {
+        if (!user || !user.lastPixelPlaced) {
             // User's first pixel, no cooldown
             console.log(
                 JSON.stringify({
@@ -122,7 +122,7 @@ export class WritePixelService {
         }
 
         // Calculate elapsed time since last pixel
-        const lastPixelTime = user.lastPixelAt.toMillis();
+        const lastPixelTime = user.lastPixelPlaced.toMillis();
         const currentTime = Date.now();
         const elapsedTime = currentTime - lastPixelTime;
 

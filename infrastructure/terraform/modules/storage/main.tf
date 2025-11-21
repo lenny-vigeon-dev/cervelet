@@ -44,17 +44,12 @@ resource "google_storage_bucket" "canvas_snapshots" {
   labels = var.labels
 }
 
-# Make latest snapshot publicly readable
-resource "google_storage_bucket_iam_member" "public_read_latest" {
+# Make bucket publicly readable
+# Note: GCP doesn't allow IAM conditions on public resources (allUsers)
+resource "google_storage_bucket_iam_member" "public_read" {
   bucket = google_storage_bucket.canvas_snapshots.name
   role   = "roles/storage.objectViewer"
   member = "allUsers"
-
-  condition {
-    title       = "PublicLatestSnapshot"
-    description = "Allow public read access to latest canvas snapshot"
-    expression  = "resource.name.startsWith('projects/_/buckets/${google_storage_bucket.canvas_snapshots.name}/objects/canvas/latest')"
-  }
 }
 
 # Service account for Cloud Functions to write snapshots

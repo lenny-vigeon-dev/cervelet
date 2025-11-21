@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CanvasSnapshot } from "@/types/canvas";
 import { ToolbarWrapper } from "./toolbar-wrapper";
 import { useRealtimeCanvas } from "@/hooks/use-realtime-canvas";
+import { useSession } from "@/hooks/use-session";
+import { writePixel } from "@/lib/firebase/write-pixel";
 
 export interface PixelCanvasProps {
   snapshot?: CanvasSnapshot;
@@ -31,6 +33,9 @@ export function PixelCanvas({
   enableRealtime = true,
   canvasId = 'main-canvas',
 }: PixelCanvasProps) {
+  // User authentication
+  const { session } = useSession();
+
   // Real-time canvas hook
   const {
     snapshotImage,
@@ -227,14 +232,54 @@ export function PixelCanvas({
     });
   };
 
-  const drawPixel = (pixel: { x: number; y: number }) => {
+  // Drawing state
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawError, setDrawError] = useState<string | null>(null);
+
+  const drawPixel = async (pixel: { x: number; y: number }) => {
     if (!selectedColor) {
       return;
     }
 
+    if (!session.isAuthenticated) {
+      setDrawError('You must be logged in with Discord to place pixels');
+      return;
+    }
+
+    // Convert hex color to integer
+    const colorInt = parseInt(selectedColor.replace('#', ''), 16);
+
+    // Optimistic update: show pixel immediately
     setDrawnPixels([...drawnPixels, { x: pixel.x, y: pixel.y, color: selectedColor }]);
     setSelectedPixel(null);
     setSelectedColor(null);
+    setIsDrawing(true);
+    setDrawError(null);
+
+    try {
+      // Write to Firestore
+      const result = await writePixel({
+        canvasId,
+        x: pixel.x,
+        y: pixel.y,
+        color: colorInt,
+        userId: session.user.id,
+      });
+
+      if (!result.success) {
+        // Revert optimistic update on error
+        setDrawnPixels(drawnPixels.filter(p => p.x !== pixel.x || p.y !== pixel.y));
+        setDrawError(result.error || 'Failed to place pixel');
+      } else {
+        console.log('✅ Pixel placed successfully!');
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      setDrawnPixels(drawnPixels.filter(p => p.x !== pixel.x || p.y !== pixel.y));
+      setDrawError(error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setIsDrawing(false);
+    }
   };
 
   return (
@@ -255,9 +300,11 @@ export function PixelCanvas({
       )}
 
       {/* Error display */}
-      {error && (
+      {(error || drawError) && (
         <div className="absolute top-4 left-4 z-20 bg-red-900/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-red-500/50">
-          <span className="text-xs text-red-200">Error: {error.message}</span>
+          <span className="text-xs text-red-200">
+            {drawError || (error && `Error: ${error.message}`)}
+          </span>
         </div>
       )}
 
@@ -270,14 +317,16 @@ export function PixelCanvas({
           <div className="fixed bottom-0 left-0 z-10 w-full items-center flex justify-center pb-8">
             <div className="flex gap-4">
               <button
-                className="bg-brand hover:bg-brand/80 text-white font-semibold py-3 px-8 rounded-xl border border-brand/40 shadow-lg shadow-brand/20 transition-all hover:scale-105 active:scale-95"
+                className="bg-brand hover:bg-brand/80 text-white font-semibold py-3 px-8 rounded-xl border border-brand/40 shadow-lg shadow-brand/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => drawPixel(selectedPixel)}
+                disabled={isDrawing || !session.isAuthenticated}
               >
-                Dessiner
+                {isDrawing ? 'Placement...' : 'Dessiner'}
               </button>
               <button
-                className="bg-zinc-800/90 hover:bg-zinc-700/90 text-zinc-300 hover:text-white font-semibold py-3 px-8 rounded-xl border border-zinc-700 transition-all hover:scale-105 active:scale-95"
+                className="bg-zinc-800/90 hover:bg-zinc-700/90 text-zinc-300 hover:text-white font-semibold py-3 px-8 rounded-xl border border-zinc-700 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 onClick={() => setSelectedPixel(null)}
+                disabled={isDrawing}
               >
                 Annuler
               </button>

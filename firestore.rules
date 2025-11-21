@@ -49,7 +49,21 @@ service cloud.firestore {
     }
 
     // ===========================================
-    // PIXELS COLLECTION
+    // CANVAS COLLECTION (Real-time pixel data)
+    // ===========================================
+    // Canvas pixels stored as {x}_{y} document IDs
+    // TODO : Test it
+    match /canvas/{pixelId} {
+      // Anyone can read canvas pixels (public viewing + real-time updates)
+      allow read: if true;
+
+      // Only backend can write (via service account)
+      // Frontend is read-only for security
+      allow write: if false;
+    }
+
+    // ===========================================
+    // PIXELS COLLECTION (Legacy - keeping for compatibility)
     // ===========================================
     // Individual pixels - readable by all, writable by authenticated users
     match /pixels/{pixelId} {

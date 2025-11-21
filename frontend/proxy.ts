@@ -27,7 +27,11 @@ export function proxy(request: NextRequest) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self'",
-    "connect-src 'self' " + (process.env.NEXT_PUBLIC_API_URL || ""),
+    "connect-src 'self' " +
+      (process.env.NEXT_PUBLIC_API_URL || "") + " " +
+      "https://firestore.googleapis.com " +
+      "https://storage.googleapis.com " +
+      "wss://firestore.googleapis.com",
     "frame-ancestors 'none'",
   ].join("; ");
 

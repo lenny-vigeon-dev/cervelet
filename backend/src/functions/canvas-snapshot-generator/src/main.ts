@@ -10,11 +10,13 @@ import { SnapshotService } from './snapshot.service';
  * - HTTP request (manual trigger)
  * - Pub/Sub (event-driven)
  *
- * Query parameters:
+ * Request body (POST):
  * - canvasId: ID of the canvas to snapshot (optional, defaults to 'main-canvas')
  *
  * Example:
- * curl https://REGION-PROJECT_ID.cloudfunctions.net/canvas-snapshot-generator?canvasId=main-canvas
+ * curl -X POST https://REGION-PROJECT_ID.cloudfunctions.net/canvas-snapshot-generator \
+ *   -H "Content-Type: application/json" \
+ *   -d '{"canvasId": "main-canvas"}'
  */
 http('generateSnapshot', async (req: Request, res: Response) => {
   const startTime = Date.now();
@@ -31,8 +33,8 @@ http('generateSnapshot', async (req: Request, res: Response) => {
       return;
     }
 
-    // Get canvas ID from query params or body
-    const canvasId = req.query.canvasId as string || req.body?.canvasId || 'main-canvas';
+    // Get canvas ID from request body (standardized for POST requests)
+    const canvasId = req.body?.canvasId || 'main-canvas';
 
     console.log(`Generating snapshot for canvas: ${canvasId}`);
 

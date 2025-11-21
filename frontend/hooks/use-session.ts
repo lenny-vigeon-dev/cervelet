@@ -9,18 +9,15 @@ import type { SessionState } from "@/types/session";
  * Syncs with localStorage and provides methods for login/logout.
  */
 export function useSession() {
-  const [session, setSession] = useState<SessionState>({
-    user: null,
-    isAuthenticated: false,
+  const [session, setSession] = useState<SessionState>(() => {
+    // Initialize from localStorage if available (only on client)
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getSession();
+    }
+    return { user: null, isAuthenticated: false };
   });
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load session from localStorage on mount
-    const storedSession = sessionStorage.getSession();
-    setSession(storedSession);
-    setIsLoading(false);
-
     // Listen for storage events (cross-tab sync)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "discord_session") {
@@ -40,7 +37,6 @@ export function useSession() {
 
   return {
     session,
-    isLoading,
     logout,
   };
 }

@@ -22,12 +22,16 @@ export class SnapshotService {
   /**
    * Generate a snapshot of the canvas and upload it to Cloud Storage
    */
-  async generateSnapshot(canvasId: string = config.firestore.defaultCanvasId): Promise<SnapshotMetadata> {
+  async generateSnapshot(
+    canvasId: string = config.firestore.defaultCanvasId
+  ): Promise<SnapshotMetadata> {
     console.log(`Starting snapshot generation for canvas: ${canvasId}`);
 
     // 1. Get canvas metadata
     const canvasData = await this.getCanvasMetadata(canvasId);
-    console.log(`Canvas metadata: ${canvasData.width}x${canvasData.height}, ${canvasData.totalPixels} pixels`);
+    console.log(
+      `Canvas metadata: ${canvasData.width}x${canvasData.height}, ${canvasData.totalPixels} pixels`
+    );
 
     // 2. Fetch all pixels for this canvas
     const pixels = await this.fetchAllPixels(canvasId);
@@ -56,9 +60,7 @@ export class SnapshotService {
    * Get canvas metadata from Firestore
    */
   private async getCanvasMetadata(canvasId: string): Promise<Canvas> {
-    const canvasRef = this.firestore
-      .collection(config.firestore.canvasCollection)
-      .doc(canvasId);
+    const canvasRef = this.firestore.collection(config.firestore.canvasCollection).doc(canvasId);
 
     const canvasDoc = await canvasRef.get();
 

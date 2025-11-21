@@ -1,18 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
+// Using system fonts as fallback when Google Fonts cannot be fetched
+// Original fonts: Geist and Geist Mono from Google Fonts
+// Fallback: System UI fonts for better compatibility
 
 export const metadata: Metadata = {
   title: "Pixelhub - Collaborative Pixel Art Canvas",
@@ -33,7 +24,10 @@ export default function RootLayout({
       className="h-full bg-canvas-bg text-foreground"
     >
       <body
-        className={`${geistSans.variable} ${geistMono.variable} flex min-h-full flex-col bg-canvas-bg text-foreground font-sans text-base antialiased`}
+        className="flex min-h-full flex-col bg-canvas-bg text-foreground font-sans text-base antialiased"
+        style={{
+          fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        }}
       >
         {children}
       </body>

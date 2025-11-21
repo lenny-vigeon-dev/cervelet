@@ -11,14 +11,14 @@ export default function NotFound() {
           Page introuvable
         </h2>
         <p className="max-w-md text-sm text-zinc-400">
-          La page que vous recherchez n'existe pas ou a été déplacée.
+          La page que vous recherchez n&apos;existe pas ou a été déplacée.
         </p>
       </div>
       <Link
         href="/"
         className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand to-brand-strong px-6 py-3 text-sm font-semibold text-black shadow-brand transition hover:opacity-90"
       >
-        Retour à l'accueil
+        Retour à l&apos;accueil
       </Link>
     </div>
   );

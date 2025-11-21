@@ -1,6 +1,6 @@
 # Pub/Sub Topics Module
 
-This module creates Google Cloud Pub/Sub topics for the Cervelet application's asynchronous messaging needs.
+This module creates Google Cloud Pub/Sub topics for the PixelHub application's asynchronous messaging needs.
 
 ## Topics Created
 

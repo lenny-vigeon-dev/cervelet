@@ -21,7 +21,7 @@ resource "google_storage_bucket" "canvas_snapshots" {
     }
   }
 
-  # Keep latest snapshots indefinitely
+  # Move historical snapshots to NEARLINE storage after 7 days
   lifecycle_rule {
     action {
       type = "SetStorageClass"

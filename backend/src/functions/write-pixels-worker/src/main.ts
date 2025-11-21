@@ -3,6 +3,7 @@ import { FirestoreService } from './services/firestore.service';
 import { DiscordService } from './services/discord.service';
 import { WritePixelService } from './write-pixel.service';
 import { PixelPayload, PubSubMessage } from './types';
+import { logger } from './utils/logger';
 
 /**
  * Main entry point for the Cloud Run worker triggered by Pub/Sub
@@ -19,48 +20,37 @@ const writePixelService = new WritePixelService(firestoreService, discordService
 
 /**
  * Pub/Sub payload validation
- * 
- * @param payload - The payload to validate
- * @returns true if valid, false otherwise
  */
-function isValidPixelPayload(payload: any): payload is PixelPayload {
+function isValidPixelPayload(payload: unknown): payload is PixelPayload {
+    if (typeof payload !== 'object' || payload === null) return false;
+    const p = payload as Record<string, unknown>;
     return (
-        typeof payload === 'object' &&
-        typeof payload.userId === 'string' &&
-        typeof payload.x === 'number' &&
-        typeof payload.y === 'number' &&
-        typeof payload.color === 'number' &&
-        typeof payload.interactionToken === 'string' &&
-        typeof payload.applicationId === 'string'
+        typeof p['userId'] === 'string' &&
+        typeof p['x'] === 'number' &&
+        typeof p['y'] === 'number' &&
+        typeof p['color'] === 'number' &&
+        typeof p['interactionToken'] === 'string' &&
+        typeof p['applicationId'] === 'string'
     );
 }
 
 /**
  * Main endpoint to receive Pub/Sub messages
- * Cloud Run receives Pub/Sub messages via HTTP POST
  */
 app.post('/', async (req: Request, res: Response) => {
-    try {
-        // Log message reception
-        console.log(
-            JSON.stringify({
-                level: 'info',
-                message: 'Pub/Sub message received',
-                timestamp: new Date().toISOString(),
-            }),
-        );
+    const startTime = Date.now();
+    const pubsubMessage: PubSubMessage = req.body;
+    const messageId = pubsubMessage?.message?.messageId || 'unknown';
 
-        // Check for Pub/Sub message presence
-        const pubsubMessage: PubSubMessage = req.body;
-        
+    try {
+        logger.pubsubReceived(messageId, pubsubMessage?.subscription || 'unknown');
+
+        // Validate Pub/Sub message structure
         if (!pubsubMessage.message || !pubsubMessage.message.data) {
-            console.error(
-                JSON.stringify({
-                    level: 'error',
-                    message: 'Invalid Pub/Sub message - missing data',
-                    body: req.body,
-                }),
-            );
+            logger.validationError('Missing Pub/Sub message data', {
+                hasMessage: !!pubsubMessage.message,
+                hasData: !!pubsubMessage?.message?.data,
+            });
             res.status(400).send('Bad Request: Missing Pub/Sub message data');
             return;
         }
@@ -70,91 +60,66 @@ app.post('/', async (req: Request, res: Response) => {
         try {
             decodedData = Buffer.from(pubsubMessage.message.data, 'base64').toString('utf-8');
         } catch (error) {
-            console.error(
-                JSON.stringify({
-                    level: 'error',
-                    message: 'Base64 decoding error',
-                    error: error instanceof Error ? error.message : String(error),
-                }),
-            );
+            logger.error('Base64 decoding failed', {
+                messageId,
+                error: error instanceof Error ? error.message : String(error),
+            });
             res.status(400).send('Bad Request: Invalid Base64 encoding');
             return;
         }
 
         // JSON parsing
-        let payload: any;
+        let payload: unknown;
         try {
             payload = JSON.parse(decodedData);
         } catch (error) {
-            console.error(
-                JSON.stringify({
-                    level: 'error',
-                    message: 'JSON parsing error',
-                    data: decodedData,
-                    error: error instanceof Error ? error.message : String(error),
-                }),
-            );
+            logger.validationError('JSON parsing failed', {
+                messageId,
+                rawData: decodedData.substring(0, 200),
+                error: error instanceof Error ? error.message : String(error),
+            });
             res.status(400).send('Bad Request: Invalid JSON');
             return;
         }
 
         // Payload validation
         if (!isValidPixelPayload(payload)) {
-            console.error(
-                JSON.stringify({
-                    level: 'error',
-                    message: 'Invalid payload - incorrect structure',
-                    payload,
-                }),
-            );
+            logger.validationError('Invalid pixel payload structure', {
+                messageId,
+                receivedFields: payload ? Object.keys(payload as object) : [],
+                payload,
+            });
             res.status(400).send('Bad Request: Invalid payload structure');
             return;
         }
 
-        // Pixel processing
-        try {
-            await writePixelService.execute(payload);
-            
-            // Pub/Sub message acknowledgment (success)
-            console.log(
-                JSON.stringify({
-                    level: 'info',
-                    message: 'Pub/Sub message processed successfully',
-                    messageId: pubsubMessage.message.messageId,
-                    timestamp: new Date().toISOString(),
-                }),
-            );
-            
-            res.status(204).send(); // 204 No Content = success
-        } catch (error) {
-            // Processing error - Pub/Sub will retry
-            console.error(
-                JSON.stringify({
-                    level: 'error',
-                    message: 'Error processing message',
-                    messageId: pubsubMessage.message.messageId,
-                    error: error instanceof Error ? error.message : String(error),
-                    stack: error instanceof Error ? error.stack : undefined,
-                    timestamp: new Date().toISOString(),
-                }),
-            );
-            
-            // 500 = temporary error, Pub/Sub will retry
-            res.status(500).send('Internal Server Error: Processing failed');
-        }
+        // Process pixel write
+        logger.info('Processing pixel write request', {
+            messageId,
+            userId: payload.userId,
+            coordinates: { x: payload.x, y: payload.y },
+            color: payload.color,
+            colorHex: '#' + payload.color.toString(16).padStart(6, '0'),
+        });
+
+        await writePixelService.execute(payload);
+
+        const durationMs = Date.now() - startTime;
+        logger.pubsubProcessed(messageId, durationMs, true);
+        logger.pixelWrite(payload.userId, payload.x, payload.y, payload.color, true, durationMs);
+
+        res.status(204).send();
     } catch (error) {
-        // Unexpected error
-        console.error(
-            JSON.stringify({
-                level: 'error',
-                message: 'Unexpected error in main handler',
-                error: error instanceof Error ? error.message : String(error),
-                stack: error instanceof Error ? error.stack : undefined,
-                timestamp: new Date().toISOString(),
-            }),
-        );
-        
-        res.status(500).send('Internal Server Error');
+        const durationMs = Date.now() - startTime;
+        logger.pubsubProcessed(messageId, durationMs, false);
+        logger.error('Error processing Pub/Sub message', {
+            messageId,
+            durationMs,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+        });
+
+        res.status(500).send('Internal Server Error: Processing failed');
     }
 });
 
@@ -162,16 +127,21 @@ app.post('/', async (req: Request, res: Response) => {
  * Health check endpoint
  */
 app.get('/health', (_req: Request, res: Response) => {
-    res.status(200).json({ status: 'healthy' });
+    res.status(200).json({
+        status: 'healthy',
+        service: 'write-pixels-worker',
+        timestamp: new Date().toISOString(),
+    });
 });
 
 /**
- * Root endpoint to verify the service is active
+ * Root endpoint - service info
  */
 app.get('/', (_req: Request, res: Response) => {
     res.status(200).json({
         service: 'write-pixels-worker',
         status: 'running',
+        version: '1.0.0',
         timestamp: new Date().toISOString(),
     });
 });
@@ -179,26 +149,12 @@ app.get('/', (_req: Request, res: Response) => {
 // Server startup
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-    console.log(
-        JSON.stringify({
-            level: 'info',
-            message: `write-pixels-worker started on port ${PORT}`,
-            port: PORT,
-            timestamp: new Date().toISOString(),
-        }),
-    );
+    logger.serviceStartup(PORT);
 });
 
 // Graceful shutdown handling
 process.on('SIGTERM', async () => {
-    console.log(
-        JSON.stringify({
-            level: 'info',
-            message: 'SIGTERM signal received - graceful shutdown',
-            timestamp: new Date().toISOString(),
-        }),
-    );
-    
+    logger.serviceShutdown('SIGTERM received');
     await firestoreService.close();
     process.exit(0);
 });

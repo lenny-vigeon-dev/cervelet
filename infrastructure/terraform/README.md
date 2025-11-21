@@ -21,13 +21,23 @@ This directory contains Terraform infrastructure-as-code for the Cervelet server
               │  (Cloud Run)         │     Request router
               └──────────┬───────────┘
                          │
-         ┌───────────────┼───────────────┐
-         ▼               ▼               ▼
-    ┌────────┐    ┌──────────┐    ┌──────────┐
-    │Discord │    │Firestore │    │  Other   │
-    │Handler │    │          │    │Services  │
-    └────────┘    └──────────┘    └──────────┘
+         ┌───────────────┼───────────────┬──────────────────┐
+         │               │               │                  │
+         ▼               ▼               ▼                  ▼
+    ┌────────┐    ┌──────────┐    ┌──────────┐    ┌──────────────┐
+    │Discord │    │Firestore │    │ Pub/Sub  │    │    Other     │
+    │Handler │    │          │    │ Topics   │    │   Services   │
+    └────────┘    └──────────┘    └─────┬────┘    └──────────────┘
+                                        │
+                   ┌────────────────────┼─────────────────┐
+                   │                    │                 │
+                   ▼                    ▼                 ▼
+         ┌──────────────────┐  ┌───────────────┐  ┌─────────────┐
+         │ Write Pixels     │  │   Discord     │  │  Snapshot   │
+         │ Worker           │  │   Worker      │  │  Worker     │
+         └──────────────────┘  └───────────────┘  └─────────────┘
 ```
+
 
 ## Directory Structure
 
@@ -44,7 +54,16 @@ infrastructure/
     │   ├── variables.tf
     │   ├── openapi.yaml       # API routing specification
     │   └── README.md
-    └── firestore/             # Firestore database module
+    ├── firestore/             # Firestore database module
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   ├── outputs.tf
+    │   └── README.md
+    └── pubsub/                # Pub/Sub topics module
+        ├── main.tf
+        ├── variables.tf
+        ├── outputs.tf
+        └── README.md
 ```
 
 ## Modules
@@ -59,6 +78,15 @@ infrastructure/
 - **Purpose**: NoSQL database for application data
 - **Features**: Point-in-Time Recovery, service account management
 
+### 3. Pub/Sub (`modules/pubsub/`)
+- **Purpose**: Asynchronous messaging and event streaming
+- **Topics**: 
+  - `discord-cmd-requests` - Discord command processing
+  - `write-pixel-requests` - Pixel write operations
+  - `snapshot-requests` - Canvas snapshot generation
+  - `pixel-updates-events` - Real-time pixel updates
+- **Features**: Message retention, dead-letter topics support
+
 ## Prerequisites
 
 1. **GCP Project**: Active project with billing enabled
@@ -70,6 +98,7 @@ infrastructure/
    gcloud services enable run.googleapis.com
    gcloud services enable firestore.googleapis.com
    gcloud services enable cloudfunctions.googleapis.com
+   gcloud services enable pubsub.googleapis.com
    ```
 3. **Terraform**: Version >= 1.5
 4. **GCP Authentication**:

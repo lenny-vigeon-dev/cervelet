@@ -1,4 +1,4 @@
-import { Firestore } from '@google-cloud/firestore';
+import { Firestore, Timestamp } from '@google-cloud/firestore';
 import { Storage } from '@google-cloud/storage';
 import { createCanvas } from 'canvas';
 import { config } from './config';
@@ -69,8 +69,8 @@ export class SnapshotService {
         width: config.canvas.defaultWidth,
         height: config.canvas.defaultHeight,
         version: 1,
-        createdAt: Firestore.Timestamp.now(),
-        updatedAt: Firestore.Timestamp.now(),
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
         totalPixels: 0,
       };
     }
@@ -162,8 +162,6 @@ export class SnapshotService {
     await historicalFile.save(imageBuffer, metadata);
     console.log(`Uploaded to: ${historicalPath}`);
 
-    // Make files publicly readable
-    await latestFile.makePublic();
-    await historicalFile.makePublic();
+    // Note: Public access is managed via bucket IAM policy (uniform bucket-level access)
   }
 }

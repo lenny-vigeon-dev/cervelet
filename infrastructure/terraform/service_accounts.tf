@@ -51,6 +51,12 @@ resource "google_project_iam_member" "snap_run_invoker" {
   member  = "serviceAccount:${google_service_account.snap.email}"
 }
 
+resource "google_project_iam_member" "snap_storage_admin" {
+  project = var.project_id
+  role    = "roles/storage.objectAdmin"
+  member  = "serviceAccount:${google_service_account.snap.email}"
+}
+
 resource "google_project_iam_member" "discord_run_invoker" {
   project = var.project_id
   role    = "roles/run.invoker"

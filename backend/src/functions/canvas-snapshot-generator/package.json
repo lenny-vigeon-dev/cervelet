@@ -1,0 +1,47 @@
+{
+  "name": "canvas-snapshot-generator",
+  "version": "1.0.0",
+  "description": "Cloud Function for generating canvas snapshots - r/place clone",
+  "main": "dist/src/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/main.js",
+    "start:dev": "ts-node src/main.ts",
+    "deploy": "gcloud functions deploy canvas-snapshot-generator --gen2 --runtime=nodejs22 --region=europe-west1 --source=. --entry-point=generateSnapshot --trigger-http --allow-unauthenticated=false",
+    "test": "jest",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "cloud-function",
+    "serverless",
+    "canvas",
+    "snapshot",
+    "typescript",
+    "firestore",
+    "cloud-storage"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.20.0",
+  "dependencies": {
+    "@google-cloud/firestore": "^8.0.0",
+    "@google-cloud/functions-framework": "^3.4.0",
+    "@google-cloud/storage": "^7.15.0",
+    "canvas": "^2.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "prettier": "^3.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -85,3 +85,59 @@ variable "api_gateway_display_name" {
   type        = string
   default     = "Cervelet API Gateway"
 }
+
+# ===========================================================================
+# Cloud Storage Variables
+# ===========================================================================
+
+variable "storage_enable_versioning" {
+  description = "Enable object versioning for canvas snapshots bucket"
+  type        = bool
+  default     = true
+}
+
+variable "storage_snapshot_retention_days" {
+  description = "Number of days to retain historical canvas snapshots"
+  type        = number
+  default     = 30
+}
+
+variable "storage_cors_origins" {
+  description = "Allowed CORS origins for the storage bucket"
+  type        = list(string)
+  default     = ["*"]  # Restrict this in production
+}
+
+variable "storage_create_service_account" {
+  description = "Create a service account for snapshot generation"
+  type        = bool
+  default     = true
+}
+
+# ===========================================================================
+# Cloud Scheduler Variables
+# ===========================================================================
+
+variable "enable_snapshot_scheduler" {
+  description = "Enable Cloud Scheduler for periodic canvas snapshots"
+  type        = bool
+  default     = false  # Disabled by default until Cloud Function is deployed
+}
+
+variable "snapshot_function_url" {
+  description = "URL of the canvas snapshot generator Cloud Function"
+  type        = string
+  default     = ""  # Must be set after deploying the Cloud Function
+}
+
+variable "snapshot_schedule" {
+  description = "Cron schedule for canvas snapshots"
+  type        = string
+  default     = "*/5 * * * *"  # Every 5 minutes
+}
+
+variable "snapshot_schedule_interval" {
+  description = "Human-readable description of snapshot schedule"
+  type        = string
+  default     = "5 minutes"
+}

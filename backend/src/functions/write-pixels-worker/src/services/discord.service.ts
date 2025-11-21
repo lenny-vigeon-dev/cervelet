@@ -8,7 +8,7 @@ import { DISCORD_API_BASE_URL } from '../config';
 export class DiscordService {
   /**
    * Sends a follow-up message to Discord via the interaction webhook
-   * 
+   *
    * @param interactionToken - Discord interaction token
    * @param applicationId - Discord application ID
    * @param message - Message to send
@@ -63,7 +63,7 @@ export class DiscordService {
 
   /**
    * Sends a formatted error message to Discord
-   * 
+   *
    * @param interactionToken - Discord interaction token
    * @param applicationId - Discord application ID
    * @param errorMessage - Error message
@@ -82,7 +82,7 @@ export class DiscordService {
 
   /**
    * Sends a formatted success message to Discord
-   * 
+   *
    * @param interactionToken - Discord interaction token
    * @param applicationId - Discord application ID
    * @param successMessage - Success message

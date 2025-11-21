@@ -33,7 +33,7 @@ export class FirestoreService {
   /**
    * Writes a pixel and updates the user's timestamp in an atomic transaction
    * This transaction ensures there are no race conditions
-   * 
+   *
    * @param payload - The pixel data to write
    * @param newTimestamp - The new timestamp for the user
    */

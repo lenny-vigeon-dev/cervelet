@@ -51,7 +51,6 @@ http('generateSnapshot', async (req: Request, res: Response) => {
       data: metadata,
       duration: `${duration}ms`,
     });
-
   } catch (error) {
     console.error('Error generating snapshot:', error);
 

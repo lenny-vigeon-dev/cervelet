@@ -18,9 +18,12 @@ export class WritePixelService {
      * Executes the complete processing of a pixel write request
      * 
      * @param payload - The pixel data to write
+     * @param options - Optional flags to control side-effects (e.g., Discord feedback)
      * @throws Error if an error occurs during processing
      */
-    async execute(payload: PixelPayload): Promise<void> {
+    async execute(payload: PixelPayload, options?: { sendDiscordFeedback?: boolean }): Promise<void> {
+        const sendDiscordFeedback = options?.sendDiscordFeedback !== false && !!payload.interactionToken && !!payload.applicationId;
+
         // Structured log for processing start
         console.log(
             JSON.stringify({
@@ -36,7 +39,7 @@ export class WritePixelService {
 
         try {
             // 1. Rate-limiting check (cooldown)
-            const canWrite = await this.checkCooldown(payload);
+            const canWrite = await this.checkCooldown(payload, sendDiscordFeedback);
             
             if (!canWrite) {
                 return; // Error message was already sent in checkCooldown
@@ -46,11 +49,13 @@ export class WritePixelService {
             await this.writePixel(payload);
 
             // 3. Send success feedback to Discord
-            await this.discordService.sendSuccessFollowUp(
-                payload.interactionToken,
-                payload.applicationId,
-                `Pixel placed successfully at position (${payload.x}, ${payload.y})!`,
-            );
+            if (sendDiscordFeedback && payload.interactionToken && payload.applicationId) {
+                await this.discordService.sendSuccessFollowUp(
+                    payload.interactionToken,
+                    payload.applicationId,
+                    `Pixel placed successfully at position (${payload.x}, ${payload.y})!`,
+                );
+            }
 
             // Success log
             console.log(
@@ -79,20 +84,22 @@ export class WritePixelService {
             );
 
             // Attempt to send error message to Discord
-            try {
-                await this.discordService.sendErrorFollowUp(
-                    payload.interactionToken,
-                    payload.applicationId,
-                    'An error occurred while writing the pixel. Please try again.',
-                );
-            } catch (discordError) {
-                console.error(
-                    JSON.stringify({
-                        level: 'error',
-                        message: 'Unable to send error message to Discord',
-                        error: discordError instanceof Error ? discordError.message : String(discordError),
-                    }),
-                );
+            if (sendDiscordFeedback && payload.interactionToken && payload.applicationId) {
+                try {
+                    await this.discordService.sendErrorFollowUp(
+                        payload.interactionToken,
+                        payload.applicationId,
+                        'An error occurred while writing the pixel. Please try again.',
+                    );
+                } catch (discordError) {
+                    console.error(
+                        JSON.stringify({
+                            level: 'error',
+                            message: 'Unable to send error message to Discord',
+                            error: discordError instanceof Error ? discordError.message : String(discordError),
+                        }),
+                    );
+                }
             }
 
             // Re-throw error so the worker can handle it
@@ -106,7 +113,7 @@ export class WritePixelService {
      * @param payload - The pixel data
      * @returns true if the user can write, false otherwise
      */
-    private async checkCooldown(payload: PixelPayload): Promise<boolean> {
+    private async checkCooldown(payload: PixelPayload, sendDiscordFeedback: boolean): Promise<boolean> {
         const user = await this.firestoreService.getUser(payload.userId);
 
         if (!user || !user.lastPixelPlaced) {
@@ -144,11 +151,13 @@ export class WritePixelService {
             );
 
             // Send error message to Discord
-            await this.discordService.sendErrorFollowUp(
-                payload.interactionToken,
-                payload.applicationId,
-                `Cooldown active! You must wait ${remainingMinutes} more minute${remainingMinutes > 1 ? 's' : ''}.`,
-            );
+            if (sendDiscordFeedback && payload.interactionToken && payload.applicationId) {
+                await this.discordService.sendErrorFollowUp(
+                    payload.interactionToken,
+                    payload.applicationId,
+                    `Cooldown active! You must wait ${remainingMinutes} more minute${remainingMinutes > 1 ? 's' : ''}.`,
+                );
+            }
 
             return false;
         }

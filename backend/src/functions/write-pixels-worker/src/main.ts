@@ -30,10 +30,91 @@ function isValidPixelPayload(payload: any): payload is PixelPayload {
         typeof payload.x === 'number' &&
         typeof payload.y === 'number' &&
         typeof payload.color === 'number' &&
-        typeof payload.interactionToken === 'string' &&
-        typeof payload.applicationId === 'string'
+        (typeof payload.interactionToken === 'string' || payload.interactionToken === undefined) &&
+        (typeof payload.applicationId === 'string' || payload.applicationId === undefined)
     );
 }
+
+/**
+ * Http payload validation (no interaction tokens)
+ */
+function isValidHttpPixelPayload(body: any): body is { x: number; y: number; color: number } {
+    return (
+        body &&
+        typeof body.x === 'number' &&
+        typeof body.y === 'number' &&
+        typeof body.color === 'number'
+    );
+}
+
+/**
+ * Simple CORS handling for direct HTTP calls from the frontend
+ */
+app.options('/write', (_req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.status(204).send();
+});
+
+/**
+ * Direct HTTP endpoint for frontend calls.
+ * The client sends a Discord OAuth access token (Bearer) in Authorization header.
+ * We validate the token by fetching /users/@me, then reuse the same write flow
+ * without requiring Firebase Auth on the client.
+ */
+app.post('/write', async (req: Request, res: Response) => {
+    res.set('Access-Control-Allow-Origin', '*');
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
+        res.status(401).json({ error: 'Missing Discord access token (Authorization: Bearer ...)' });
+        return;
+    }
+
+    const accessToken = authHeader.split(' ')[1];
+    if (!accessToken) {
+        res.status(401).json({ error: 'Missing Discord access token (Authorization: Bearer ...)' });
+        return;
+    }
+
+    // Validate body
+    if (!isValidHttpPixelPayload(req.body)) {
+        res.status(400).json({ error: 'Invalid payload. Expected { x: number, y: number, color: number }' });
+        return;
+    }
+
+    // Fetch user from Discord to authenticate request
+    let discordUserId: string;
+    try {
+        const discordUser = await discordService.fetchUserFromAccessToken(accessToken);
+        discordUserId = discordUser.id;
+    } catch (error) {
+        res.status(401).json({ error: 'Invalid Discord access token' });
+        return;
+    }
+
+    const payload: PixelPayload = {
+        userId: discordUserId,
+        x: req.body.x,
+        y: req.body.y,
+        color: req.body.color,
+    };
+
+    // Basic bounds validation for color
+    if (payload.color < 0 || payload.color > 0xFFFFFF) {
+        res.status(400).json({ error: 'Color must be between 0 and 16777215 (0xFFFFFF)' });
+        return;
+    }
+
+    try {
+        await writePixelService.execute(payload, { sendDiscordFeedback: false });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Internal error';
+        res.status(500).json({ error: message });
+    }
+});
 
 /**
  * Main endpoint to receive Pub/Sub messages

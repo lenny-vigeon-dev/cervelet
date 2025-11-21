@@ -6,17 +6,23 @@
  */
 
 import { Request, Response } from '@google-cloud/functions-framework';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { initializeApp, cert, getApps, applicationDefault } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
 // Initialize Firebase Admin SDK (singleton)
 if (!getApps().length) {
+  // Prefer environment variables if set (local dev), otherwise use ADC (Cloud Functions)
+  const hasEnvVars = process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL;
+  
   initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
+    credential: hasEnvVars
+      ? cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        })
+      : applicationDefault(),
+    projectId: process.env.FIREBASE_PROJECT_ID || process.env.GCP_PROJECT,
   });
 }
 

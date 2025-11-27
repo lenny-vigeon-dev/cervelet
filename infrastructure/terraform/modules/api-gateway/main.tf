@@ -58,10 +58,10 @@ resource "google_api_gateway_api" "api" {
 resource "google_api_gateway_api_config" "api_config" {
   provider = google-beta
 
-  api           = google_api_gateway_api.api.api_id
-  api_config_id = "${var.api_gateway_id}-config-v1"
-  display_name  = "API Config for ${var.api_gateway_display_name}"
-  project       = var.project_id
+  api                   = google_api_gateway_api.api.api_id
+  api_config_id_prefix  = "${var.api_gateway_id}-config-"
+  display_name          = "API Config for ${var.api_gateway_display_name}"
+  project               = var.project_id
 
   # Link the OpenAPI specification
   openapi_documents {

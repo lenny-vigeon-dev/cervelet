@@ -23,7 +23,7 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
   console.log("🟡 /send called");
 
-  if (!interaction.memberPermissions?.has("Administrator")) {
+  if (!interaction.memberPermissions || !interaction.memberPermissions.has("Administrator")) {
     return interaction.reply({
       content: "❌ You need administrator permissions to use this command.",
       ephemeral: true,

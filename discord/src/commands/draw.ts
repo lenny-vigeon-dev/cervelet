@@ -9,8 +9,16 @@ import {
 } from "discord.js";
 import { PubSub } from "@google-cloud/pubsub";
 
+const parseEnvInt = (envVar: string | undefined, defaultValue: number): number => {
+  if (!envVar) return defaultValue;
+  const parsed = parseInt(envVar, 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+};
+
 const pubsub = new PubSub({ projectId: process.env.GCLOUD_PROJECT_ID });
 const TOPIC_NAME = process.env.PUBSUB_TOPIC || "write-pixels-topic";
+const MAX_X = parseEnvInt(process.env.CANVAS_MAX_X, 1000);
+const MAX_Y = parseEnvInt(process.env.CANVAS_MAX_Y, 1000);
 
 const COLOR_MAP: Record<string, string> = {
   white: "FFFFFF",
@@ -62,8 +70,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const y = interaction.options.getInteger("y", true);
   const colorKey = interaction.options.getString("color", true);
 
-  if (x < 0 || y < 0) {
-    await interaction.editReply("❌ Coordinates must be positive.");
+  if (x < 0 || x >= MAX_X || y < 0 || y >= MAX_Y) {
+    await interaction.editReply(`❌ Coordinates must be between 0-${MAX_X - 1} for X and 0-${MAX_Y - 1} for Y.`);
     return;
   }
 

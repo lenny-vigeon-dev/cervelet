@@ -35,11 +35,11 @@ export default function CanvaPage() {
   }, []);
 
   return (
-    <main className="min-h-screen touch-none">
-      <div className="absolute top-4 right-4 z-10">
+    <main className="min-h-screen touch-none relative">
+      <div className="absolute top-4 right-4 z-50 pointer-events-auto">
         <Link
           href="/"
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 border border-brand/20 hover:border-brand/40 transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 border border-brand/20 hover:border-brand/40 transition-colors backdrop-blur-sm"
           aria-label="Retour à la page d'accueil">
           <svg
             xmlns="http://www.w3.org/2000/svg"

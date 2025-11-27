@@ -55,6 +55,7 @@ export function PixelCanvas({
 
   // Canvas ref
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Determine dimensions from snapshot image or fallback
   const dimensions = useMemo(() => {
@@ -75,13 +76,80 @@ export function PixelCanvas({
   // Zoom
   const [zoom, setZoom] = useState(1);
   const [[originX, originY], setOrigin] = useState<[number, number]>([50, 50]);
-  const MIN_ZOOM = 0.5; // Permet de dé-zoomer sans que l'image disparaisse
-  const MAX_ZOOM = 5;
+  const [minZoom, setMinZoom] = useState(0.1);
+  const MAX_ZOOM = 20; // Permet de zoomer très près pour placer les pixels précisément
+
+  // Calculate min zoom to fit container
+  useEffect(() => {
+    if (!containerRef.current || dimensions.width === 0 || dimensions.height === 0) return;
+
+    const updateMinZoom = () => {
+      const container = containerRef.current;
+      if (!container) return;
+      
+      const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect();
+      const canvasWidth = dimensions.width * scale;
+      const canvasHeight = dimensions.height * scale;
+
+      // Calculate the zoom level needed to fit the canvas entirely in the container
+      // We subtract a small margin (e.g. 40px) to ensure it doesn't touch the edges exactly if desired,
+      // but usually fit is exact. Let's use 0.95 factor for a bit of breathing room or exact fit.
+      // User asked for "la hauteur du canvas", so let's just fit it.
+      const fitZoom = Math.min(
+        containerWidth / canvasWidth,
+        containerHeight / canvasHeight
+      );
+      
+      // Ensure minZoom is not larger than MAX_ZOOM
+      const newMinZoom = Math.min(fitZoom, MAX_ZOOM);
+      
+      setMinZoom(newMinZoom);
+      
+      // If current zoom is less than new minZoom, update it
+      setZoom(z => Math.max(z, newMinZoom));
+    };
+
+    updateMinZoom();
+    
+    const observer = new ResizeObserver(updateMinZoom);
+    observer.observe(containerRef.current);
+    
+    return () => observer.disconnect();
+  }, [dimensions, scale]);
 
   // Pan (drag to move)
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Refs for accessing state in event handlers without re-binding
+  const zoomRef = useRef(zoom);
+  const panOffsetRef = useRef(panOffset);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+    panOffsetRef.current = panOffset;
+  }, [zoom, panOffset]);
+
+  // Helper to clamp offset
+  const clampOffset = (offset: {x: number, y: number}, zoomLevel: number) => {
+    const container = containerRef.current;
+    if (!container) return offset;
+    
+    const containerRect = container.getBoundingClientRect();
+    const canvasWidth = dimensions.width * scale * zoomLevel;
+    const canvasHeight = dimensions.height * scale * zoomLevel;
+    
+    // If canvas is smaller than container, center it (offset 0)
+    // If canvas is larger, allow panning but keep edges within container
+    const maxOffsetX = Math.max(0, (canvasWidth - containerRect.width) / 2);
+    const maxOffsetY = Math.max(0, (canvasHeight - containerRect.height) / 2);
+    
+    return {
+      x: Math.max(-maxOffsetX, Math.min(maxOffsetX, offset.x)),
+      y: Math.max(-maxOffsetY, Math.min(maxOffsetY, offset.y))
+    };
+  };
   
   // Render canvas: snapshot image + real-time pixels + local drawings
   useEffect(() => {
@@ -153,25 +221,35 @@ export function PixelCanvas({
       setIsPanning(false);
       return;
     }
-    
+
     const canvas = canvasRef.current;
     if (!canvas) {
       return;
     }
 
-    
     const rect = canvas.getBoundingClientRect();
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      return;
-    }
-    
-    const x = Math.floor(((event.clientX - rect.left) / rect.width) * canvas.width);
-    const y = Math.floor(((event.clientY - rect.top) / rect.height) * canvas.height);
-    
-    
-    setSelectedPixel({ x, y });
-    console.log(`Pixel clicked: (${x}, ${y})`);
+
+    // Get click position relative to canvas element
+    // rect includes the scale transform and pan offset
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+
+    // Calculate normalized coordinates (0 to 1)
+    // Since rect is the bounding box of the scaled canvas, 
+    // clickX / rect.width gives the correct relative position
+    const normalizedX = clickX / rect.width;
+    const normalizedY = clickY / rect.height;
+
+    // Convert to pixel coordinates
+    const x = Math.floor(normalizedX * canvas.width);
+    const y = Math.floor(normalizedY * canvas.height);
+
+    // Clamp to canvas bounds
+    const clampedX = Math.max(0, Math.min(canvas.width - 1, x));
+    const clampedY = Math.max(0, Math.min(canvas.height - 1, y));
+
+    setSelectedPixel({ x: clampedX, y: clampedY });
+    console.log(`Pixel clicked: (${clampedX}, ${clampedY})`);
     setIsPanning(false);
   };
 
@@ -193,10 +271,12 @@ export function PixelCanvas({
       setIsPanning(true);
     }
 
-    setPanOffset({
+    const newOffset = {
       x: panOffset.x + deltaX,
       y: panOffset.y + deltaY,
-    });
+    };
+
+    setPanOffset(clampOffset(newOffset, zoom));
 
     setPanStart({ x: event.clientX, y: event.clientY });
   };
@@ -216,35 +296,62 @@ export function PixelCanvas({
       event.preventDefault();
       event.stopPropagation();
 
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
       const rect = canvas.getBoundingClientRect();
-      const mouseX = (event.clientX - rect.left);
-      const mouseY = (event.clientY - rect.top);
+      // Calculate mouse position relative to the center of the canvas
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const mouseXFromCenter = event.clientX - centerX;
+      const mouseYFromCenter = event.clientY - centerY;
 
-      setZoom((prevZoom) => {
-        // Zoom factor très progressif
-        const zoomFactor = 0.05;
-        const newZoom = prevZoom + (event.deltaY > 0 ? -zoomFactor : zoomFactor);
-        const clampedZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newZoom));
+      // Multiplicative zoom for smoother experience
+      const ZOOM_SPEED = 1.1;
+      const direction = Math.sign(event.deltaY); // 1 for down (out), -1 for up (in)
+      
+      // If deltaY is 0, do nothing
+      if (direction === 0) return;
 
-        // Si on est au zoom minimum, centrer le canvas
-        if (clampedZoom === MIN_ZOOM) {
-          setOrigin([50, 50]); // Centre
-          setPanOffset({ x: 0, y: 0 }); // Reset pan
-        } else {
-          // Sinon, zoom sur la position de la souris
-          setOrigin([(mouseX / rect.width) * 100, (mouseY / rect.height) * 100]);
-        }
+      // Use refs to get latest state without re-binding listener
+      const currentZoom = zoomRef.current;
+      const currentPanOffset = panOffsetRef.current;
 
-        return clampedZoom;
-      });
+      // Zoom out (positive delta) -> divide. Zoom in (negative delta) -> multiply.
+      const newZoomRaw = direction > 0 ? currentZoom / ZOOM_SPEED : currentZoom * ZOOM_SPEED;
+      const clampedZoom = Math.min(MAX_ZOOM, Math.max(minZoom, newZoomRaw));
+
+      // Si on est au zoom minimum, centrer le canvas et reset tout
+      // Use a small epsilon for float comparison
+      if (Math.abs(clampedZoom - minZoom) < 0.001) {
+        setOrigin([50, 50]);
+        setPanOffset({ x: 0, y: 0 });
+        setZoom(minZoom);
+        return;
+      }
+
+      // Calculer le ratio de zoom
+      const zoomRatio = clampedZoom / currentZoom;
+
+      // Ajuster le pan offset pour zoomer vers la souris
+      const targetOffset = {
+        x: currentPanOffset.x + mouseXFromCenter * (1 - zoomRatio),
+        y: currentPanOffset.y + mouseYFromCenter * (1 - zoomRatio),
+      };
+
+      setPanOffset(clampOffset(targetOffset, clampedZoom));
+      setZoom(clampedZoom);
     };
 
-    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
-      canvas.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('wheel', handleWheel);
     };
-  }, [MIN_ZOOM, MAX_ZOOM]);
+  }, [minZoom, MAX_ZOOM, dimensions, scale]); // Added dimensions and scale to deps as they are used in clampOffset
 
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -323,7 +430,7 @@ export function PixelCanvas({
   };
 
   return (
-    <div className={`w-full rounded-3xl border border-brand/20 bg-canvas-surface overflow-hidden select-none relative`}>
+    <div ref={containerRef} className={`w-full rounded-3xl border border-brand/20 bg-canvas-surface overflow-hidden select-none relative flex items-center justify-center`}>
       {/* Real-time status indicator - Bottom right to not block close button */}
       {enableRealtime && (
         <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-brand/30">
@@ -359,8 +466,16 @@ export function PixelCanvas({
 
       {selectedPixel && (
         <div className="flex">
-          <div className="fixed top-0 left-0 z-10 w-full items-center flex justify-center flex-col">
-            <ToolbarWrapper onSelectColor={setSelectedColor} />
+          <div className="fixed top-0 left-0 z-10 w-full items-center flex justify-center flex-col pointer-events-none">
+            <div className="pointer-events-auto">
+              <ToolbarWrapper 
+                onSelectColor={setSelectedColor} 
+                onClose={() => {
+                  setSelectedPixel(null);
+                  setSelectedColor(null);
+                }}
+              />
+            </div>
           </div>
           {selectedColor && (
           <div className="fixed bottom-0 left-0 z-10 w-full items-center flex justify-center pb-8">
@@ -385,7 +500,7 @@ export function PixelCanvas({
           ) }
         </div>
       )}
-      <div className={`${className ?? ""} justify-center flex`}>
+      <div className={`${className ?? ""} flex items-center justify-center w-full h-full`}>
       <div
         style={{
           transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
@@ -406,7 +521,7 @@ export function PixelCanvas({
             imageRendering: "pixelated",
             transform: `scale(${zoom})`, transformOrigin: `${originX}% ${originY}%`
           }}
-          className="rounded-2xl border border-brand/25 bg-black shadow-lg shadow-brand/20"
+          className="border border-brand/25 bg-black shadow-lg shadow-brand/20"
           aria-label="Collaborative pixel canvas"
         />
       </div>

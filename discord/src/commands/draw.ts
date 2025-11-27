@@ -89,7 +89,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const payload = {
     userId: interaction.user.id,
-    username: interaction.user.username,
+    username: interaction.user.username || interaction.user.tag || interaction.user.id,
     avatarUrl,
     x,
     y,

@@ -11,7 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import "./server";
 
-import type { Command } from "./discord";
+import type { Command } from "./types/discord";
 interface ExtendedClient extends Client {
   commands: Collection<string, Command>;
 }

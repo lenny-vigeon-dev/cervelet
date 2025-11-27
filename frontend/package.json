@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "pnpm build && gcloud app deploy --quiet"
+    "deploy": "pnpm build && gcloud run deploy frontend --region=europe-west1 --source . --allow-unauthenticated"
   },
   "engines": {
     "node": ">=22.0.0",

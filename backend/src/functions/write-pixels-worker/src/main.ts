@@ -28,6 +28,7 @@ function isValidPixelPayload(payload: unknown): payload is PixelPayload {
     const p = payload as Record<string, unknown>;
     return (
         typeof p['userId'] === 'string' &&
+        typeof p['username'] === 'string' &&
         typeof p['x'] === 'number' &&
         typeof p['y'] === 'number' &&
         typeof p['color'] === 'number' &&
@@ -87,9 +88,11 @@ app.post('/write', async (req: Request, res: Response) => {
 
     // Fetch user from Discord to authenticate request
     let discordUserId: string;
+    let discordUsername: string;
     try {
         const discordUser = await discordService.fetchUserFromAccessToken(accessToken);
         discordUserId = discordUser.id;
+        discordUsername = discordUser.username;
     } catch (error) {
         res.status(401).json({ error: 'Invalid Discord access token' });
         return;
@@ -97,6 +100,7 @@ app.post('/write', async (req: Request, res: Response) => {
 
     const payload: PixelPayload = {
         userId: discordUserId,
+        username: discordUsername,
         x: req.body.x,
         y: req.body.y,
         color: req.body.color,

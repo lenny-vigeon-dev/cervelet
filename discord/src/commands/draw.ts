@@ -85,6 +85,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const payload = {
     userId: interaction.user.id,
+    username: interaction.user.username,
     x,
     y,
     color: colorNum,

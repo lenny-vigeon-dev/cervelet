@@ -151,13 +151,19 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
                 const data = change.doc.data();
                 const pixelId = change.doc.id;
 
-                // Parse pixel coordinates from document ID (format: "x_y")
-                const [x, y] = pixelId.split('_').map(Number);
+                // Parse pixel coordinates from document ID (format: "canvasId_x_y")
+                const parts = pixelId.split('_');
+                const x = Number(parts[1]);
+                const y = Number(parts[2]);
+
+                // Convert color integer to hex string
+                const colorInt = data.color as number;
+                const colorHex = `#${colorInt.toString(16).padStart(6, '0')}` as `#${string}`;
 
                 const pixel: CanvasPixel = {
                   x,
                   y,
-                  color: data.color as `#${string}`,
+                  color: colorHex,
                   authorId: data.userId || 'unknown',
                   updatedAt: data.lastUpdatedAt?.toDate().toISOString() || new Date().toISOString(),
                 };

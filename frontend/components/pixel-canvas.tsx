@@ -201,36 +201,46 @@ export function PixelCanvas({
     setPanStart(null);
   };
 
-  const handleWheel = (event: React.WheelEvent<HTMLCanvasElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-
+  // Attach wheel event listener with { passive: false } to allow preventDefault
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) {
       return;
     }
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = (event.clientX - rect.left);
-    const mouseY = (event.clientY - rect.top);
 
-    setZoom((prevZoom) => {
-      // Zoom factor très progressif
-      const zoomFactor = 0.05;
-      const newZoom = prevZoom + (event.deltaY > 0 ? -zoomFactor : zoomFactor);
-      const clampedZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newZoom));
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
 
-      // Si on est au zoom minimum, centrer le canvas
-      if (clampedZoom === MIN_ZOOM) {
-        setOrigin([50, 50]); // Centre
-        setPanOffset({ x: 0, y: 0 }); // Reset pan
-      } else {
-        // Sinon, zoom sur la position de la souris
-        setOrigin([(mouseX / rect.width) * 100, (mouseY / rect.height) * 100]);
-      }
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = (event.clientX - rect.left);
+      const mouseY = (event.clientY - rect.top);
 
-      return clampedZoom;
-    });
-  };
+      setZoom((prevZoom) => {
+        // Zoom factor très progressif
+        const zoomFactor = 0.05;
+        const newZoom = prevZoom + (event.deltaY > 0 ? -zoomFactor : zoomFactor);
+        const clampedZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newZoom));
+
+        // Si on est au zoom minimum, centrer le canvas
+        if (clampedZoom === MIN_ZOOM) {
+          setOrigin([50, 50]); // Centre
+          setPanOffset({ x: 0, y: 0 }); // Reset pan
+        } else {
+          // Sinon, zoom sur la position de la souris
+          setOrigin([(mouseX / rect.width) * 100, (mouseY / rect.height) * 100]);
+        }
+
+        return clampedZoom;
+      });
+    };
+
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+    };
+  }, [MIN_ZOOM, MAX_ZOOM]);
 
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -349,7 +359,6 @@ export function PixelCanvas({
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onWheel={handleWheel}
           style={{
             width: dimensions.width * scale,
             height: dimensions.height * scale,

@@ -8,6 +8,11 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
+  // Extract origins from env (avoid duplicates)
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+  const writePixelUrl = process.env.NEXT_PUBLIC_WRITE_PIXEL_URL || "";
+  const writePixelOrigin = writePixelUrl ? new URL(writePixelUrl).origin : "";
+
   // Security headers
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -27,13 +32,14 @@ export function proxy(request: NextRequest) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self'",
-    "connect-src 'self' " +
-      (process.env.NEXT_PUBLIC_API_URL || "") + " " +
-      "https://firestore.googleapis.com " +
-      "https://storage.googleapis.com " +
-      "https://identitytoolkit.googleapis.com " +
-      "https://securetoken.googleapis.com " +
-      "wss://firestore.googleapis.com",
+    "connect-src 'self'" +
+      (apiUrl ? ` ${apiUrl}` : "") +
+      (writePixelOrigin ? ` ${writePixelOrigin}` : "") +
+      " https://firestore.googleapis.com" +
+      " https://storage.googleapis.com" +
+      " https://identitytoolkit.googleapis.com" +
+      " https://securetoken.googleapis.com" +
+      " wss://firestore.googleapis.com",
     "frame-ancestors 'none'",
   ].join("; ");
 

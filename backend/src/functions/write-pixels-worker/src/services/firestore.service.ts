@@ -31,7 +31,7 @@ export class FirestoreService {
   }
 
   /**
-   * Writes a pixel and updates the user's timestamp in an atomic transaction
+   * Writes a pixel and creates or updates the user profile in an atomic transaction
    * This transaction ensures there are no race conditions
    *
    * @param payload - The pixel data to write

@@ -7,6 +7,7 @@ import { useRealtimeCanvas } from "@/hooks/use-realtime-canvas";
 import { useSession } from "@/hooks/use-session";
 import { writePixel } from "@/lib/firebase/write-pixel";
 import { useCooldown } from "@/hooks/use-cooldown";
+import { PixelInfoModal } from "./pixel-info-modal";
 
 export interface PixelCanvasProps {
   snapshot?: CanvasSnapshot;
@@ -72,6 +73,9 @@ export function PixelCanvas({
   const [selectedPixel, setSelectedPixel] = useState<{ x: number; y: number } | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [drawnPixels, setDrawnPixels] = useState<Array<{ x: number; y: number; color: string }>>([]);
+
+  // Pixel info modal
+  const [showPixelInfo, setShowPixelInfo] = useState<{ x: number; y: number } | null>(null);
 
   // Zoom
   const [zoom, setZoom] = useState(1);
@@ -227,27 +231,18 @@ export function PixelCanvas({
   }, [snapshotImage, snapshot, dimensions, realtimePixels, drawnPixels, selectedPixel]);
 
 
-  const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (isPanning) {
-      setIsPanning(false);
-      return;
-    }
-
+  // Helper function to get pixel coordinates from mouse event
+  const getPixelCoordinates = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
+    if (!canvas) return null;
 
     const rect = canvas.getBoundingClientRect();
 
     // Get click position relative to canvas element
-    // rect includes the scale transform and pan offset
     const clickX = event.clientX - rect.left;
     const clickY = event.clientY - rect.top;
 
     // Calculate normalized coordinates (0 to 1)
-    // Since rect is the bounding box of the scaled canvas, 
-    // clickX / rect.width gives the correct relative position
     const normalizedX = clickX / rect.width;
     const normalizedY = clickY / rect.height;
 
@@ -259,9 +254,31 @@ export function PixelCanvas({
     const clampedX = Math.max(0, Math.min(canvas.width - 1, x));
     const clampedY = Math.max(0, Math.min(canvas.height - 1, y));
 
-    setSelectedPixel({ x: clampedX, y: clampedY });
-    console.log(`Pixel clicked: (${clampedX}, ${clampedY})`);
+    return { x: clampedX, y: clampedY };
+  };
+
+  const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (isPanning) {
+      setIsPanning(false);
+      return;
+    }
+
+    const coords = getPixelCoordinates(event);
+    if (!coords) return;
+
+    setSelectedPixel(coords);
+    console.log(`Pixel clicked: (${coords.x}, ${coords.y})`);
     setIsPanning(false);
+  };
+
+  const handleContextMenu = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+
+    const coords = getPixelCoordinates(event);
+    if (!coords) return;
+
+    console.log(`Pixel right-clicked: (${coords.x}, ${coords.y})`);
+    setShowPixelInfo(coords);
   };
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -523,6 +540,7 @@ export function PixelCanvas({
         <canvas
           ref={canvasRef}
           onClick={handleClick}
+          onContextMenu={handleContextMenu}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -537,6 +555,16 @@ export function PixelCanvas({
         />
       </div>
       </div>
+
+      {/* Pixel info modal (right-click on pixel) */}
+      {showPixelInfo && (
+        <PixelInfoModal
+          x={showPixelInfo.x}
+          y={showPixelInfo.y}
+          canvasId={canvasId}
+          onClose={() => setShowPixelInfo(null)}
+        />
+      )}
     </div>
   );
 }

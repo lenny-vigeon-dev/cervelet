@@ -111,7 +111,7 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
 
     try {
       const db = getFirestoreDb();
-      const pixelsCollection = collection(db, COLLECTIONS.CANVAS);
+      const pixelsCollection = collection(db, COLLECTIONS.PIXELS);
 
       // Only listen to pixels updated AFTER snapshot was loaded
       const snapshotTime = snapshotLoadedAtRef.current;

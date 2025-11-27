@@ -26,12 +26,14 @@ export class AppService {
 
       const topic = this.pubsub.topic(this.topicName);
 
-      // Fetch Discord user info to get userId
+      // Fetch Discord user info to get userId, username, and avatar
       const discordUser = await this.fetchDiscordUser(payload.accessToken);
-      console.log('Discord user fetched:', discordUser.id);
+      console.log('Discord user fetched:', discordUser.id, discordUser.username);
 
       const message = {
         userId: discordUser.id,
+        username: discordUser.username,
+        avatarUrl: discordUser.avatar,
         x: payload.x,
         y: payload.y,
         color: payload.color,
@@ -50,7 +52,7 @@ export class AppService {
     }
   }
 
-  private async fetchDiscordUser(accessToken: string): Promise<{ id: string }> {
+  private async fetchDiscordUser(accessToken: string): Promise<{ id: string; username: string; avatar?: string }> {
     try {
       const response = await axios.get('https://discord.com/api/v10/users/@me', {
         headers: {
@@ -58,7 +60,11 @@ export class AppService {
         },
       });
 
-      return response.data;
+      return {
+        id: response.data.id,
+        username: response.data.username,
+        avatar: response.data.avatar,
+      };
     } catch (error) {
       console.error('Error fetching Discord user:', error);
       if (axios.isAxiosError(error)) {

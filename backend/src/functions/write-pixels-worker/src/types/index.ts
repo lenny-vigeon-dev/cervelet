@@ -19,12 +19,12 @@ export interface PixelPayload {
  * Document ID = {userId}
  */
 export interface UserDoc {
-  id?: string;
-  username?: string;
-  role?: 'user' | 'admin';
+  id: string;
+  username: string;
+  role: 'user' | 'admin';
   lastPixelPlaced: Timestamp;
-  totalPixelsPlaced?: number;
-  createdAt?: Timestamp;
+  totalPixelsPlaced: number;
+  createdAt: Timestamp;
 }
 
 /**

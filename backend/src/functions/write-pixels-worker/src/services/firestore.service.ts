@@ -1,4 +1,4 @@
-import { Firestore, Timestamp } from '@google-cloud/firestore';
+import { Firestore, Timestamp, FieldValue } from '@google-cloud/firestore';
 import { USERS_COLLECTION, PIXELS_COLLECTION, DEFAULT_CANVAS_ID, PROJECT_ID } from '../config';
 import { UserDoc, PixelDoc, PixelPayload } from '../types';
 
@@ -48,10 +48,9 @@ export class FirestoreService {
 
     // Execute transaction to guarantee atomicity
     await this.db.runTransaction(async (transaction) => {
-      // 1. Read current user data to check if user exists
+      // 1. Check if user exists (lightweight read - only checking existence)
       const userSnapshot = await transaction.get(userRef);
       const userExists = userSnapshot.exists;
-      const currentUserData = userExists ? (userSnapshot.data() as UserDoc) : null;
 
       // 2. Write pixel to pixels collection
       const pixelData: PixelDoc = {
@@ -64,16 +63,26 @@ export class FirestoreService {
       };
       transaction.set(pixelRef, pixelData);
 
-      // 3. Update or create user with all required fields
-      const userData: UserDoc = {
-        id: payload.userId,
-        username: payload.username,
-        role: currentUserData?.role || 'user', // Keep existing role or default to 'user'
-        lastPixelPlaced: newTimestamp,
-        totalPixelsPlaced: (currentUserData?.totalPixelsPlaced || 0) + 1,
-        createdAt: currentUserData?.createdAt || newTimestamp, // Set only on first creation
-      };
-      transaction.set(userRef, userData);
+      // 3. Update or create user
+      if (userExists) {
+        // User exists: update with FieldValue.increment() for better performance
+        transaction.update(userRef, {
+          username: payload.username, // Update username in case it changed
+          lastPixelPlaced: newTimestamp,
+          totalPixelsPlaced: FieldValue.increment(1), // Atomic increment without reading
+        });
+      } else {
+        // New user: create with all required fields
+        const newUserData: UserDoc = {
+          id: payload.userId,
+          username: payload.username,
+          role: 'user',
+          lastPixelPlaced: newTimestamp,
+          totalPixelsPlaced: 1,
+          createdAt: newTimestamp,
+        };
+        transaction.set(userRef, newUserData);
+      }
     });
   }
 

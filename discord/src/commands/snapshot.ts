@@ -18,7 +18,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   if (!SNAPSHOT_URL) {
     console.error("[/snapshot] Missing environment variable: CANVAS_SNAPSHOT_URL");
     await interaction.editReply(
-      "❌ Internal error: `CANVAS_SNAPSHOT_URL` is not configured."
+      "❌ Internal error: Canvas snapshot service is not configured."
     );
     return;
   }

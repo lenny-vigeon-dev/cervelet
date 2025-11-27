@@ -37,12 +37,33 @@ export function FeaturesGrid() {
       </div>
       <div>
         <h3 className="text-lg font-semibold text-brand-soft">
-          Étapes suivantes
+          Fonctionnalités
         </h3>
         <ul className="mt-3 space-y-2 text-sm text-zinc-300">
-          <li>Brancher les mutations (place pixel)</li>
-          <li>Ajouter la Toolbar &amp; palettes</li>
-          <li>Visualiser les utilisateurs connectés</li>
+          {[
+            "Placement de pixels en temps réel",
+            "Palette de couleurs & Toolbar",
+            "Zoom & Pan fluide (style r/place)",
+            "Authentification Discord",
+          ].map((item) => (
+            <li key={item} className="flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-brand"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              {item}
+            </li>
+          ))}
         </ul>
       </div>
     </section>

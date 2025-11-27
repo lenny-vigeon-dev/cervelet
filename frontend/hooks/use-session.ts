@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { sessionStorage } from "@/lib/session-storage";
 import type { SessionState } from "@/types/session";
+import { COOLDOWN_STORAGE_KEY, COOLDOWN_EVENT } from "@/hooks/use-cooldown";
 
 /**
  * Client-side hook for managing user session state.
@@ -39,6 +40,13 @@ export function useSession() {
 
   const logout = async () => {
     sessionStorage.clearSession();
+    
+    // Clear cooldown on logout
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+      window.dispatchEvent(new CustomEvent(COOLDOWN_EVENT, { detail: null }));
+    }
+
     setSession({ user: null, isAuthenticated: false });
   };
 

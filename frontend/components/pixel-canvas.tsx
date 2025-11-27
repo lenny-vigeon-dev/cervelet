@@ -79,6 +79,19 @@ export function PixelCanvas({
   const [minZoom, setMinZoom] = useState(0.1);
   const MAX_ZOOM = 20; // Permet de zoomer très près pour placer les pixels précisément
 
+  // Pan (drag to move)
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
+  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Track if we have performed the initial fit for the current dimensions
+  const [hasFitted, setHasFitted] = useState(false);
+
+  // Reset hasFitted when dimensions change
+  useEffect(() => {
+    setHasFitted(false);
+  }, [dimensions.width, dimensions.height]);
+
   // Calculate min zoom to fit container
   useEffect(() => {
     if (!containerRef.current || dimensions.width === 0 || dimensions.height === 0) return;
@@ -92,9 +105,6 @@ export function PixelCanvas({
       const canvasHeight = dimensions.height * scale;
 
       // Calculate the zoom level needed to fit the canvas entirely in the container
-      // We subtract a small margin (e.g. 40px) to ensure it doesn't touch the edges exactly if desired,
-      // but usually fit is exact. Let's use 0.95 factor for a bit of breathing room or exact fit.
-      // User asked for "la hauteur du canvas", so let's just fit it.
       const fitZoom = Math.min(
         containerWidth / canvasWidth,
         containerHeight / canvasHeight
@@ -105,8 +115,14 @@ export function PixelCanvas({
       
       setMinZoom(newMinZoom);
       
-      // If current zoom is less than new minZoom, update it
-      setZoom(z => Math.max(z, newMinZoom));
+      if (!hasFitted) {
+        setZoom(newMinZoom);
+        setPanOffset({ x: 0, y: 0 });
+        setHasFitted(true);
+      } else {
+        // If current zoom is less than new minZoom, update it
+        setZoom(z => Math.max(z, newMinZoom));
+      }
     };
 
     updateMinZoom();
@@ -115,12 +131,7 @@ export function PixelCanvas({
     observer.observe(containerRef.current);
     
     return () => observer.disconnect();
-  }, [dimensions, scale]);
-
-  // Pan (drag to move)
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
-  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  }, [dimensions, scale, hasFitted]);
 
   // Refs for accessing state in event handlers without re-binding
   const zoomRef = useRef(zoom);
@@ -307,7 +318,7 @@ export function PixelCanvas({
       const mouseYFromCenter = event.clientY - centerY;
 
       // Multiplicative zoom for smoother experience
-      const ZOOM_SPEED = 1.1;
+      const ZOOM_SPEED = 1.05;
       const direction = Math.sign(event.deltaY); // 1 for down (out), -1 for up (in)
       
       // If deltaY is 0, do nothing

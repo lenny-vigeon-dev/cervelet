@@ -15,7 +15,7 @@ export interface ToolbarProps {
  */
 export function Toolbar({ session, onSelectColor, onClose }: ToolbarProps) {
   return (
-    <div className="relative flex flex-col items-center gap-3 rounded-3xl border border-brand/30 bg-surface/80 px-6 py-4 text-sm text-foreground shadow-surface backdrop-blur mt-4">
+    <div className="relative flex flex-col items-center gap-3 rounded-3xl border border-white/20 bg-brand p-6 text-sm text-black shadow-xl backdrop-blur mt-4">
       {onClose && (
         <button
           onClick={onClose}
@@ -28,7 +28,7 @@ export function Toolbar({ session, onSelectColor, onClose }: ToolbarProps) {
           </svg>
         </button>
       )}
-      <span className="font-semibold text-brand-soft">
+      <span className="font-semibold text-black/80">
         {session.isAuthenticated && session.user
           ? session.user.username
           : "Anonyme"}

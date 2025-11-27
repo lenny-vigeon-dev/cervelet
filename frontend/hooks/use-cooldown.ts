@@ -9,7 +9,8 @@ interface CooldownState {
   remainingFormatted: string;
 }
 
-const COOLDOWN_STORAGE_KEY = 'pixel-cooldown-end-time';
+export const COOLDOWN_STORAGE_KEY = 'pixel-cooldown-end-time';
+export const COOLDOWN_EVENT = 'pixel-cooldown-update';
 
 /**
  * Hook to track pixel placement cooldown with localStorage persistence
@@ -38,6 +39,17 @@ export function useCooldown() {
     remainingFormatted: '',
   });
 
+  // Listen for cooldown updates from other components
+  useEffect(() => {
+    const handleCooldownUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<number | null>;
+      setCooldownEndTime(customEvent.detail);
+    };
+
+    window.addEventListener(COOLDOWN_EVENT, handleCooldownUpdate);
+    return () => window.removeEventListener(COOLDOWN_EVENT, handleCooldownUpdate);
+  }, []);
+
   /**
    * Start the cooldown timer and persist to localStorage
    * @param durationMs - Duration in milliseconds
@@ -47,6 +59,7 @@ export function useCooldown() {
     setCooldownEndTime(endTime);
     if (typeof window !== 'undefined') {
       localStorage.setItem(COOLDOWN_STORAGE_KEY, endTime.toString());
+      window.dispatchEvent(new CustomEvent(COOLDOWN_EVENT, { detail: endTime }));
     }
   }, []);
 
@@ -57,6 +70,7 @@ export function useCooldown() {
     setCooldownEndTime(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+      window.dispatchEvent(new CustomEvent(COOLDOWN_EVENT, { detail: null }));
     }
   }, []);
 

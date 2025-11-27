@@ -13,7 +13,7 @@ export function AuthStatus() {
 
   if (isLoading) {
     return (
-      <div className="mt-6 flex flex-col gap-3">
+      <div className="mt-4 flex flex-col gap-3">
         <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand/50 to-brand-strong/50 px-5 py-2.5 text-sm font-semibold text-black/50">
           Chargement...
         </div>
@@ -22,7 +22,7 @@ export function AuthStatus() {
   }
 
   return (
-    <div className="mt-6 flex flex-col gap-3">
+    <div className="mt-4 flex flex-col gap-3">
       {session.isAuthenticated ? (
         <>
           <div className="rounded-2xl border border-brand/30 bg-surface/70 p-4 shadow-inner shadow-brand/20">

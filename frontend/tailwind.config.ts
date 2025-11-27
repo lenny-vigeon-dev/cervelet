@@ -22,8 +22,8 @@ const config: Config = {
       },
       boxShadow: {
         surface:
-          "0 20px 65px rgba(0, 0, 0, 0.55), 0 0 45px rgba(255, 163, 33, 0.12)",
-        brand: "0 20px 35px rgba(255, 163, 33, 0.45)",
+          "0 20px 65px rgba(0, 0, 0, 0.55), 0 0 45px rgba(255, 163, 26, 0.12)",
+        brand: "0 20px 35px rgba(255, 163, 26, 0.45)",
       },
     },
   },

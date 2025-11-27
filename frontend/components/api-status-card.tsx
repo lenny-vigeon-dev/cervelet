@@ -23,10 +23,6 @@ export function APIStatusCard({ snapshot, summary }: APIStatusCardProps) {
       </p>
       <dl className="mt-6 space-y-3 text-sm">
         <div className="flex items-center justify-between">
-          <dt className="text-zinc-500">Endpoint</dt>
-          <dd className="font-medium text-foreground">{API_URL}</dd>
-        </div>
-        <div className="flex items-center justify-between">
           <dt className="text-zinc-500">Canvas snapshot</dt>
           <dd className="font-medium text-foreground">
             {snapshot ? "OK" : "Indisponible"}
@@ -46,13 +42,15 @@ export function APIStatusCard({ snapshot, summary }: APIStatusCardProps) {
         </div>
       </dl>
       {!apiReachable && (
-        <p className="mt-4 rounded-2xl border border-brand/30 bg-black/70 p-4 text-xs text-brand-soft shadow-inner shadow-brand/20">
-          Impossible de joindre l'API pour le moment. Vérifie{" "}
-          <code className="rounded border border-white/10 bg-black/70 px-1 py-0.5 font-mono text-brand-soft">
-            NEXT_PUBLIC_API_URL
-          </code>{" "}
-          et que Gateway répond.
-        </p>
+        <div className="mt-4 rounded-2xl border border-brand/30 bg-surface/70 p-4 text-xs text-brand-soft shadow-inner shadow-brand/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-2 w-2 rounded-full bg-brand animate-pulse" />
+            <span className="font-semibold">Mode Hybride Actif</span>
+          </div>
+          <p className="text-zinc-400">
+            Le canvas fonctionne en temps réel via Firestore. Les métriques serveur (API Gateway) sont temporairement désactivées.
+          </p>
+        </div>
       )}
     </div>
   );

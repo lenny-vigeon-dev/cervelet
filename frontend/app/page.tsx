@@ -25,7 +25,8 @@ export default async function HomePage() {
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-6 py-12">
-      <header className="flex flex-col gap-5">
+      <header className="relative flex flex-col gap-5">
+        <div className="pointer-events-none absolute -top-24 -left-20 -z-10 h-64 w-64 rounded-full bg-brand/20 blur-3xl md:h-96 md:w-96" />
         <span className="inline-flex w-fit items-center gap-2 rounded-full border border-brand/40 bg-brand/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-brand">
           Pixelhub
         </span>
@@ -36,11 +37,11 @@ export default async function HomePage() {
         <p className="max-w-2xl text-pretty text-lg text-zinc-300">
           Cette base Next.js (App Router) se connecte à une API Gateway externe
           via{" "}
-          <code className="rounded border border-white/10 bg-black/70 px-1.5 py-0.5 font-mono text-sm text-brand-soft">
+          <code className="rounded border border-white/10 bg-surface/70 px-1.5 py-0.5 font-mono text-sm text-brand-soft">
             NEXT_PUBLIC_API_URL
           </code>
           . Les appels sont centralisés dans{" "}
-          <code className="rounded border border-white/10 bg-black/70 px-1.5 py-0.5 font-mono text-sm text-brand-soft">
+          <code className="rounded border border-white/10 bg-surface/70 px-1.5 py-0.5 font-mono text-sm text-brand-soft">
             lib/api.ts
           </code>
           et prêts pour Discord OAuth2.
@@ -50,11 +51,11 @@ export default async function HomePage() {
       <section className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           <ToolbarWrapper />
-          <div className="relative group">
-            <PixelCanvas snapshot={snapshot ?? undefined} className="aspect-square overflow-scroll" />
+          <div className="relative group aspect-square w-full">
+            <PixelCanvas snapshot={snapshot ?? undefined} className="w-full h-full" />
             <Link
               href="/canva"
-              className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl"
+              className="absolute inset-0 flex items-center justify-center bg-surface/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             >
               <div className="flex flex-col items-center gap-3">
                 <svg
@@ -80,7 +81,6 @@ export default async function HomePage() {
           </div>
         </div>
         <aside className="flex flex-col gap-6">
-          <APIStatusCard snapshot={snapshot} summary={summary} />
           <AuthCard />
         </aside>
       </section>

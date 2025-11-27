@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --color-canvas-bg: #000000;
-  --color-surface: rgba(8, 8, 8, 0.92);
-  --color-border: rgba(255, 163, 33, 0.35);
-  --color-foreground: #fff6ea;
-  --color-brand: #ffa321;
-  --color-brand-strong: #ff7a18;
-  --color-brand-muted: #050505;
-  --color-brand-soft: #ffe6c7;
+  --color-canvas-bg: #1b1b1b;
+  --color-surface: #292929;
+  --color-border: #808080;
+  --color-foreground: #ffffff;
+  --color-brand: #ffa31a;
+  --color-brand-strong: #ff8c00; /* Slightly darker/stronger version of #ffa31a */
+  --color-brand-muted: #292929; /* Matching surface */
+  --color-brand-soft: #ffe6c7; /* Kept as is or adjusted? Let's keep it for now */
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --color-canvas-bg: #020202;
-    --color-surface: rgba(15, 15, 15, 0.95);
-    --color-border: rgba(255, 255, 255, 0.08);
-    --color-foreground: #fff8ed;
-    --color-brand: #ff8f0c;
-    --color-brand-strong: #f46a0b;
-    --color-brand-muted: #060606;
+    --color-canvas-bg: #1b1b1b;
+    --color-surface: #292929;
+    --color-border: #808080;
+    --color-foreground: #ffffff;
+    --color-brand: #ffa31a;
+    --color-brand-strong: #ff8c00;
+    --color-brand-muted: #292929;
     --color-brand-soft: #ffe6c7;
   }
 }
@@ -41,15 +41,15 @@ body {
   @apply min-h-screen bg-canvas-bg text-foreground;
   background-image: radial-gradient(
       circle at 15% 20%,
-      rgba(255, 163, 33, 0.08),
+      rgba(255, 163, 26, 0.08),
       transparent 40%
     ),
     radial-gradient(
       circle at 85% 10%,
-      rgba(255, 122, 24, 0.1),
+      rgba(255, 163, 26, 0.1),
       transparent 30%
     ),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 40%);
+    linear-gradient(180deg, rgba(27, 27, 27, 0.85), transparent 40%);
   background-attachment: fixed;
 }
 

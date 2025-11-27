@@ -167,7 +167,7 @@ export function PixelCanvas({
     }
 
     // Clear canvas
-    context.fillStyle = "#050404";
+    context.fillStyle = "#1b1b1b";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     // 1. Draw snapshot image from Cloud Storage (base layer)
@@ -181,7 +181,7 @@ export function PixelCanvas({
       });
     } else {
       // No snapshot: draw grid for empty canvas
-      context.strokeStyle = "rgba(255, 163, 33, 0.08)";
+      context.strokeStyle = "rgba(255, 163, 26, 0.08)";
       for (let x = 0; x <= canvas.width; x += 16) {
         context.beginPath();
         context.moveTo(x + 0.5, 0);
@@ -430,10 +430,10 @@ export function PixelCanvas({
   };
 
   return (
-    <div ref={containerRef} className={`w-full border border-brand/20 bg-canvas-surface overflow-hidden select-none relative flex items-center justify-center`}>
+    <div ref={containerRef} className={`${className ?? ""} w-full border border-brand/20 bg-canvas-surface overflow-hidden select-none relative flex items-center justify-center`}>
       {/* Real-time status indicator - Bottom right to not block close button */}
       {enableRealtime && (
-        <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-brand/30">
+        <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-surface/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-brand/30">
           <div className={`w-2 h-2 rounded-full ${isListening ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
           <span className="text-xs text-zinc-300">
             {isLoading ? 'Loading...' : isListening ? 'Live' : 'Offline'}
@@ -489,7 +489,7 @@ export function PixelCanvas({
                 {isDrawing ? 'Placement...' : isOnCooldown ? `Cooldown (${remainingFormatted})` : 'Dessiner'}
               </button>
               <button
-                className="bg-zinc-800/90 hover:bg-zinc-700/90 text-zinc-300 hover:text-white font-semibold py-3 px-8 rounded-xl border border-zinc-700 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                className="bg-surface/90 hover:bg-surface text-zinc-300 hover:text-white font-semibold py-3 px-8 rounded-xl border border-zinc-700 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 onClick={() => setSelectedPixel(null)}
                 disabled={isDrawing}
               >
@@ -500,7 +500,7 @@ export function PixelCanvas({
           ) }
         </div>
       )}
-      <div className={`${className ?? ""} flex items-center justify-center w-full h-full`}>
+      <div className={`flex items-center justify-center w-full h-full`}>
       <div
         style={{
           transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
@@ -521,7 +521,7 @@ export function PixelCanvas({
             imageRendering: "pixelated",
             transform: `scale(${zoom})`, transformOrigin: `${originX}% ${originY}%`
           }}
-          className="bg-black outline-none"
+          className="bg-canvas-bg outline-none"
           aria-label="Collaborative pixel canvas"
         />
       </div>

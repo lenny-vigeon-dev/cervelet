@@ -4,7 +4,7 @@
  */
 export function FeaturesGrid() {
   return (
-    <section className="grid gap-6 rounded-3xl border border-brand/20 bg-black/60 p-8 shadow-surface backdrop-blur md:grid-cols-3">
+    <section className="grid gap-6 rounded-3xl border border-brand/20 bg-surface/60 p-8 shadow-surface backdrop-blur md:grid-cols-3">
       <div>
         <h3 className="text-lg font-semibold text-brand-soft">
           Librairies principales
@@ -22,13 +22,13 @@ export function FeaturesGrid() {
         <ul className="mt-3 space-y-2 text-sm text-zinc-300">
           <li>
             Polling périodique via{" "}
-            <code className="rounded border border-white/10 bg-black/70 px-1 py-0.5 font-mono text-brand-soft">
+            <code className="rounded border border-white/10 bg-surface/70 px-1 py-0.5 font-mono text-brand-soft">
               /canvas
             </code>
           </li>
           <li>
             Option SSE via{" "}
-            <code className="rounded border border-white/10 bg-black/70 px-1 py-0.5 font-mono text-brand-soft">
+            <code className="rounded border border-white/10 bg-surface/70 px-1 py-0.5 font-mono text-brand-soft">
               /canvas/stream
             </code>
           </li>

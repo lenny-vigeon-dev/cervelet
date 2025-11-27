@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "deploy": "gcloud builds submit --config=cloudbuild.yaml . --project=serverless-tek89",
     "gcp-build": "echo 'Skipping build for GCP (already built)'",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -23,6 +24,8 @@
   "dependencies": {
     "@google-cloud/firestore": "^8.0.0",
     "@google-cloud/functions-framework": "^4.0.0",
+    "@google-cloud/pubsub": "^4.10.0",
+    "@google-cloud/storage": "^7.15.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
@@ -30,6 +33,7 @@
     "firebase-admin": "^12.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sharp": "^0.33.5",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {

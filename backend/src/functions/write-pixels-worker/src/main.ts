@@ -134,6 +134,7 @@ app.post('/', async (req: Request, res: Response) => {
     const startTime = Date.now();
     const pubsubMessage: PubSubMessage = req.body;
     const messageId = pubsubMessage?.message?.messageId || 'unknown';
+    let payload: PixelPayload | undefined;
 
     try {
         logger.pubsubReceived(messageId, pubsubMessage?.subscription || 'unknown');
@@ -162,9 +163,9 @@ app.post('/', async (req: Request, res: Response) => {
         }
 
         // JSON parsing
-        let payload: unknown;
+        let parsedPayload: unknown;
         try {
-            payload = JSON.parse(decodedData);
+            parsedPayload = JSON.parse(decodedData);
         } catch (error) {
             logger.validationError('JSON parsing failed', {
                 messageId,
@@ -176,15 +177,17 @@ app.post('/', async (req: Request, res: Response) => {
         }
 
         // Payload validation
-        if (!isValidPixelPayload(payload)) {
+        if (!isValidPixelPayload(parsedPayload)) {
             logger.validationError('Invalid pixel payload structure', {
                 messageId,
-                receivedFields: payload ? Object.keys(payload as object) : [],
-                payload,
+                receivedFields: parsedPayload ? Object.keys(parsedPayload as object) : [],
+                payload: parsedPayload,
             });
             res.status(400).send('Bad Request: Invalid payload structure');
             return;
         }
+
+        payload = parsedPayload;
 
         // Process pixel write
         logger.info(`Pixel placement request: ${payload.userId} wants to place at (${payload.x}, ${payload.y}) color #${payload.color.toString(16).padStart(6, '0')}`, {
@@ -204,15 +207,34 @@ app.post('/', async (req: Request, res: Response) => {
         res.status(204).send();
     } catch (error) {
         const durationMs = Date.now() - startTime;
-        logger.pubsubProcessed(messageId, durationMs, false);
-        logger.error(`CRITICAL ERROR: Pub/Sub message processing failed ${messageId}`, {
-            messageId,
-            durationMs,
-            error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined,
-        });
+        const errorMessage = error instanceof Error ? error.message : String(error);
 
-        res.status(500).send('Internal Server Error: Processing failed');
+        if (errorMessage.includes('Cooldown active')) {
+            logger.pubsubProcessed(messageId, durationMs, true);
+            if (payload) {
+                logger.info(`Cooldown prevented pixel placement for user ${payload.userId}`, {
+                    messageId,
+                    userId: payload.userId,
+                    coordinates: { x: payload.x, y: payload.y },
+                    cooldownMessage: errorMessage,
+                });
+            } else {
+                logger.info('Cooldown prevented pixel placement', {
+                    messageId,
+                    cooldownMessage: errorMessage,
+                });
+            }
+            res.status(204).send();
+        } else {
+            logger.pubsubProcessed(messageId, durationMs, false);
+            logger.error(`CRITICAL ERROR: Pub/Sub message processing failed ${messageId}`, {
+                messageId,
+                durationMs,
+                error: errorMessage,
+                stack: error instanceof Error ? error.stack : undefined,
+            });
+            res.status(500).send('Internal Server Error: Processing failed');
+        }
     }
 });
 

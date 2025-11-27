@@ -30,7 +30,6 @@ export class DiscordService {
     try {
       await axios.post(url, {
         content: message,
-        flags: 64, // EPHEMERAL flag - visible only to the user
       });
 
       console.log(

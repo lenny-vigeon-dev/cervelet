@@ -6,6 +6,7 @@ import { ToolbarWrapper } from "./toolbar-wrapper";
 import { useRealtimeCanvas } from "@/hooks/use-realtime-canvas";
 import { useSession } from "@/hooks/use-session";
 import { writePixel } from "@/lib/firebase/write-pixel";
+import { useCooldown } from "@/hooks/use-cooldown";
 
 export interface PixelCanvasProps {
   snapshot?: CanvasSnapshot;
@@ -35,6 +36,9 @@ export function PixelCanvas({
 }: PixelCanvasProps) {
   // User authentication
   const { session } = useSession();
+
+  // Cooldown tracking
+  const { isOnCooldown, remainingFormatted, startCooldown } = useCooldown();
 
   // Real-time canvas hook
   const {
@@ -256,6 +260,11 @@ export function PixelCanvas({
       return;
     }
 
+    if (isOnCooldown) {
+      setDrawError(`You can place another pixel in ${remainingFormatted}`);
+      return;
+    }
+
     // Convert hex color to integer
     const colorInt = parseInt(selectedColor.replace('#', ''), 16);
 
@@ -279,13 +288,35 @@ export function PixelCanvas({
         // Revert optimistic update on error
         setDrawnPixels((prev) => prev.filter(p => p.x !== pixel.x || p.y !== pixel.y));
         setDrawError(result.error || 'Failed to place pixel');
+
+        // Check if error is cooldown-related and extract remaining time
+        if (result.error?.includes('Cooldown active')) {
+          // Parse remaining time from error message (format: "...Wait X minutes (Ys).")
+          const match = result.error.match(/\((\d+)s\)/);
+          if (match) {
+            const remainingSeconds = parseInt(match[1], 10);
+            startCooldown(remainingSeconds * 1000);
+          }
+        }
       } else {
         console.log('✅ Pixel placed successfully!');
+        // Start 5-minute cooldown (300000ms)
+        startCooldown(300000);
       }
     } catch (error) {
       // Revert optimistic update on error
       setDrawnPixels((prev) => prev.filter(p => p.x !== pixel.x || p.y !== pixel.y));
-      setDrawError(error instanceof Error ? error.message : 'Unknown error');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setDrawError(errorMessage);
+
+      // Check if error is cooldown-related
+      if (errorMessage.includes('Cooldown active')) {
+        const match = errorMessage.match(/\((\d+)s\)/);
+        if (match) {
+          const remainingSeconds = parseInt(match[1], 10);
+          startCooldown(remainingSeconds * 1000);
+        }
+      }
     } finally {
       setIsDrawing(false);
     }
@@ -308,8 +339,17 @@ export function PixelCanvas({
         </div>
       )}
 
+      {/* Cooldown display */}
+      {isOnCooldown && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-blue-900/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-blue-500/50">
+          <span className="text-xs text-blue-200">
+            Next pixel in: <span className="font-bold">{remainingFormatted}</span>
+          </span>
+        </div>
+      )}
+
       {/* Error display */}
-      {(error || drawError) && (
+      {(error || drawError) && !isOnCooldown && (
         <div className="absolute top-4 left-4 z-20 bg-red-900/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-red-500/50">
           <span className="text-xs text-red-200">
             {drawError || (error && `Error: ${error.message}`)}
@@ -328,9 +368,10 @@ export function PixelCanvas({
               <button
                 className="bg-brand hover:bg-brand/80 text-white font-semibold py-3 px-8 rounded-xl border border-brand/40 shadow-lg shadow-brand/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => drawPixel(selectedPixel)}
-                disabled={isDrawing || !session.isAuthenticated}
+                disabled={isDrawing || !session.isAuthenticated || isOnCooldown}
+                title={isOnCooldown ? `Cooldown: ${remainingFormatted}` : undefined}
               >
-                {isDrawing ? 'Placement...' : 'Dessiner'}
+                {isDrawing ? 'Placement...' : isOnCooldown ? `Cooldown (${remainingFormatted})` : 'Dessiner'}
               </button>
               <button
                 className="bg-zinc-800/90 hover:bg-zinc-700/90 text-zinc-300 hover:text-white font-semibold py-3 px-8 rounded-xl border border-zinc-700 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"

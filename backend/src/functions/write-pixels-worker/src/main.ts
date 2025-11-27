@@ -114,7 +114,13 @@ app.post('/write', async (req: Request, res: Response) => {
         res.status(200).json({ success: true });
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Internal error';
-        res.status(500).json({ error: message });
+
+        // Check if it's a cooldown error
+        if (message.includes('Cooldown active')) {
+            res.status(429).json({ error: message });
+        } else {
+            res.status(500).json({ error: message });
+        }
     }
 });
 

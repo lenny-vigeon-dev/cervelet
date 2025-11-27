@@ -41,11 +41,7 @@ export class WritePixelService {
 
         try {
             // 1. Rate-limiting check (cooldown)
-            const canWrite = await this.checkCooldown(payload, sendDiscordFeedback);
-            
-            if (!canWrite) {
-                return; // Error message was already sent in checkCooldown
-            }
+            await this.checkCooldown(payload, sendDiscordFeedback);
 
             // 2. Write pixel with atomic transaction
             await this.writePixel(payload);
@@ -124,11 +120,11 @@ export class WritePixelService {
 
     /**
      * Checks if the user can write a pixel (cooldown)
-     * 
+     *
      * @param payload - The pixel data
-     * @returns true if the user can write, false otherwise
+     * @throws Error if cooldown is active
      */
-    private async checkCooldown(payload: PixelPayload, sendDiscordFeedback: boolean): Promise<boolean> {
+    private async checkCooldown(payload: PixelPayload, sendDiscordFeedback: boolean): Promise<void> {
         const user = await this.firestoreService.getUser(payload.userId);
 
         if (!user || !user.lastPixelPlaced) {
@@ -140,7 +136,7 @@ export class WritePixelService {
                     userId: payload.userId,
                 }),
             );
-            return true;
+            return;
         }
 
         // Calculate elapsed time since last pixel
@@ -152,6 +148,7 @@ export class WritePixelService {
             // Cooldown active
             const remainingTime = COOLDOWN_MS - elapsedTime;
             const remainingMinutes = Math.ceil(remainingTime / 60000);
+            const remainingSeconds = Math.ceil(remainingTime / 1000);
 
             console.log(
                 JSON.stringify({
@@ -174,7 +171,10 @@ export class WritePixelService {
                 );
             }
 
-            return false;
+            // Throw error for HTTP clients with remaining time info
+            const error = new Error(`Cooldown active. Wait ${remainingMinutes} minute${remainingMinutes > 1 ? 's' : ''} (${remainingSeconds}s).`) as Error & { remainingMs?: number };
+            error.remainingMs = remainingTime;
+            throw error;
         }
 
         // Cooldown OK
@@ -186,8 +186,6 @@ export class WritePixelService {
                 elapsedMs: elapsedTime,
             }),
         );
-
-        return true;
     }
 
     /**

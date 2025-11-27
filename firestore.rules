@@ -108,7 +108,9 @@ service cloud.firestore {
 
       // Users can create and update their own profile (userId is Discord ID from Firebase Auth)
       // Also allow service account writes (for backend operations)
-      allow create, update: if isAuthenticated() && userId == request.auth.uid;
+      allow create, update: if isAuthenticated() && userId == request.auth.uid &&
+        request.resource.data.id == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'id', 'createdAt']);
 
       // Only admins can delete user accounts
       allow delete: if isAdmin();

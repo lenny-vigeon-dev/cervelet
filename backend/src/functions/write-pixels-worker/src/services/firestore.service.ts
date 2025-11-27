@@ -46,13 +46,9 @@ export class FirestoreService {
     const pixelRef = this.db.collection(PIXELS_COLLECTION).doc(pixelId);
     const userRef = this.db.collection(USERS_COLLECTION).doc(payload.userId);
 
-    // Execute transaction to guarantee atomicity
     await this.db.runTransaction(async (transaction) => {
-      // 1. Check if user exists (lightweight read - only checking existence)
       const userSnapshot = await transaction.get(userRef);
-      const userExists = userSnapshot.exists;
 
-      // 2. Write pixel to pixels collection
       const pixelData: PixelDoc = {
         canvasId: canvasId,
         x: payload.x,
@@ -63,16 +59,13 @@ export class FirestoreService {
       };
       transaction.set(pixelRef, pixelData);
 
-      // 3. Update or create user
-      if (userExists) {
-        // User exists: update with FieldValue.increment() for better performance
+      if (userSnapshot.exists) {
         transaction.update(userRef, {
-          username: payload.username, // Update username in case it changed
+          username: payload.username,
           lastPixelPlaced: newTimestamp,
-          totalPixelsPlaced: FieldValue.increment(1), // Atomic increment without reading
+          totalPixelsPlaced: FieldValue.increment(1),
         });
       } else {
-        // New user: create with all required fields
         const newUserData: UserDoc = {
           id: payload.userId,
           username: payload.username,

@@ -41,6 +41,9 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["@/components", "@/lib"],
   },
+
+  // Output standalone for easier deployment
+  output: "standalone",
 };
 
 export default nextConfig;

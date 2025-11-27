@@ -1,0 +1,10 @@
+# Default gcloud ignores
+.git
+.gitignore
+node_modules
+npm-debug.log
+
+# Allow env files for build-time injection
+!.env.local
+!.env
+!.env.production

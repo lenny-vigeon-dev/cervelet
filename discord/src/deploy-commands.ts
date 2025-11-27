@@ -48,7 +48,10 @@ async function deploy() {
       console.log('Global commands deployed ✔️');
     }
   } catch (error) {
-    console.error('❌ Deployment error:', error);
+    console.error('❌ Deployment error:', error instanceof Error ? error.message : JSON.stringify(error));
+    if (error instanceof Error && error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
   }
 }
 

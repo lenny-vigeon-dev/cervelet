@@ -60,15 +60,20 @@ export class FirestoreService {
       transaction.set(pixelRef, pixelData);
 
       if (userSnapshot.exists) {
-        transaction.update(userRef, {
+        const updateData: any = {
           username: payload.username,
           lastPixelPlaced: newTimestamp,
           totalPixelsPlaced: FieldValue.increment(1),
-        });
+        };
+        if (payload.avatarUrl) {
+          updateData.avatarUrl = payload.avatarUrl;
+        }
+        transaction.update(userRef, updateData);
       } else {
         const newUserData: UserDoc = {
           id: payload.userId,
           username: payload.username,
+          avatarUrl: payload.avatarUrl,
           role: 'user',
           lastPixelPlaced: newTimestamp,
           totalPixelsPlaced: 1,

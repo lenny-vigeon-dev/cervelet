@@ -70,6 +70,7 @@ Stores user information and statistics.
 {
   id: string;              // Document ID
   username: string;        // Unique username
+  avatarUrl?: string;      // Discord profile picture URL (optional)
   role: string;            // User role: 'user' or 'admin' (extensible for future roles)
   lastPixelPlaced: Timestamp | null;  // Last pixel placement time
   totalPixelsPlaced: number;           // Total count of pixels placed

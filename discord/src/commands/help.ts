@@ -2,16 +2,17 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 
 export const data = new SlashCommandBuilder()
   .setName('help')
-  .setDescription('Affiche la liste des commandes disponibles.');
+  .setDescription('Displays the list of available commands.');
 
 export async function execute(interaction: ChatInputCommandInteraction) {
     console.log('[/help] Command triggered by', interaction.user?.id);
+    // TODO: Dynamically generate the help message from the registered commands.
     const helpMessage = `
-Voici les commandes disponibles :
-/help - Affiche ce message d'aide.
-/draw x:<coordonnée X> y:<coordonnée Y> color:<couleur hex> - Dessine un pixel sur la toile aux coordonnées spécifiées avec la couleur donnée.
-/allo - Renvoie "à l'huile" dans le channel courant.
-/send channel:<canal> message:<message> - Envoie un message dans le canal choisi.
+Here are the available commands:
+/help - Displays this help message.
+/draw x:<X coordinate> y:<Y coordinate> color:<hex color> - Draws a pixel on the canvas at the specified coordinates with the given color.
+/allo - Replies "à l'huile" in the current channel.
+/send channel:<channel> message:<message> - Sends a message in the selected channel.
 `;
 
     try {

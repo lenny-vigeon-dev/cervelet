@@ -16,10 +16,14 @@ export function useSession() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load session from localStorage on mount
-    const storedSession = sessionStorage.getSession();
-    setSession(storedSession);
-    setIsLoading(false);
+    function initSession() {
+      // Load Discord session from localStorage
+      const storedSession = sessionStorage.getSession();
+      setSession(storedSession);
+      setIsLoading(false);
+    }
+
+    initSession();
 
     // Listen for storage events (cross-tab sync)
     const handleStorageChange = (e: StorageEvent) => {
@@ -33,7 +37,7 @@ export function useSession() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const logout = () => {
+  const logout = async () => {
     sessionStorage.clearSession();
     setSession({ user: null, isAuthenticated: false });
   };

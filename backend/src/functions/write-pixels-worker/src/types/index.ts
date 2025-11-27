@@ -8,8 +8,9 @@ export interface PixelPayload {
   x: number;
   y: number;
   color: number;
-  interactionToken: string;
-  applicationId: string;
+  // Optional when triggered outside of Discord interactions
+  interactionToken?: string;
+  applicationId?: string;
 }
 
 /**

@@ -47,6 +47,16 @@ paths:
       responses:
         200:
           description: Success
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+              default: "*"
+            Access-Control-Allow-Headers:
+              type: string
+              default: "Content-Type, Authorization, x-api-key"
+            Access-Control-Allow-Methods:
+              type: string
+              default: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
     post:
       summary: Catch-all POST
       operationId: catchAllPost
@@ -55,6 +65,16 @@ paths:
       responses:
         200:
           description: Success
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+              default: "*"
+            Access-Control-Allow-Headers:
+              type: string
+              default: "Content-Type, Authorization, x-api-key"
+            Access-Control-Allow-Methods:
+              type: string
+              default: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
     put:
       summary: Catch-all PUT
       operationId: catchAllPut
@@ -63,6 +83,16 @@ paths:
       responses:
         200:
           description: Success
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+              default: "*"
+            Access-Control-Allow-Headers:
+              type: string
+              default: "Content-Type, Authorization, x-api-key"
+            Access-Control-Allow-Methods:
+              type: string
+              default: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
     delete:
       summary: Catch-all DELETE
       operationId: catchAllDelete
@@ -71,6 +101,16 @@ paths:
       responses:
         200:
           description: Success
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+              default: "*"
+            Access-Control-Allow-Headers:
+              type: string
+              default: "Content-Type, Authorization, x-api-key"
+            Access-Control-Allow-Methods:
+              type: string
+              default: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
     patch:
       summary: Catch-all PATCH
       operationId: catchAllPatch
@@ -79,11 +119,31 @@ paths:
       responses:
         200:
           description: Success
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+              default: "*"
+            Access-Control-Allow-Headers:
+              type: string
+              default: "Content-Type, Authorization, x-api-key"
+            Access-Control-Allow-Methods:
+              type: string
+              default: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
     options:
       summary: Catch-all OPTIONS
       operationId: catchAllOptions
-      security:
-        - api_key: []
+      # Preflight must not require API key
+      security: []
       responses:
         200:
           description: Success
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+              default: "*"
+            Access-Control-Allow-Headers:
+              type: string
+              default: "Content-Type, Authorization, x-api-key"
+            Access-Control-Allow-Methods:
+              type: string
+              default: "GET,POST,PUT,PATCH,DELETE,OPTIONS"

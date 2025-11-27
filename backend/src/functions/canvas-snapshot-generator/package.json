@@ -5,10 +5,9 @@
   "main": "dist/src/main.js",
   "scripts": {
     "build": "tsc",
-    "gcp-build": "npm rebuild canvas && tsc",
     "start": "node dist/src/main.js",
     "start:dev": "ts-node src/main.ts",
-    "deploy": "gcloud functions deploy canvas-snapshot-generator --gen2 --runtime=nodejs20 --region=europe-west1 --source=. --entry-point=generateSnapshot --trigger-http --no-allow-unauthenticated",
+    "deploy": "pnpm build && gcloud run deploy canvas-snapshot-generator --region=europe-west1 --source . --allow-unauthenticated --clear-base-image",
     "test": "jest",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\""
@@ -24,13 +23,15 @@
   ],
   "author": "",
   "license": "ISC",
-    "dependencies": {
+  "packageManager": "pnpm@10.20.0",
+  "dependencies": {
     "@google-cloud/firestore": "^8.0.0",
-    "@google-cloud/functions-framework": "^3.4.0",
     "@google-cloud/storage": "^7.15.0",
-    "canvas": "^2.11.2"
+    "express": "^4.21.2",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/node": "^22.10.7",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
     "@typescript-eslint/parser": "^8.20.0",
@@ -42,6 +43,6 @@
     "typescript": "^5.7.3"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   }
 }

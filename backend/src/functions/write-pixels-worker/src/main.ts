@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { FirestoreService } from './services/firestore.service';
 import { DiscordService } from './services/discord.service';
+import { PubSubService } from './services/pubsub.service';
 import { WritePixelService } from './write-pixel.service';
 import { PixelPayload, PubSubMessage } from './types';
 import { logger } from './utils/logger';
@@ -16,7 +17,8 @@ app.use(express.json());
 // Services initialization (singleton)
 const firestoreService = new FirestoreService();
 const discordService = new DiscordService();
-const writePixelService = new WritePixelService(firestoreService, discordService);
+const pubSubService = new PubSubService();
+const writePixelService = new WritePixelService(firestoreService, discordService, pubSubService);
 
 /**
  * Pub/Sub payload validation
@@ -29,10 +31,97 @@ function isValidPixelPayload(payload: unknown): payload is PixelPayload {
         typeof p['x'] === 'number' &&
         typeof p['y'] === 'number' &&
         typeof p['color'] === 'number' &&
-        typeof p['interactionToken'] === 'string' &&
-        typeof p['applicationId'] === 'string'
+        (typeof p['interactionToken'] === 'string' || p['interactionToken'] === undefined) &&
+        (typeof p['applicationId'] === 'string' || p['applicationId'] === undefined)
     );
 }
+
+/**
+ * Http payload validation (no interaction tokens)
+ */
+function isValidHttpPixelPayload(body: any): body is { x: number; y: number; color: number } {
+    return (
+        body &&
+        typeof body.x === 'number' &&
+        typeof body.y === 'number' &&
+        typeof body.color === 'number'
+    );
+}
+
+/**
+ * Simple CORS handling for direct HTTP calls from the frontend
+ */
+app.options('/write', (_req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.status(204).send();
+});
+
+/**
+ * Direct HTTP endpoint for frontend calls.
+ * The client sends a Discord OAuth access token (Bearer) in Authorization header.
+ * We validate the token by fetching /users/@me, then reuse the same write flow
+ * without requiring Firebase Auth on the client.
+ */
+app.post('/write', async (req: Request, res: Response) => {
+    res.set('Access-Control-Allow-Origin', '*');
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
+        res.status(401).json({ error: 'Missing Discord access token (Authorization: Bearer ...)' });
+        return;
+    }
+
+    const accessToken = authHeader.split(' ')[1];
+    if (!accessToken) {
+        res.status(401).json({ error: 'Missing Discord access token (Authorization: Bearer ...)' });
+        return;
+    }
+
+    // Validate body
+    if (!isValidHttpPixelPayload(req.body)) {
+        res.status(400).json({ error: 'Invalid payload. Expected { x: number, y: number, color: number }' });
+        return;
+    }
+
+    // Fetch user from Discord to authenticate request
+    let discordUserId: string;
+    try {
+        const discordUser = await discordService.fetchUserFromAccessToken(accessToken);
+        discordUserId = discordUser.id;
+    } catch (error) {
+        res.status(401).json({ error: 'Invalid Discord access token' });
+        return;
+    }
+
+    const payload: PixelPayload = {
+        userId: discordUserId,
+        x: req.body.x,
+        y: req.body.y,
+        color: req.body.color,
+    };
+
+    // Basic bounds validation for color
+    if (payload.color < 0 || payload.color > 0xFFFFFF) {
+        res.status(400).json({ error: 'Color must be between 0 and 16777215 (0xFFFFFF)' });
+        return;
+    }
+
+    try {
+        await writePixelService.execute(payload);
+        res.status(200).json({ success: true });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Internal error';
+
+        // Check if it's a cooldown error
+        if (message.includes('Cooldown active')) {
+            res.status(429).json({ error: message });
+        } else {
+            res.status(500).json({ error: message });
+        }
+    }
+});
 
 /**
  * Main endpoint to receive Pub/Sub messages

@@ -1,6 +1,5 @@
 import { Firestore, Timestamp } from '@google-cloud/firestore';
 import { Storage } from '@google-cloud/storage';
-import { createCanvas } from 'canvas';
 import { config } from './config';
 import type { Canvas, Pixel, SnapshotMetadata } from './types';
 
@@ -99,36 +98,57 @@ export class SnapshotService {
   }
 
   /**
-   * Render the canvas as a PNG image
+   * Render the canvas as a PNG image using Sharp
    */
   private async renderCanvas(canvasData: Canvas, pixels: Pixel[]): Promise<Buffer> {
     const { width, height } = canvasData;
+    const sharp = (await import('sharp')).default;
 
-    // Create canvas
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext('2d');
+    // Create a raw pixel buffer (RGBA format: 4 bytes per pixel)
+    const pixelData = Buffer.alloc(width * height * 4);
 
-    // Fill background
-    ctx.fillStyle = config.canvas.backgroundColor;
-    ctx.fillRect(0, 0, width, height);
+    // Fill with background color (white by default: #FFFFFF)
+    const bgColor = { r: 255, g: 255, b: 255, a: 255 };
+    for (let i = 0; i < pixelData.length; i += 4) {
+      pixelData[i] = bgColor.r;     // R
+      pixelData[i + 1] = bgColor.g; // G
+      pixelData[i + 2] = bgColor.b; // B
+      pixelData[i + 3] = bgColor.a; // A
+    }
 
     // Draw each pixel
     for (const pixel of pixels) {
       if (pixel.x >= 0 && pixel.x < width && pixel.y >= 0 && pixel.y < height) {
-        ctx.fillStyle = this.colorToHex(pixel.color);
-        ctx.fillRect(pixel.x, pixel.y, 1, 1);
+        const color = this.colorToRgb(pixel.color);
+        const index = (pixel.y * width + pixel.x) * 4;
+        pixelData[index] = color.r;     // R
+        pixelData[index + 1] = color.g; // G
+        pixelData[index + 2] = color.b; // B
+        pixelData[index + 3] = 255;     // A (fully opaque)
       }
     }
 
-    // Convert to PNG buffer
-    return canvas.toBuffer('image/png');
+    // Convert raw pixel data to PNG using Sharp
+    return sharp(pixelData, {
+      raw: {
+        width,
+        height,
+        channels: 4,
+      },
+    })
+      .png()
+      .toBuffer();
   }
 
   /**
-   * Convert color number to hex string
+   * Convert color number to RGB object
    */
-  private colorToHex(color: number): string {
-    return '#' + color.toString(16).padStart(6, '0');
+  private colorToRgb(color: number): { r: number; g: number; b: number } {
+    return {
+      r: (color >> 16) & 0xff,
+      g: (color >> 8) & 0xff,
+      b: color & 0xff,
+    };
   }
 
   /**

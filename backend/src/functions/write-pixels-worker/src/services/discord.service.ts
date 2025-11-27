@@ -1,6 +1,12 @@
 import axios, { AxiosError } from 'axios';
 import { DISCORD_API_BASE_URL } from '../config';
 
+export interface DiscordUser {
+  id: string;
+  username: string;
+  global_name?: string;
+}
+
 /**
  * Discord service for sending follow-up messages
  * Uses Discord REST API (not discord.js to keep it lightweight)
@@ -97,5 +103,37 @@ export class DiscordService {
       applicationId,
       `✅ **Success**: ${successMessage}`,
     );
+  }
+
+  /**
+   * Fetches the Discord user associated with an OAuth access token.
+   * Useful for HTTP calls coming from the frontend.
+   *
+   * @param accessToken - Discord OAuth access token (Bearer)
+   * @returns Basic Discord user profile
+   */
+  async fetchUserFromAccessToken(accessToken: string): Promise<DiscordUser> {
+    try {
+      const response = await axios.get(`${DISCORD_API_BASE_URL}/users/@me`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      return response.data as DiscordUser;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        console.error(
+          JSON.stringify({
+            level: 'error',
+            message: 'Error fetching Discord user',
+            status: axiosError.response?.status,
+            data: axiosError.response?.data,
+          }),
+        );
+      }
+      throw error;
+    }
   }
 }

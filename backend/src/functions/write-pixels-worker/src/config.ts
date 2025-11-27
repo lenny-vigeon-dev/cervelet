@@ -20,3 +20,6 @@ export const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD
 
 // Discord API Base URL
 export const DISCORD_API_BASE_URL = 'https://discord.com/api/v10';
+
+// Pub/Sub topic to trigger snapshot generation after pixel writes
+export const SNAPSHOT_TRIGGER_TOPIC = process.env.SNAPSHOT_TRIGGER_TOPIC || 'canvas-snapshot-trigger';

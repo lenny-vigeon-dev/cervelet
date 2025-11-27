@@ -3,8 +3,8 @@ import { ToolbarWrapper } from "@/components/toolbar-wrapper";
 import { APIStatusCard } from "@/components/api-status-card";
 import { AuthCard } from "@/components/auth-card";
 import { FeaturesGrid } from "@/components/features-grid";
-import { fetchCanvasSnapshot, fetchCanvasSummary } from "@/lib/canvas";
-import { safeFetch } from "@/hooks/use-safe-fetch";
+// import { fetchCanvasSnapshot, fetchCanvasSummary } from "@/lib/canvas";
+// import { safeFetch } from "@/hooks/use-safe-fetch";
 import type { CanvasSnapshot, CanvasSummary } from "@/types/canvas";
 import Link from "next/link";
 
@@ -13,10 +13,15 @@ import Link from "next/link";
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const [snapshot, summary] = (await Promise.all([
-    safeFetch(() => fetchCanvasSnapshot()),
-    safeFetch(() => fetchCanvasSummary()),
-  ])) as [CanvasSnapshot | null, CanvasSummary | null];
+  // Temporarily disabled: backend endpoints /canvas and /canvas/summary don't exist yet
+  // Canvas is now loaded via real-time hook (Cloud Storage snapshot + Firestore)
+  const snapshot: CanvasSnapshot | null = null;
+  const summary: CanvasSummary | null = null;
+
+  // const [snapshot, summary] = (await Promise.all([
+  //   safeFetch(() => fetchCanvasSnapshot()),
+  //   safeFetch(() => fetchCanvasSummary()),
+  // ])) as [CanvasSnapshot | null, CanvasSummary | null];
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-6 py-12">

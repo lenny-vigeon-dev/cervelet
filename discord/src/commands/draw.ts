@@ -9,10 +9,16 @@ import {
 } from "discord.js";
 import { PubSub } from "@google-cloud/pubsub";
 
+const parseEnvInt = (envVar: string | undefined, defaultValue: number): number => {
+  if (!envVar) return defaultValue;
+  const parsed = parseInt(envVar, 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+};
+
 const pubsub = new PubSub({ projectId: process.env.GCLOUD_PROJECT_ID });
 const TOPIC_NAME = process.env.PUBSUB_TOPIC || "write-pixels-topic";
-const MAX_X = process.env.CANVAS_MAX_X ? parseInt(process.env.CANVAS_MAX_X) : 1000;
-const MAX_Y = process.env.CANVAS_MAX_Y ? parseInt(process.env.CANVAS_MAX_Y) : 1000;
+const MAX_X = parseEnvInt(process.env.CANVAS_MAX_X, 1000);
+const MAX_Y = parseEnvInt(process.env.CANVAS_MAX_Y, 1000);
 
 const COLOR_MAP: Record<string, string> = {
   white: "FFFFFF",

@@ -30,6 +30,7 @@ export class DiscordService {
     try {
       await axios.post(url, {
         content: message,
+        flags: 64,
       });
 
       console.log(

@@ -430,7 +430,7 @@ export function PixelCanvas({
   };
 
   return (
-    <div ref={containerRef} className={`w-full rounded-3xl border border-brand/20 bg-canvas-surface overflow-hidden select-none relative flex items-center justify-center`}>
+    <div ref={containerRef} className={`w-full border border-brand/20 bg-canvas-surface overflow-hidden select-none relative flex items-center justify-center`}>
       {/* Real-time status indicator - Bottom right to not block close button */}
       {enableRealtime && (
         <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-brand/30">
@@ -521,7 +521,7 @@ export function PixelCanvas({
             imageRendering: "pixelated",
             transform: `scale(${zoom})`, transformOrigin: `${originX}% ${originY}%`
           }}
-          className="border border-brand/25 bg-black shadow-lg shadow-brand/20"
+          className="bg-black outline-none"
           aria-label="Collaborative pixel canvas"
         />
       </div>

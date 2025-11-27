@@ -318,7 +318,7 @@ export function PixelCanvas({
       const mouseYFromCenter = event.clientY - centerY;
 
       // Multiplicative zoom for smoother experience
-      const ZOOM_SPEED = 1.05;
+      const ZOOM_SPEED = 1.02;
       const direction = Math.sign(event.deltaY); // 1 for down (out), -1 for up (in)
       
       // If deltaY is 0, do nothing

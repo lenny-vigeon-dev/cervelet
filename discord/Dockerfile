@@ -9,7 +9,7 @@ RUN npm install -g pnpm && pnpm install
 
 COPY . .
 
-RUN npm run build
+RUN pnpm run build
 
 FROM node:20-alpine AS runner
 

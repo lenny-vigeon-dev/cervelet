@@ -101,8 +101,9 @@ export function PixelCanvasOptimized({
 
       if (!snapshot) {
         // Draw placeholder grid
-        context.strokeStyle = "rgba(255, 163, 33, 0.08)";
-        for (let x = 0; x <= canvas.width; x += 16) {
+        // No snapshot: draw grid for empty canvas
+      context.strokeStyle = "rgba(255, 163, 26, 0.08)";
+      for (let x = 0; x <= canvas.width; x += 16) {
           context.beginPath();
           context.moveTo(x + 0.5, 0);
           context.lineTo(x + 0.5, canvas.height);

@@ -79,6 +79,19 @@ export function PixelCanvas({
   const [minZoom, setMinZoom] = useState(0.1);
   const MAX_ZOOM = 20; // Permet de zoomer très près pour placer les pixels précisément
 
+  // Pan (drag to move)
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
+  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Track if we have performed the initial fit for the current dimensions
+  const [hasFitted, setHasFitted] = useState(false);
+
+  // Reset hasFitted when dimensions change
+  useEffect(() => {
+    setHasFitted(false);
+  }, [dimensions.width, dimensions.height]);
+
   // Calculate min zoom to fit container
   useEffect(() => {
     if (!containerRef.current || dimensions.width === 0 || dimensions.height === 0) return;
@@ -92,9 +105,6 @@ export function PixelCanvas({
       const canvasHeight = dimensions.height * scale;
 
       // Calculate the zoom level needed to fit the canvas entirely in the container
-      // We subtract a small margin (e.g. 40px) to ensure it doesn't touch the edges exactly if desired,
-      // but usually fit is exact. Let's use 0.95 factor for a bit of breathing room or exact fit.
-      // User asked for "la hauteur du canvas", so let's just fit it.
       const fitZoom = Math.min(
         containerWidth / canvasWidth,
         containerHeight / canvasHeight
@@ -105,8 +115,14 @@ export function PixelCanvas({
       
       setMinZoom(newMinZoom);
       
-      // If current zoom is less than new minZoom, update it
-      setZoom(z => Math.max(z, newMinZoom));
+      if (!hasFitted) {
+        setZoom(newMinZoom);
+        setPanOffset({ x: 0, y: 0 });
+        setHasFitted(true);
+      } else {
+        // If current zoom is less than new minZoom, update it
+        setZoom(z => Math.max(z, newMinZoom));
+      }
     };
 
     updateMinZoom();
@@ -115,12 +131,7 @@ export function PixelCanvas({
     observer.observe(containerRef.current);
     
     return () => observer.disconnect();
-  }, [dimensions, scale]);
-
-  // Pan (drag to move)
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
-  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  }, [dimensions, scale, hasFitted]);
 
   // Refs for accessing state in event handlers without re-binding
   const zoomRef = useRef(zoom);
@@ -167,7 +178,7 @@ export function PixelCanvas({
     }
 
     // Clear canvas
-    context.fillStyle = "#050404";
+    context.fillStyle = "#1b1b1b";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     // 1. Draw snapshot image from Cloud Storage (base layer)
@@ -181,7 +192,7 @@ export function PixelCanvas({
       });
     } else {
       // No snapshot: draw grid for empty canvas
-      context.strokeStyle = "rgba(255, 163, 33, 0.08)";
+      context.strokeStyle = "rgba(255, 163, 26, 0.08)";
       for (let x = 0; x <= canvas.width; x += 16) {
         context.beginPath();
         context.moveTo(x + 0.5, 0);
@@ -307,7 +318,7 @@ export function PixelCanvas({
       const mouseYFromCenter = event.clientY - centerY;
 
       // Multiplicative zoom for smoother experience
-      const ZOOM_SPEED = 1.1;
+      const ZOOM_SPEED = 1.02;
       const direction = Math.sign(event.deltaY); // 1 for down (out), -1 for up (in)
       
       // If deltaY is 0, do nothing
@@ -430,10 +441,10 @@ export function PixelCanvas({
   };
 
   return (
-    <div ref={containerRef} className={`w-full border border-brand/20 bg-canvas-surface overflow-hidden select-none relative flex items-center justify-center`}>
+    <div ref={containerRef} className={`${className ?? ""} w-full border border-brand/20 bg-canvas-surface overflow-hidden select-none relative flex items-center justify-center`}>
       {/* Real-time status indicator - Bottom right to not block close button */}
       {enableRealtime && (
-        <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-brand/30">
+        <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-surface/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-brand/30">
           <div className={`w-2 h-2 rounded-full ${isListening ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
           <span className="text-xs text-zinc-300">
             {isLoading ? 'Loading...' : isListening ? 'Live' : 'Offline'}
@@ -489,7 +500,7 @@ export function PixelCanvas({
                 {isDrawing ? 'Placement...' : isOnCooldown ? `Cooldown (${remainingFormatted})` : 'Dessiner'}
               </button>
               <button
-                className="bg-zinc-800/90 hover:bg-zinc-700/90 text-zinc-300 hover:text-white font-semibold py-3 px-8 rounded-xl border border-zinc-700 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                className="bg-surface/90 hover:bg-surface text-zinc-300 hover:text-white font-semibold py-3 px-8 rounded-xl border border-zinc-700 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 onClick={() => setSelectedPixel(null)}
                 disabled={isDrawing}
               >
@@ -500,7 +511,7 @@ export function PixelCanvas({
           ) }
         </div>
       )}
-      <div className={`${className ?? ""} flex items-center justify-center w-full h-full`}>
+      <div className={`flex items-center justify-center w-full h-full`}>
       <div
         style={{
           transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
@@ -521,7 +532,7 @@ export function PixelCanvas({
             imageRendering: "pixelated",
             transform: `scale(${zoom})`, transformOrigin: `${originX}% ${originY}%`
           }}
-          className="bg-black outline-none"
+          className="bg-canvas-bg outline-none"
           aria-label="Collaborative pixel canvas"
         />
       </div>

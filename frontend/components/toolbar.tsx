@@ -15,11 +15,11 @@ export interface ToolbarProps {
  */
 export function Toolbar({ session, onSelectColor, onClose }: ToolbarProps) {
   return (
-    <div className="relative flex flex-col items-center gap-3 rounded-3xl border border-brand/30 bg-black/80 px-6 py-4 text-sm text-foreground shadow-surface backdrop-blur mt-4">
+    <div className="relative flex flex-col items-center gap-3 rounded-3xl border border-white/20 bg-brand p-6 text-sm text-black shadow-xl backdrop-blur mt-4">
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white border border-zinc-600 transition-colors"
+          className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-surface text-zinc-400 hover:bg-zinc-700 hover:text-white border border-border transition-colors"
           aria-label="Fermer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -28,7 +28,7 @@ export function Toolbar({ session, onSelectColor, onClose }: ToolbarProps) {
           </svg>
         </button>
       )}
-      <span className="font-semibold text-brand-soft">
+      <span className="font-semibold text-black/80">
         {session.isAuthenticated && session.user
           ? session.user.username
           : "Anonyme"}

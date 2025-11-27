@@ -15,8 +15,8 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --omit=dev
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install --prod
 
 COPY --from=builder /app/dist ./dist
 

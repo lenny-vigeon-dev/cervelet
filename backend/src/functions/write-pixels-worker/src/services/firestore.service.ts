@@ -33,7 +33,7 @@ export class FirestoreService {
   /**
    * Writes a pixel and updates the user's timestamp in an atomic transaction
    * This transaction ensures there are no race conditions
-   * 
+   *
    * @param payload - The pixel data to write
    * @param newTimestamp - The new timestamp for the user
    */
@@ -48,7 +48,12 @@ export class FirestoreService {
 
     // Execute transaction to guarantee atomicity
     await this.db.runTransaction(async (transaction) => {
-      // 1. Write pixel to pixels collection
+      // 1. Read current user data to check if user exists
+      const userSnapshot = await transaction.get(userRef);
+      const userExists = userSnapshot.exists;
+      const currentUserData = userExists ? (userSnapshot.data() as UserDoc) : null;
+
+      // 2. Write pixel to pixels collection
       const pixelData: PixelDoc = {
         canvasId: canvasId,
         x: payload.x,
@@ -59,11 +64,16 @@ export class FirestoreService {
       };
       transaction.set(pixelRef, pixelData);
 
-      // 2. Update user's timestamp
+      // 3. Update or create user with all required fields
       const userData: UserDoc = {
+        id: payload.userId,
+        username: payload.username,
+        role: currentUserData?.role || 'user', // Keep existing role or default to 'user'
         lastPixelPlaced: newTimestamp,
+        totalPixelsPlaced: (currentUserData?.totalPixelsPlaced || 0) + 1,
+        createdAt: currentUserData?.createdAt || newTimestamp, // Set only on first creation
       };
-      transaction.set(userRef, userData, { merge: true });
+      transaction.set(userRef, userData);
     });
   }
 

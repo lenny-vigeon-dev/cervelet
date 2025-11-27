@@ -5,6 +5,7 @@ import { Timestamp } from '@google-cloud/firestore';
  */
 export interface PixelPayload {
   userId: string;
+  username: string;
   x: number;
   y: number;
   color: number;
@@ -18,7 +19,12 @@ export interface PixelPayload {
  * Document ID = {userId}
  */
 export interface UserDoc {
+  id?: string;
+  username?: string;
+  role?: 'user' | 'admin';
   lastPixelPlaced: Timestamp;
+  totalPixelsPlaced?: number;
+  createdAt?: Timestamp;
 }
 
 /**

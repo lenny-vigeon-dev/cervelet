@@ -9,20 +9,6 @@ automatic_scaling:
   max_instances: 10
   target_cpu_utilization: 0.65
 
-env_variables:
-  NODE_ENV: 'production'
-  NEXT_PUBLIC_API_URL: 'https://cf-proxy-343984406897.europe-west1.run.app'
-  NEXT_PUBLIC_DISCORD_CLIENT_ID: '1436363345400955012'
-  NEXT_PUBLIC_DISCORD_REDIRECT_URI: 'https://serverless-tek89.ew.r.appspot.com/auth/discord/callback'
-  NEXT_PUBLIC_FIREBASE_API_KEY: 'AIzaSyAK8nwhef7JHElQ7dEPm_66mfKGHxS8RRI'
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'serverless-tek89.firebaseapp.com'
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'serverless-tek89'
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'serverless-tek89.firebasestorage.app'
-  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '343984406897'
-  NEXT_PUBLIC_FIREBASE_APP_ID: '1:343984406897:web:a4abb480e375c92088b6d0'
-  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: 'G-12E4WE0YCG'
-  NEXT_PUBLIC_CANVAS_SNAPSHOT_URL: 'https://storage.googleapis.com/serverless-tek89-canvas-snapshots/canvas/latest.png'
-
 handlers:
 - url: /_next/static
   static_dir: .next/static

@@ -60,7 +60,7 @@ app.post('/', async (req: Request, res: Response) => {
         try {
             decodedData = Buffer.from(pubsubMessage.message.data, 'base64').toString('utf-8');
         } catch (error) {
-            logger.error('ERROR: Base64 decoding failed', {
+            logger.error('Base64 decoding failed', {
                 messageId,
                 error: error instanceof Error ? error.message : String(error),
             });
@@ -94,7 +94,7 @@ app.post('/', async (req: Request, res: Response) => {
         }
 
         // Process pixel write
-        logger.info(`Pixel placement request: ${payload.userId} wants to place at (${payload.x}, ${payload.y}) color #${payload.color.toString(16).padStart(6, '0')}`, {
+        logger.info('Processing pixel write request', {
             messageId,
             userId: payload.userId,
             coordinates: { x: payload.x, y: payload.y },
@@ -112,7 +112,7 @@ app.post('/', async (req: Request, res: Response) => {
     } catch (error) {
         const durationMs = Date.now() - startTime;
         logger.pubsubProcessed(messageId, durationMs, false);
-        logger.error(`CRITICAL ERROR: Pub/Sub message processing failed ${messageId}`, {
+        logger.error('Error processing Pub/Sub message', {
             messageId,
             durationMs,
             error: error instanceof Error ? error.message : String(error),

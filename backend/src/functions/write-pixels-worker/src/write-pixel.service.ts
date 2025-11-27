@@ -45,7 +45,7 @@ export class WritePixelService {
                     discordError instanceof Error ? discordError.message : String(discordError));
             }
 
-            logger.info(`Pixel placed successfully: ${payload.userId} at (${payload.x}, ${payload.y}) color #${payload.color.toString(16).padStart(6, '0')}`, {
+            logger.info('Pixel write completed', {
                 userId: payload.userId,
                 coordinates: { x: payload.x, y: payload.y },
                 color: payload.color,
@@ -56,7 +56,7 @@ export class WritePixelService {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-            logger.error(`ERROR pixel placement: ${payload.userId} at (${payload.x}, ${payload.y}) - ${errorMessage}`, {
+            logger.error('Pixel write failed', {
                 userId: payload.userId,
                 coordinates: { x: payload.x, y: payload.y },
                 error: errorMessage,

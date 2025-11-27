@@ -41,17 +41,12 @@ export const logger = {
 
   // Specialized logging methods
   pixelWrite: (userId: string, x: number, y: number, color: number, success: boolean, durationMs: number) => {
-    const colorHex = '#' + color.toString(16).padStart(6, '0');
-    const message = success 
-      ? `${userId} placed pixel at (${x}, ${y}) color ${colorHex}`
-      : `ERROR: ${userId} failed to place pixel at (${x}, ${y}) color ${colorHex}`;
-    
-    log(success ? 'INFO' : 'ERROR', message, {
+    log(success ? 'INFO' : 'ERROR', success ? 'Pixel written successfully' : 'Pixel write failed', {
       event: 'pixel_write',
       userId,
       coordinates: { x, y },
       color,
-      colorHex,
+      colorHex: '#' + color.toString(16).padStart(6, '0'),
       success,
       durationMs,
       labels: { operation: 'write_pixel' },
@@ -59,7 +54,7 @@ export const logger = {
   },
 
   pubsubReceived: (messageId: string, subscription: string) => {
-    log('INFO', `Pub/Sub message received - ID: ${messageId.substring(0, 12)}`, {
+    log('INFO', 'Pub/Sub message received', {
       event: 'pubsub_received',
       messageId,
       subscription,
@@ -68,11 +63,7 @@ export const logger = {
   },
 
   pubsubProcessed: (messageId: string, durationMs: number, success: boolean) => {
-    const message = success
-      ? `Pub/Sub message processed successfully in ${durationMs}ms`
-      : `ERROR: Pub/Sub message processing failed after ${durationMs}ms`;
-    
-    log(success ? 'INFO' : 'ERROR', message, {
+    log(success ? 'INFO' : 'ERROR', success ? 'Pub/Sub message processed' : 'Pub/Sub message processing failed', {
       event: 'pubsub_processed',
       messageId,
       durationMs,
@@ -82,11 +73,7 @@ export const logger = {
   },
 
   cooldownCheck: (userId: string, allowed: boolean, remainingMs?: number) => {
-    const message = allowed 
-      ? `Cooldown OK for ${userId}`
-      : `Cooldown active for ${userId} - ${Math.ceil((remainingMs || 0) / 1000)}s remaining`;
-    
-    log(allowed ? 'INFO' : 'WARNING', message, {
+    log('INFO', allowed ? 'Cooldown check passed' : 'Cooldown active - request rejected', {
       event: 'cooldown_check',
       userId,
       allowed,
@@ -97,11 +84,7 @@ export const logger = {
   },
 
   firestoreOperation: (operation: string, collection: string, documentId: string, durationMs: number, success: boolean, error?: string) => {
-    const message = success
-      ? `Firestore ${operation} OK - ${collection}/${documentId} (${durationMs}ms)`
-      : `ERROR Firestore ${operation} - ${collection}/${documentId}: ${error || 'unknown error'}`;
-    
-    log(success ? 'INFO' : 'ERROR', message, {
+    log(success ? 'INFO' : 'ERROR', `Firestore ${operation} ${success ? 'completed' : 'failed'}`, {
       event: 'firestore_operation',
       operation,
       collection,
@@ -114,11 +97,7 @@ export const logger = {
   },
 
   discordWebhook: (operation: string, applicationId: string, success: boolean, statusCode?: number, error?: string) => {
-    const message = success
-      ? `Discord ${operation} sent successfully`
-      : `Discord ${operation} failed: ${error || 'unknown error'}`;
-    
-    log(success ? 'INFO' : 'WARNING', message, {
+    log(success ? 'INFO' : 'WARNING', `Discord ${operation} ${success ? 'sent' : 'failed'}`, {
       event: 'discord_webhook',
       operation,
       applicationId,
@@ -130,7 +109,7 @@ export const logger = {
   },
 
   serviceStartup: (port: number | string) => {
-    log('NOTICE', `Service write-pixels-worker started on port ${port}`, {
+    log('NOTICE', 'Service started', {
       event: 'service_startup',
       port,
       nodeVersion: process.version,
@@ -139,7 +118,7 @@ export const logger = {
   },
 
   serviceShutdown: (reason: string) => {
-    log('NOTICE', `Service shutting down: ${reason}`, {
+    log('NOTICE', 'Service shutting down', {
       event: 'service_shutdown',
       reason,
       labels: { operation: 'lifecycle' },
@@ -147,7 +126,7 @@ export const logger = {
   },
 
   validationError: (reason: string, details: Record<string, unknown>) => {
-    log('WARNING', `Validation error: ${reason}`, {
+    log('WARNING', `Validation failed: ${reason}`, {
       event: 'validation_error',
       reason,
       ...details,

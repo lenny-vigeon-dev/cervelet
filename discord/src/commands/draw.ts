@@ -83,8 +83,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const colorNum = parseInt(hex, 16);
 
+  const avatarUrl = interaction.user.avatar
+    ? `https://cdn.discordapp.com/avatars/${interaction.user.id}/${interaction.user.avatar}.png`
+    : undefined;
+
   const payload = {
     userId: interaction.user.id,
+    username: interaction.user.username,
+    avatarUrl,
     x,
     y,
     color: colorNum,

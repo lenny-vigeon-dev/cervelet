@@ -1,4 +1,4 @@
-import { Firestore, Timestamp } from '@google-cloud/firestore';
+import { Firestore, Timestamp, FieldValue } from '@google-cloud/firestore';
 import { USERS_COLLECTION, PIXELS_COLLECTION, DEFAULT_CANVAS_ID, PROJECT_ID } from '../config';
 import { UserDoc, PixelDoc, PixelPayload } from '../types';
 
@@ -31,9 +31,9 @@ export class FirestoreService {
   }
 
   /**
-   * Writes a pixel and updates the user's timestamp in an atomic transaction
+   * Writes a pixel and creates or updates the user profile in an atomic transaction
    * This transaction ensures there are no race conditions
-   * 
+   *
    * @param payload - The pixel data to write
    * @param newTimestamp - The new timestamp for the user
    */
@@ -46,9 +46,9 @@ export class FirestoreService {
     const pixelRef = this.db.collection(PIXELS_COLLECTION).doc(pixelId);
     const userRef = this.db.collection(USERS_COLLECTION).doc(payload.userId);
 
-    // Execute transaction to guarantee atomicity
     await this.db.runTransaction(async (transaction) => {
-      // 1. Write pixel to pixels collection
+      const userSnapshot = await transaction.get(userRef);
+
       const pixelData: PixelDoc = {
         canvasId: canvasId,
         x: payload.x,
@@ -59,11 +59,28 @@ export class FirestoreService {
       };
       transaction.set(pixelRef, pixelData);
 
-      // 2. Update user's timestamp
-      const userData: UserDoc = {
-        lastPixelPlaced: newTimestamp,
-      };
-      transaction.set(userRef, userData, { merge: true });
+      if (userSnapshot.exists) {
+        const updateData: any = {
+          username: payload.username,
+          lastPixelPlaced: newTimestamp,
+          totalPixelsPlaced: FieldValue.increment(1),
+        };
+        if (payload.avatarUrl) {
+          updateData.avatarUrl = payload.avatarUrl;
+        }
+        transaction.update(userRef, updateData);
+      } else {
+        const newUserData: UserDoc = {
+          id: payload.userId,
+          username: payload.username,
+          avatarUrl: payload.avatarUrl,
+          role: 'user',
+          lastPixelPlaced: newTimestamp,
+          totalPixelsPlaced: 1,
+          createdAt: newTimestamp,
+        };
+        transaction.set(userRef, newUserData);
+      }
     });
   }
 

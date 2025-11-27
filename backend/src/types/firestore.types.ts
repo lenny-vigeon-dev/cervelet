@@ -45,6 +45,7 @@ export enum UserRole {
 export interface User {
   id: string;
   username: string;
+  avatarUrl?: string;
   role: UserRole;
   lastPixelPlaced: Timestamp | null;
   totalPixelsPlaced: number;
@@ -87,6 +88,7 @@ export interface CreatePixelInput {
 export interface CreateUserInput {
   id?: string;
   username: string;
+  avatarUrl?: string;
   role?: UserRole;
 }
 
@@ -115,6 +117,7 @@ export interface UpdatePixelInput {
 
 export interface UpdateUserInput {
   username?: string;
+  avatarUrl?: string;
   role?: UserRole;
   lastPixelPlaced?: Timestamp | null;
   totalPixelsPlaced?: number;

@@ -9,11 +9,29 @@ interface CooldownState {
   remainingFormatted: string;
 }
 
+const COOLDOWN_STORAGE_KEY = 'pixel-cooldown-end-time';
+
 /**
- * Hook to track pixel placement cooldown
+ * Hook to track pixel placement cooldown with localStorage persistence
  */
 export function useCooldown() {
-  const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(null);
+  // Initialize from localStorage
+  const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(() => {
+    if (typeof window === 'undefined') return null;
+
+    const stored = localStorage.getItem(COOLDOWN_STORAGE_KEY);
+    if (!stored) return null;
+
+    const endTime = parseInt(stored, 10);
+    // Check if cooldown has already expired
+    if (endTime <= Date.now()) {
+      localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+      return null;
+    }
+
+    return endTime;
+  });
+
   const [state, setState] = useState<CooldownState>({
     isOnCooldown: false,
     remainingMs: 0,
@@ -21,23 +39,29 @@ export function useCooldown() {
   });
 
   /**
-   * Start the cooldown timer
+   * Start the cooldown timer and persist to localStorage
    * @param durationMs - Duration in milliseconds
    */
   const startCooldown = useCallback((durationMs: number) => {
     const endTime = Date.now() + durationMs;
     setCooldownEndTime(endTime);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(COOLDOWN_STORAGE_KEY, endTime.toString());
+    }
   }, []);
 
   /**
-   * Clear the cooldown
+   * Clear the cooldown and remove from localStorage
    */
   const clearCooldown = useCallback(() => {
     setCooldownEndTime(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+    }
   }, []);
 
   /**
-   * Update remaining time every second
+   * Update remaining time every second and clear localStorage when expired
    */
   useEffect(() => {
     if (!cooldownEndTime) {
@@ -55,6 +79,9 @@ export function useCooldown() {
 
       if (remaining === 0) {
         setCooldownEndTime(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+        }
         return;
       }
 

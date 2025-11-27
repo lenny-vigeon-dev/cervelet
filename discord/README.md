@@ -43,7 +43,7 @@ GUILD_ID=your_test_guild_id
 Explications :
 - `DISCORD_TOKEN` : token du bot fourni par le portail Discord Developer.
 - `CLIENT_ID` : identifiant de l'application (utilisé pour enregistrer les commandes slash).
-- `GUILD_ID` : (recommandé pour le développement) permet d'enregistrer rapidement les commandes dans un serveur précis; sans `GUILD_ID` les commandes sont enregistrées globalement et la propagation peut prendre jusqu'à 1 heure.
+- `GUILD_ID` : (recommandé pour le développement) permet d'enregistrer rapidement les commandes dans un serveur précis ; sans `GUILD_ID` les commandes sont enregistrées globalement et la propagation peut prendre jusqu'à 1 heure.
 
 Ne partagez jamais votre `DISCORD_TOKEN` publiquement.
 

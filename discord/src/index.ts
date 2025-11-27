@@ -78,6 +78,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
     console.log("Command finished successfully");
   } catch (error) {
     console.error("Error in execute():", error);
+    const errorMessage = "❌ An error occurred while executing this command.";
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({ content: errorMessage, ephemeral: true });
+    } else {
+      await interaction.reply({ content: errorMessage, ephemeral: true });
+    }
   }
 });
 

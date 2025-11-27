@@ -4,6 +4,7 @@ import { DiscordService } from './services/discord.service';
 import { PubSubService } from './services/pubsub.service';
 import { PixelPayload } from './types';
 import { COOLDOWN_MS } from './config';
+import { logger } from './utils/logger';
 
 /**
  * Main service for processing pixel write requests
@@ -18,30 +19,13 @@ export class WritePixelService {
 
     /**
      * Executes the complete processing of a pixel write request
-     * 
-     * @param payload - The pixel data to write
-     * @param options - Optional flags to control side-effects (e.g., Discord feedback)
-     * @throws Error if an error occurs during processing
      */
-    async execute(payload: PixelPayload, options?: { sendDiscordFeedback?: boolean }): Promise<void> {
-        const sendDiscordFeedback = options?.sendDiscordFeedback !== false && !!payload.interactionToken && !!payload.applicationId;
-
-        // Structured log for processing start
-        console.log(
-            JSON.stringify({
-                level: 'info',
-                message: 'Processing pixel write request',
-                userId: payload.userId,
-                x: payload.x,
-                y: payload.y,
-                color: payload.color,
-                timestamp: new Date().toISOString(),
-            }),
-        );
+    async execute(payload: PixelPayload): Promise<void> {
+        const startTime = Date.now();
 
         try {
             // 1. Rate-limiting check (cooldown)
-            await this.checkCooldown(payload, sendDiscordFeedback);
+            await this.checkCooldown(payload);
 
             // 2. Write pixel with atomic transaction
             await this.writePixel(payload);
@@ -49,126 +33,103 @@ export class WritePixelService {
             // 3. Trigger snapshot generation asynchronously (best-effort)
             if (this.pubSubService) {
                 this.pubSubService.triggerSnapshot().catch((err) => {
-                    console.error(
-                        JSON.stringify({
-                            level: 'error',
-                            message: 'Failed to publish snapshot trigger',
-                            error: err instanceof Error ? err.message : String(err),
-                        }),
-                    );
+                    logger.error('Failed to publish snapshot trigger', {
+                        error: err instanceof Error ? err.message : String(err),
+                    });
                 });
             }
 
             // 4. Send success feedback to Discord
-            if (sendDiscordFeedback && payload.interactionToken && payload.applicationId) {
-                await this.discordService.sendSuccessFollowUp(
-                    payload.interactionToken,
-                    payload.applicationId,
-                    `Pixel placed successfully at position (${payload.x}, ${payload.y})!`,
-                );
+            if (payload.interactionToken && payload.applicationId) {
+                try {
+                    await this.discordService.sendSuccessFollowUp(
+                        payload.interactionToken,
+                        payload.applicationId,
+                        `Pixel placed successfully at position (${payload.x}, ${payload.y})!`,
+                    );
+                    logger.discordWebhook('success_followup', payload.applicationId, true);
+                } catch (discordError) {
+                    logger.discordWebhook('success_followup', payload.applicationId, false, undefined,
+                        discordError instanceof Error ? discordError.message : String(discordError));
+                }
             }
 
-            // Success log
-            console.log(
-                JSON.stringify({
-                    level: 'info',
-                    message: 'Pixel written successfully',
-                    userId: payload.userId,
-                    x: payload.x,
-                    y: payload.y,
-                    timestamp: new Date().toISOString(),
-                }),
-            );
+            logger.info(`Pixel placed successfully: ${payload.userId} at (${payload.x}, ${payload.y}) color #${payload.color.toString(16).padStart(6, '0')}`, {
+                userId: payload.userId,
+                coordinates: { x: payload.x, y: payload.y },
+                color: payload.color,
+                colorHex: '#' + payload.color.toString(16).padStart(6, '0'),
+                totalDurationMs: Date.now() - startTime,
+            });
+
         } catch (error) {
-            // Error handling
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            
-            console.error(
-                JSON.stringify({
-                    level: 'error',
-                    message: 'Error writing pixel',
-                    userId: payload.userId,
-                    error: errorMessage,
-                    stack: error instanceof Error ? error.stack : undefined,
-                    timestamp: new Date().toISOString(),
-                }),
-            );
+
+            logger.error(`ERROR pixel placement: ${payload.userId} at (${payload.x}, ${payload.y}) - ${errorMessage}`, {
+                userId: payload.userId,
+                coordinates: { x: payload.x, y: payload.y },
+                error: errorMessage,
+                stack: error instanceof Error ? error.stack : undefined,
+                durationMs: Date.now() - startTime,
+            });
 
             // Attempt to send error message to Discord
-            if (sendDiscordFeedback && payload.interactionToken && payload.applicationId) {
+            if (payload.interactionToken && payload.applicationId) {
                 try {
                     await this.discordService.sendErrorFollowUp(
                         payload.interactionToken,
                         payload.applicationId,
                         'An error occurred while writing the pixel. Please try again.',
                     );
+                    logger.discordWebhook('error_followup', payload.applicationId, true);
                 } catch (discordError) {
-                    console.error(
-                        JSON.stringify({
-                            level: 'error',
-                            message: 'Unable to send error message to Discord',
-                            error: discordError instanceof Error ? discordError.message : String(discordError),
-                        }),
-                    );
+                    logger.discordWebhook('error_followup', payload.applicationId, false, undefined,
+                        discordError instanceof Error ? discordError.message : String(discordError));
                 }
             }
 
-            // Re-throw error so the worker can handle it
             throw error;
         }
     }
 
     /**
      * Checks if the user can write a pixel (cooldown)
-     *
-     * @param payload - The pixel data
      * @throws Error if cooldown is active
      */
-    private async checkCooldown(payload: PixelPayload, sendDiscordFeedback: boolean): Promise<void> {
+    private async checkCooldown(payload: PixelPayload): Promise<void> {
+        const startTime = Date.now();
         const user = await this.firestoreService.getUser(payload.userId);
 
+        logger.firestoreOperation('read', 'users', payload.userId, Date.now() - startTime, true);
+
         if (!user || !user.lastPixelPlaced) {
-            // User's first pixel, no cooldown
-            console.log(
-                JSON.stringify({
-                    level: 'info',
-                    message: 'First pixel for this user - cooldown OK',
-                    userId: payload.userId,
-                }),
-            );
+            logger.cooldownCheck(payload.userId, true);
             return;
         }
 
-        // Calculate elapsed time since last pixel
         const lastPixelTime = user.lastPixelPlaced.toMillis();
         const currentTime = Date.now();
         const elapsedTime = currentTime - lastPixelTime;
 
         if (elapsedTime < COOLDOWN_MS) {
-            // Cooldown active
             const remainingTime = COOLDOWN_MS - elapsedTime;
             const remainingMinutes = Math.ceil(remainingTime / 60000);
             const remainingSeconds = Math.ceil(remainingTime / 1000);
 
-            console.log(
-                JSON.stringify({
-                    level: 'warn',
-                    message: 'Error: Cooldown active',
-                    userId: payload.userId,
-                    elapsedMs: elapsedTime,
-                    remainingMs: remainingTime,
-                    remainingMinutes,
-                    timestamp: new Date().toISOString(),
-                }),
-            );
+            logger.cooldownCheck(payload.userId, false, remainingTime);
 
-            // Send error message to Discord
-            if (sendDiscordFeedback && payload.interactionToken && payload.applicationId) {
-                await this.discordService.sendErrorFollowUp(
-                    payload.interactionToken,
-                    payload.applicationId,
-                    `Cooldown active! You must wait ${remainingMinutes} more minute${remainingMinutes > 1 ? 's' : ''}.`,
-                );
+            if (payload.interactionToken && payload.applicationId) {
+                try {
+                    await this.discordService.sendErrorFollowUp(
+                        payload.interactionToken,
+                        payload.applicationId,
+                        `Cooldown active! You must wait ${remainingMinutes} more minute${remainingMinutes > 1 ? 's' : ''}.`,
+                    );
+                    logger.discordWebhook('cooldown_error', payload.applicationId, true);
+                } catch (discordError) {
+                    logger.discordWebhook('cooldown_error', payload.applicationId, false, undefined,
+                        discordError instanceof Error ? discordError.message : String(discordError));
+                }
             }
 
             // Throw error for HTTP clients with remaining time info
@@ -177,34 +138,25 @@ export class WritePixelService {
             throw error;
         }
 
-        // Cooldown OK
-        console.log(
-            JSON.stringify({
-                level: 'info',
-                message: 'Cooldown OK - write authorized',
-                userId: payload.userId,
-                elapsedMs: elapsedTime,
-            }),
-        );
+        logger.cooldownCheck(payload.userId, true);
     }
 
     /**
      * Writes the pixel to Firestore with an atomic transaction
-     * 
-     * @param payload - The pixel data to write
      */
     private async writePixel(payload: PixelPayload): Promise<void> {
-        console.log(
-            JSON.stringify({
-                level: 'info',
-                message: 'Executing Firestore transaction',
-                userId: payload.userId,
-                x: payload.x,
-                y: payload.y,
-            }),
-        );
+        const startTime = Date.now();
+        const documentId = `main-canvas_${payload.x}_${payload.y}`;
 
-        const newTimestamp = Timestamp.now();
-        await this.firestoreService.writePixelTransaction(payload, newTimestamp);
+        try {
+            const newTimestamp = Timestamp.now();
+            await this.firestoreService.writePixelTransaction(payload, newTimestamp);
+
+            logger.firestoreOperation('transaction', 'pixels', documentId, Date.now() - startTime, true);
+        } catch (error) {
+            logger.firestoreOperation('transaction', 'pixels', documentId, Date.now() - startTime, false,
+                error instanceof Error ? error.message : String(error));
+            throw error;
+        }
     }
 }

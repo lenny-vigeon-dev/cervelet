@@ -11,11 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import "./server";
 
-export interface Command {
-  data: SlashCommandBuilder;
-  execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
-}
-
+import type { Command } from "./discord";
 interface ExtendedClient extends Client {
   commands: Collection<string, Command>;
 }

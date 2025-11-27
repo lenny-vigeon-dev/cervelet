@@ -32,8 +32,8 @@ const client: ExtendedClient = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildPresences,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
+    GatewayIntentBits.MessageContent,
+  ],
 }) as ExtendedClient;
 
 client.commands = new Collection<string, Command>();
@@ -41,7 +41,7 @@ client.commands = new Collection<string, Command>();
 const commandsPath = path.join(__dirname, "commands");
 const commandFiles = fs
   .readdirSync(commandsPath)
-  .filter((file) => file.endsWith('.ts') || file.endsWith('.js'));
+  .filter((file) => file.endsWith(".ts") || file.endsWith(".js"));
 
 for (const file of commandFiles) {
   const filePath = path.join(commandsPath, file);
@@ -78,18 +78,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     console.log("Command finished successfully");
   } catch (error) {
     console.error("Error in execute():", error);
-
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({
-        content: "❌ An error occurred.",
-        ephemeral: true,
-      });
-    } else {
-      await interaction.reply({
-        content: "❌ An error occurred.",
-        ephemeral: true,
-      });
-    }
   }
 });
 

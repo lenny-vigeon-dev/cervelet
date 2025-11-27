@@ -20,16 +20,41 @@ export class PubSubService {
       return;
     }
 
-    const data = Buffer.from(
-      JSON.stringify({
-        canvasId,
-        source: 'write-pixels-worker',
-        timestamp: new Date().toISOString(),
-      }),
-    );
+    try {
+      const data = Buffer.from(
+        JSON.stringify({
+          canvasId,
+          source: 'write-pixels-worker',
+          timestamp: new Date().toISOString(),
+        }),
+      );
 
-    await this.client
-      .topic(SNAPSHOT_TRIGGER_TOPIC)
-      .publishMessage({ data });
+      console.log(
+        JSON.stringify({
+          level: 'info',
+          message: 'Publishing snapshot trigger to Pub/Sub',
+          topic: SNAPSHOT_TRIGGER_TOPIC,
+          canvasId,
+        }),
+      );
+
+      await this.client.topic(SNAPSHOT_TRIGGER_TOPIC).publishMessage({ data });
+
+      console.log(
+        JSON.stringify({
+          level: 'info',
+          message: 'Snapshot trigger published successfully',
+        }),
+      );
+    } catch (error) {
+      console.error(
+        JSON.stringify({
+          level: 'error',
+          message: 'Failed to publish snapshot trigger',
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
+      // Don't throw - snapshot generation failure shouldn't block pixel write
+    }
   }
 }

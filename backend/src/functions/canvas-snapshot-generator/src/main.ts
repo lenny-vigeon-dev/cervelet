@@ -1,39 +1,66 @@
-import { http } from '@google-cloud/functions-framework';
-import type { Request, Response } from '@google-cloud/functions-framework';
+import express, { Request, Response } from 'express';
 import { SnapshotService } from './snapshot.service';
 
 /**
- * HTTP Cloud Function to generate canvas snapshots
+ * HTTP Cloud Run service to generate canvas snapshots
  *
  * Can be triggered by:
  * - Cloud Scheduler (periodic snapshots)
  * - HTTP request (manual trigger)
- * - Pub/Sub (event-driven)
+ * - Pub/Sub (event-driven via write-pixels-worker)
  *
  * Request body (POST):
  * - canvasId: ID of the canvas to snapshot (optional, defaults to 'main-canvas')
  *
  * Example:
- * curl -X POST https://REGION-PROJECT_ID.cloudfunctions.net/canvas-snapshot-generator \
+ * curl -X POST https://REGION-PROJECT_ID.run.app/generate \
  *   -H "Content-Type: application/json" \
  *   -d '{"canvasId": "main-canvas"}'
  */
-http('generateSnapshot', async (req: Request, res: Response) => {
+
+// Express application initialization
+const app = express();
+app.use(express.json());
+
+/**
+ * CORS handling
+ */
+app.options('*', (_req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.status(204).send();
+});
+
+/**
+ * Health check endpoint
+ */
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'healthy' });
+});
+
+/**
+ * Root endpoint
+ */
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({
+    service: 'canvas-snapshot-generator',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * Generate snapshot endpoint
+ */
+app.post('/generate', async (req: Request, res: Response) => {
   const startTime = Date.now();
 
   try {
-    // CORS headers for frontend access
+    // CORS headers
     res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'GET, POST');
-    res.set('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Handle CORS preflight
-    if (req.method === 'OPTIONS') {
-      res.status(204).send('');
-      return;
-    }
-
-    // Get canvas ID from request body (standardized for POST requests)
+    // Get canvas ID from request body
     const canvasId = req.body?.canvasId || 'main-canvas';
 
     console.log(`Generating snapshot for canvas: ${canvasId}`);
@@ -51,7 +78,6 @@ http('generateSnapshot', async (req: Request, res: Response) => {
       data: metadata,
       duration: `${duration}ms`,
     });
-
   } catch (error) {
     console.error('Error generating snapshot:', error);
 
@@ -64,4 +90,29 @@ http('generateSnapshot', async (req: Request, res: Response) => {
       duration: `${duration}ms`,
     });
   }
+});
+
+// Server startup
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(
+    JSON.stringify({
+      level: 'info',
+      message: `canvas-snapshot-generator started on port ${PORT}`,
+      port: PORT,
+      timestamp: new Date().toISOString(),
+    }),
+  );
+});
+
+// Graceful shutdown handling
+process.on('SIGTERM', async () => {
+  console.log(
+    JSON.stringify({
+      level: 'info',
+      message: 'SIGTERM signal received - graceful shutdown',
+      timestamp: new Date().toISOString(),
+    }),
+  );
+  process.exit(0);
 });

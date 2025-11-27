@@ -1,6 +1,7 @@
 import { Timestamp } from '@google-cloud/firestore';
 import { FirestoreService } from './services/firestore.service';
 import { DiscordService } from './services/discord.service';
+import { PubSubService } from './services/pubsub.service';
 import { PixelPayload } from './types';
 import { COOLDOWN_MS } from './config';
 
@@ -12,6 +13,7 @@ export class WritePixelService {
     constructor(
         private readonly firestoreService: FirestoreService,
         private readonly discordService: DiscordService,
+        private readonly pubSubService?: PubSubService,
     ) {}
 
     /**
@@ -48,7 +50,20 @@ export class WritePixelService {
             // 2. Write pixel with atomic transaction
             await this.writePixel(payload);
 
-            // 3. Send success feedback to Discord
+            // 3. Trigger snapshot generation asynchronously (best-effort)
+            if (this.pubSubService) {
+                this.pubSubService.triggerSnapshot().catch((err) => {
+                    console.error(
+                        JSON.stringify({
+                            level: 'error',
+                            message: 'Failed to publish snapshot trigger',
+                            error: err instanceof Error ? err.message : String(err),
+                        }),
+                    );
+                });
+            }
+
+            // 4. Send success feedback to Discord
             if (sendDiscordFeedback && payload.interactionToken && payload.applicationId) {
                 await this.discordService.sendSuccessFollowUp(
                     payload.interactionToken,

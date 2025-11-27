@@ -3,6 +3,7 @@ import { FirestoreService } from './services/firestore.service';
 import { DiscordService } from './services/discord.service';
 import { WritePixelService } from './write-pixel.service';
 import { PixelPayload, PubSubMessage } from './types';
+import { PubSubService } from './services/pubsub.service';
 
 /**
  * Main entry point for the Cloud Run worker triggered by Pub/Sub
@@ -15,7 +16,8 @@ app.use(express.json());
 // Services initialization (singleton)
 const firestoreService = new FirestoreService();
 const discordService = new DiscordService();
-const writePixelService = new WritePixelService(firestoreService, discordService);
+const pubSubService = new PubSubService();
+const writePixelService = new WritePixelService(firestoreService, discordService, pubSubService);
 
 /**
  * Pub/Sub payload validation

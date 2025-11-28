@@ -101,7 +101,7 @@ gcloud auth application-default login
 ### 1. Clone and Setup
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/lenny-vigeon-dev/cervelet
 cd cervelet
 ```
 

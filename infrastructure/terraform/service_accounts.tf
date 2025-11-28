@@ -25,10 +25,10 @@ resource "google_service_account" "discord_cmd" {
   description  = "Service account for the Discord command handler. Allows invoking internal services, reading/writing Firestore documents, and publishing command-related events."
 }
 
-resource "google_service_account" "cloudrun_sa" {
-  account_id   = "cloudrun-svc"
-  display_name = "cloudrun service account"
-  description  = "Service account used by Cloud Run services that need to publish to Pub/Sub."
+resource "google_service_account" "discord_bot" {
+  account_id   = "discord-bot-sa"
+  display_name = "discord-bot service account"
+  description  = "Service account for the Discord bot Cloud Run service. Allows publishing to Pub/Sub for pixel write requests and subscribing to relevant topics."
 }
 
 // Project-level IAM bindings (minimal recommended roles)
@@ -81,10 +81,16 @@ resource "google_project_iam_member" "discord_pubsub" {
   member  = "serviceAccount:${google_service_account.discord_cmd.email}"
 }
 
-resource "google_project_iam_member" "cloudrun_pubsub_publisher" {
+resource "google_project_iam_member" "discord_bot_pubsub_publisher" {
   project = var.project_id
   role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:${google_service_account.cloudrun_sa.email}"
+  member  = "serviceAccount:${google_service_account.discord_bot.email}"
+}
+
+resource "google_project_iam_member" "discord_bot_pubsub_subscriber" {
+  project = var.project_id
+  role    = "roles/pubsub.subscriber"
+  member  = "serviceAccount:${google_service_account.discord_bot.email}"
 }
 
 // Note: Assigning roles at the project level is simpler and acceptable for many setups,

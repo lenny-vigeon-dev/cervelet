@@ -64,27 +64,29 @@ export class WritePixelService {
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            const isCooldownError = errorMessage.includes('Cooldown active');
 
-            logger.error(`ERROR pixel placement: ${payload.userId} at (${payload.x}, ${payload.y}) - ${errorMessage}`, {
-                userId: payload.userId,
-                coordinates: { x: payload.x, y: payload.y },
-                error: errorMessage,
-                stack: error instanceof Error ? error.stack : undefined,
-                durationMs: Date.now() - startTime,
-            });
+            if (!isCooldownError) {
+                logger.error(`ERROR pixel placement: ${payload.userId} at (${payload.x}, ${payload.y}) - ${errorMessage}`, {
+                    userId: payload.userId,
+                    coordinates: { x: payload.x, y: payload.y },
+                    error: errorMessage,
+                    stack: error instanceof Error ? error.stack : undefined,
+                    durationMs: Date.now() - startTime,
+                });
 
-            // Attempt to send error message to Discord
-            if (payload.interactionToken && payload.applicationId) {
-                try {
-                    await this.discordService.sendErrorFollowUp(
-                        payload.interactionToken,
-                        payload.applicationId,
-                        'An error occurred while writing the pixel. Please try again.',
-                    );
-                    logger.discordWebhook('error_followup', payload.applicationId, true);
-                } catch (discordError) {
-                    logger.discordWebhook('error_followup', payload.applicationId, false, undefined,
-                        discordError instanceof Error ? discordError.message : String(discordError));
+                if (payload.interactionToken && payload.applicationId) {
+                    try {
+                        await this.discordService.sendErrorFollowUp(
+                            payload.interactionToken,
+                            payload.applicationId,
+                            'An error occurred while writing the pixel. Please try again.',
+                        );
+                        logger.discordWebhook('error_followup', payload.applicationId, true);
+                    } catch (discordError) {
+                        logger.discordWebhook('error_followup', payload.applicationId, false, undefined,
+                            discordError instanceof Error ? discordError.message : String(discordError));
+                    }
                 }
             }
 

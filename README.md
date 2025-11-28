@@ -35,38 +35,9 @@ PixelHub is a collaborative real-time pixel canvas where users can place pixels 
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────┐
-│   User Browser      │
-│   pixelhub.now      │
-└──────────┬──────────┘
-           │ HTTPS
-           ↓
-┌─────────────────────────────────┐
-│  Google Cloud Run (Frontend)    │
-│  - Next.js 16 SSR               │
-│  - Automatic SSL Certificate    │
-│  - Custom Domain Mapping        │
-└──────────┬──────────────────────┘
-           │ API Requests
-           ↓
-┌─────────────────────────────────┐
-│  Cloud Run (API Gateway)        │
-│  - cf-proxy service             │
-│  - Discord OAuth2               │
-│  - Canvas operations            │
-│  - Rate limiting                │
-└──────────┬──────────────────────┘
-           │
-           ↓
-┌─────────────────────────────────┐
-│  Backend Services               │
-│  - Firestore (Database)         │
-│  - Cloud Functions              │
-│  - write-pixels-worker          │
-│  - canvas-snapshot-generator    │
-└─────────────────────────────────┘
-```
+<div align="center">
+  <img src="docs/infrastructure_diagram.jpg" alt="Infrastructure Architecture Diagram" width="100%" />
+</div>
 
 ## 📁 Project Structure
 

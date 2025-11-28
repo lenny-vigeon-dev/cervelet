@@ -7,7 +7,7 @@
 
   Built with serverless architecture on Google Cloud Platform
 
-  [![Live Demo](https://img.shields.io/badge/demo-pixelhub.now-orange?style=for-the-badge)](https://pixelhub.now)
+  [![Live Demo](https://img.shields.io/badge/demo-pixelhub.now-ffa31a?style=for-the-badge)](https://pixelhub.now)
   [![Cloud Run](https://img.shields.io/badge/Google_Cloud-Run-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/run)
   [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)

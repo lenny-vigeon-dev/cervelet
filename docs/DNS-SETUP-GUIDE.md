@@ -1,191 +1,192 @@
-# Guide de Configuration DNS pour pixelhub.now
+# DNS Configuration Guide for pixelhub.now
 
-## Étape 1 : Vérification du domaine dans Google Search Console
+## Step 1: Domain Verification in Google Search Console
 
-Avant de configurer Cloud Run, vous devez prouver que vous possédez le domaine.
+Before configuring Cloud Run, you must prove that you own the domain.
 
-### 1.1 Aller sur Google Search Console
-- URL : https://search.google.com/search-console
-- Connectez-vous avec votre compte Google lié au projet GCP
+### 1.1 Go to Google Search Console
+- URL: https://search.google.com/search-console
+- Sign in with your Google account linked to the GCP project
 
-### 1.2 Ajouter une propriété
-- Cliquez sur "Ajouter une propriété"
-- Sélectionnez "Domaine" (pas "Préfixe d'URL")
-- Entrez : `pixelhub.now`
+### 1.2 Add a Property
+- Click "Add a property"
+- Select "Domain" (not "URL prefix")
+- Enter: `pixelhub.now`
 
-### 1.3 Vérifier via DNS
-Google vous donnera un enregistrement TXT à ajouter. Par exemple :
+### 1.3 Verify via DNS
+Google will provide you with a TXT record to add. For example:
 ```
 Type: TXT
-Nom: @ (ou pixelhub.now)
-Valeur: google-site-verification=xxxxxxxxxxxxxxxxx
+Name: @ (or pixelhub.now)
+Value: google-site-verification=xxxxxxxxxxxxxxxxx
 ```
 
-**Où ajouter cet enregistrement ?**
-- Chez votre registrar (où vous avez acheté pixelhub.now)
-- Exemples de registrars courants :
-  - **Google Domains** : domains.google.com → DNS → Enregistrements personnalisés
-  - **Cloudflare** : cloudflare.com → DNS → Add record
-  - **OVH** : ovh.com → Zone DNS
-  - **Namecheap** : namecheap.com → Advanced DNS
+**Where to add this record?**
+- At your registrar (where you purchased pixelhub.now)
+- Common registrar examples:
+  - **Google Domains**: domains.google.com → DNS → Custom records
+  - **Cloudflare**: cloudflare.com → DNS → Add record
+  - **OVH**: ovh.com → DNS Zone
+  - **Namecheap**: namecheap.com → Advanced DNS
 
-## Étape 2 : Configuration DNS pour Cloud Run
+## Step 2: DNS Configuration for Cloud Run
 
-Une fois le domaine vérifié, exécutez le script :
+Once the domain is verified, run the script:
 ```bash
 ./setup-domain.sh
 ```
 
-Le script affichera les enregistrements DNS nécessaires. Vous aurez **2 options** :
+The script will display the necessary DNS records. You will have **2 options**:
 
-### Option A : Enregistrements A et AAAA (Domaine racine)
+### Option A: A and AAAA Records (Root Domain)
 
-Pour utiliser directement `pixelhub.now` (sans www ou sous-domaine) :
+To use `pixelhub.now` directly (without www or subdomain):
 
-**⚠️ ATTENTION : Les IPs ci-dessous sont des EXEMPLES !**
+**⚠️ WARNING: The IPs below are EXAMPLES!**
 
-Les adresses IP sont **générées dynamiquement** par Google Cloud lors de la création du domain mapping. Vous DEVEZ d'abord exécuter `./setup-domain.sh` qui affichera les IPs exactes à utiliser pour votre configuration.
+IP addresses are **dynamically generated** by Google Cloud when creating the domain mapping. You MUST first run `./setup-domain.sh` which will display the exact IPs to use for your configuration.
 
-Format des enregistrements (avec IPs d'exemple) :
+Record format (with example IPs):
 
 ```
 Type: A
-Nom: @ (ou pixelhub.now ou laisser vide selon registrar)
-Valeur: [IP fournie par setup-domain.sh - exemple: 216.239.32.21]
+Name: @ (or pixelhub.now or leave empty depending on registrar)
+Value: [IP provided by setup-domain.sh - example: 216.239.32.21]
 TTL: 3600
 
 Type: A
-Nom: @
-Valeur: [IP fournie par setup-domain.sh - exemple: 216.239.34.21]
+Name: @
+Value: [IP provided by setup-domain.sh - example: 216.239.34.21]
 TTL: 3600
 
 Type: A
-Nom: @
-Valeur: [IP fournie par setup-domain.sh - exemple: 216.239.36.21]
+Name: @
+Value: [IP provided by setup-domain.sh - example: 216.239.36.21]
 TTL: 3600
 
 Type: A
-Nom: @
-Valeur: [IP fournie par setup-domain.sh - exemple: 216.239.38.21]
+Name: @
+Value: [IP provided by setup-domain.sh - example: 216.239.38.21]
 TTL: 3600
 
 Type: AAAA
-Nom: @
-Valeur: [IPv6 fournie par setup-domain.sh - exemple: 2001:4860:4802:32::15]
+Name: @
+Value: [IPv6 provided by setup-domain.sh - example: 2001:4860:4802:32::15]
 TTL: 3600
 
 Type: AAAA
-Nom: @
-Valeur: [IPv6 fournie par setup-domain.sh - exemple: 2001:4860:4802:34::15]
+Name: @
+Value: [IPv6 provided by setup-domain.sh - example: 2001:4860:4802:34::15]
 TTL: 3600
 
 Type: AAAA
-Nom: @
-Valeur: [IPv6 fournie par setup-domain.sh - exemple: 2001:4860:4802:36::15]
+Name: @
+Value: [IPv6 provided by setup-domain.sh - example: 2001:4860:4802:36::15]
 TTL: 3600
 
 Type: AAAA
-Nom: @
-Valeur: [IPv6 fournie par setup-domain.sh - exemple: 2001:4860:4802:38::15]
+Name: @
+Value: [IPv6 provided by setup-domain.sh - example: 2001:4860:4802:38::15]
 TTL: 3600
 ```
 
-**Total : 4 enregistrements A + 4 enregistrements AAAA = 8 enregistrements**
+**Total: 4 A records + 4 AAAA records = 8 records**
 
-### Option B : Enregistrement CNAME (Sous-domaine - PLUS SIMPLE)
+### Option B: CNAME Record (Subdomain - SIMPLER)
 
-Pour utiliser `www.pixelhub.now` ou `app.pixelhub.now` :
+To use `www.pixelhub.now` or `app.pixelhub.now`:
 
 ```
 Type: CNAME
-Nom: www (ou app, ou api, etc.)
-Valeur: ghs.googlehosted.com
+Name: www (or app, or api, etc.)
+Value: ghs.googlehosted.com
 TTL: 3600
 ```
 
-**⚠️ RECOMMANDATION : Utilisez l'Option B avec un sous-domaine**
-- Plus simple (1 seul enregistrement au lieu de 8)
-- Plus flexible
-- Configuration plus rapide
+**⚠️ RECOMMENDATION: Use Option B with a subdomain**
+- Simpler (1 record instead of 8)
+- More flexible
+- Faster configuration
 
-## Étape 3 : Vérification
+## Step 3: Verification
 
-### 3.1 Vérifier la propagation DNS
+### 3.1 Check DNS Propagation
 ```bash
-# Pour le domaine racine
+# For root domain
 dig pixelhub.now A
 dig pixelhub.now AAAA
 
-# Pour un sous-domaine
+# For subdomain
 dig www.pixelhub.now CNAME
 ```
 
-Ou utilisez un outil en ligne : https://dnschecker.org
+Or use an online tool: https://dnschecker.org
 
-### 3.2 Vérifier le statut Cloud Run
+### 3.2 Check Cloud Run Status
 ```bash
 gcloud run domain-mappings describe \
   --domain pixelhub.now \
   --region europe-west1
 ```
 
-Cherchez `certificateMode: AUTOMATIC` et `routeReady: true`
+Look for `certificateMode: AUTOMATIC` and `routeReady: true`
 
-## Étape 4 : Attendre le certificat SSL
+## Step 4: Wait for SSL Certificate
 
-Une fois les DNS configurés correctement :
-- Google provisionnera automatiquement un certificat SSL
-- Cela prend généralement 15-60 minutes
-- Votre site sera accessible en HTTPS
+Once DNS is configured correctly:
+- Google will automatically provision an SSL certificate
+- This typically takes 15-60 minutes
+- Your site will be accessible via HTTPS
 
-## Exemples concrets par registrar
+## Practical Examples by Registrar
 
-### Si vous utilisez Cloudflare :
-1. Allez sur cloudflare.com
-2. Sélectionnez votre domaine `pixelhub.now`
-3. Onglet "DNS"
-4. Cliquez "Add record"
-5. Ajoutez les enregistrements A/AAAA ou CNAME
-6. **IMPORTANT** : Désactivez le proxy Cloudflare (nuage gris, pas orange) pour que Google puisse gérer le SSL
+### If you use Cloudflare:
+1. Go to cloudflare.com
+2. Select your domain `pixelhub.now`
+3. "DNS" tab
+4. Click "Add record"
+5. Add the A/AAAA or CNAME records
+6. **IMPORTANT**: Disable Cloudflare proxy (gray cloud, not orange) so Google can manage SSL
 
-### Si vous utilisez Google Domains :
-1. Allez sur domains.google.com
-2. Cliquez sur votre domaine
-3. Menu "DNS" à gauche
-4. Section "Enregistrements personnalisés"
-5. Ajoutez les enregistrements
+### If you use Google Domains:
+1. Go to domains.google.com
+2. Click on your domain
+3. "DNS" menu on the left
+4. "Custom records" section
+5. Add the records
 
-### Si vous utilisez Namecheap :
-1. Dashboard Namecheap
+### If you use Namecheap:
+1. Namecheap Dashboard
 2. Manage domain → Advanced DNS
 3. Add New Record
-4. Ajoutez les enregistrements
+4. Add the records
 
 ## Troubleshooting
 
-### Le domaine ne se résout pas
-- Attendez 5-60 minutes pour la propagation DNS
-- Vérifiez avec `dig` ou dnschecker.org
-- Assurez-vous d'avoir bien ajouté TOUS les enregistrements
+### Domain doesn't resolve
+- Wait 5-60 minutes for DNS propagation
+- Check with `dig` or dnschecker.org
+- Make sure you added ALL the records
 
-### Erreur "Domain verification failed"
-- Vérifiez que le domaine est validé dans Google Search Console
-- Le compte Google doit être lié au projet GCP
+### "Domain verification failed" error
+- Verify that the domain is validated in Google Search Console
+- The Google account must be linked to the GCP project
 
-### Erreur de certificat SSL
-- Le certificat est automatique mais prend du temps
-- Attendez jusqu'à 24h dans de rares cas
-- Vérifiez que les DNS pointent bien vers Google
+### SSL certificate error
+- The certificate is automatic but takes time
+- Wait up to 24 hours in rare cases
+- Verify that DNS points correctly to Google
 
-## Commandes utiles
+## Useful Commands
 
 ```bash
-# Voir tous les mappings de domaine
+# List all domain mappings
 gcloud run domain-mappings list --region=europe-west1
 
-# Supprimer un mapping
+# Delete a mapping
 gcloud run domain-mappings delete --domain=pixelhub.now --region=europe-west1
 
-# Voir les détails d'un mapping
+# View mapping details
 gcloud run domain-mappings describe --domain=pixelhub.now --region=europe-west1
 ```
+

@@ -1,0 +1,40 @@
+{
+  "name": "discord-cmd-worker",
+  "version": "1.0.0",
+  "description": "Cloud Run worker for processing Discord slash commands via Pub/Sub",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "start:dev": "ts-node src/main.ts",
+    "deploy": "pnpm build && gcloud run deploy discord-cmd-worker --region=europe-west1 --source . --allow-unauthenticated",
+    "lint": "eslint \"{src,services}/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "cloud-run",
+    "serverless",
+    "pubsub",
+    "discord",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.20.0",
+  "dependencies": {
+    "@google-cloud/firestore": "^8.0.0",
+    "@google-cloud/storage": "^7.15.0",
+    "axios": "^1.13.2",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.7",
+    "prettier": "^3.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

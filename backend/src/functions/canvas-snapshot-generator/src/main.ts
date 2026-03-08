@@ -51,7 +51,62 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 /**
- * Generate snapshot endpoint
+ * Pub/Sub push endpoint.
+ * Receives messages from the 'snapshot-requests' topic subscription.
+ * Extracts canvasId from the Pub/Sub message data, or defaults to 'main-canvas'.
+ */
+app.post('/', async (req: Request, res: Response) => {
+  const startTime = Date.now();
+
+  try {
+    // Parse Pub/Sub envelope
+    const pubsubMessage = req.body?.message;
+    let canvasId = 'main-canvas';
+
+    if (pubsubMessage?.data) {
+      try {
+        const decoded = Buffer.from(pubsubMessage.data, 'base64').toString('utf-8');
+        const payload = JSON.parse(decoded);
+        if (payload.canvasId) {
+          canvasId = payload.canvasId;
+        }
+      } catch {
+        // Ignore parse errors -- use default canvasId
+      }
+    }
+
+    console.log(
+      JSON.stringify({
+        level: 'info',
+        message: `Pub/Sub triggered snapshot for canvas: ${canvasId}`,
+        messageId: pubsubMessage?.messageId || 'unknown',
+      }),
+    );
+
+    const snapshotService = new SnapshotService();
+    await snapshotService.generateSnapshot(canvasId);
+
+    const duration = Date.now() - startTime;
+    console.log(
+      JSON.stringify({
+        level: 'info',
+        message: `Snapshot generated via Pub/Sub in ${duration}ms`,
+      }),
+    );
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error generating snapshot from Pub/Sub:', error);
+    // Return 200 to prevent Pub/Sub retries on unrecoverable errors
+    res.status(200).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * Generate snapshot endpoint (direct HTTP trigger)
  */
 app.post('/generate', async (req: Request, res: Response) => {
   const startTime = Date.now();

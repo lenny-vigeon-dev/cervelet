@@ -51,7 +51,7 @@ gcloud functions deploy canvas-snapshot-generator \
   --entry-point=generateSnapshot \
   --trigger-http \
   --service-account=SERVICE_ACCOUNT_EMAIL \
-  --set-env-vars GCP_PROJECT_ID=serverless-tek89,CANVAS_SNAPSHOTS_BUCKET=serverless-tek89-canvas-snapshots \
+  --set-env-vars GCP_PROJECT_ID=serverless-488811,CANVAS_SNAPSHOTS_BUCKET=serverless-488811-canvas-snapshots \
   --memory=512MB \
   --timeout=540s
 
@@ -71,8 +71,8 @@ curl -X POST "https://REGION-PROJECT_ID.cloudfunctions.net/canvas-snapshot-gener
 
 ## Environment Variables
 
-- `GCP_PROJECT_ID` - GCP project ID (default: serverless-tek89)
-- `CANVAS_SNAPSHOTS_BUCKET` - Cloud Storage bucket name (default: serverless-tek89-canvas-snapshots)
+- `GCP_PROJECT_ID` - GCP project ID (default: serverless-488811)
+- `CANVAS_SNAPSHOTS_BUCKET` - Cloud Storage bucket name (default: serverless-488811-canvas-snapshots)
 
 ## Cost Optimization
 

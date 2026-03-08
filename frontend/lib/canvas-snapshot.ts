@@ -11,7 +11,7 @@
  */
 
 const SNAPSHOT_URL = process.env.NEXT_PUBLIC_CANVAS_SNAPSHOT_URL ||
-  'https://storage.googleapis.com/serverless-tek89-canvas-snapshots/canvas/latest.png';
+  'https://storage.googleapis.com/serverless-488811-canvas-snapshots/canvas/latest.png';
 
 /**
  * Load the latest canvas snapshot image from Cloud Storage

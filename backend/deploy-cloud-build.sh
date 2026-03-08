@@ -6,7 +6,7 @@
 set -e  # Exit on error
 
 # Configuration
-PROJECT_ID="serverless-tek89"
+PROJECT_ID="serverless-488811"
 REGION="europe-west1"
 
 # Colors for output

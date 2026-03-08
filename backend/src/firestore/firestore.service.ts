@@ -40,7 +40,7 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
       const apps = getApps();
       if (apps.length === 0) {
         this.app = initializeApp({
-          projectId: process.env.GCP_PROJECT_ID || 'serverless-tek89',
+          projectId: process.env.GCP_PROJECT_ID || 'serverless-488811',
         });
       } else {
         this.app = getApp();

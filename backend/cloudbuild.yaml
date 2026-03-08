@@ -7,7 +7,7 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'europe-west1-docker.pkg.dev/serverless-tek89/cloud-run-source-deploy/cf-proxy:latest'
+      - 'europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/cf-proxy:latest'
       - '.'
     id: 'build-image'
 
@@ -15,7 +15,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'europe-west1-docker.pkg.dev/serverless-tek89/cloud-run-source-deploy/cf-proxy:latest'
+      - 'europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/cf-proxy:latest'
     id: 'push-latest'
 
   # Deploy to Cloud Run
@@ -24,7 +24,7 @@ steps:
       - 'run'
       - 'deploy'
       - 'cf-proxy'
-      - '--image=europe-west1-docker.pkg.dev/serverless-tek89/cloud-run-source-deploy/cf-proxy:latest'
+      - '--image=europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/cf-proxy:latest'
       - '--platform=managed'
       - '--region=europe-west1'
       - '--allow-unauthenticated'
@@ -35,8 +35,8 @@ steps:
       - '--min-instances=0'
       - '--max-instances=10'
       - '--timeout=300s'
-      - '--service-account=proxy-svc@serverless-tek89.iam.gserviceaccount.com'
-      - '--set-env-vars=NODE_ENV=production,GCP_PROJECT=serverless-tek89'
+      - '--service-account=proxy-svc@serverless-488811.iam.gserviceaccount.com'
+      - '--set-env-vars=NODE_ENV=production,GCP_PROJECT=serverless-488811'
       - '--no-cpu-throttling'
       - '--quiet'
     id: 'deploy-cloud-run'
@@ -46,4 +46,4 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 images:
-  - 'europe-west1-docker.pkg.dev/serverless-tek89/cloud-run-source-deploy/cf-proxy:latest'
+  - 'europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/cf-proxy:latest'

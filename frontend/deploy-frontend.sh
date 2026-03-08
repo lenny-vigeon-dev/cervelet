@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE="europe-west1-docker.pkg.dev/serverless-tek89/cloud-run-source-deploy/frontend:manual"
+IMAGE="europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/frontend:manual"
 REGION="europe-west1"
 SERVICE="frontend"
-PROJECT="${PROJECT:-serverless-tek89}"
+PROJECT="${PROJECT:-serverless-488811}"
 
 echo "Loading .env.local..."
 if [[ ! -f .env.local ]]; then

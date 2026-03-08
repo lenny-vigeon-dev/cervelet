@@ -7,7 +7,7 @@
  *
  * Defaults:
  *   env file: ../frontend/.env.local
- *   project:  env GCP_PROJECT || GOOGLE_CLOUD_PROJECT || serverless-tek89
+ *   project:  env GCP_PROJECT || GOOGLE_CLOUD_PROJECT || serverless-488811
  *
  * Secrets are created if missing, then a new version is added for each key.
  */
@@ -22,7 +22,7 @@ const project =
   process.argv[3] ||
   process.env.GCP_PROJECT ||
   process.env.GOOGLE_CLOUD_PROJECT ||
-  'serverless-tek89';
+  'serverless-488811';
 
 const TARGET_KEYS = [
   'NEXT_PUBLIC_API_URL',

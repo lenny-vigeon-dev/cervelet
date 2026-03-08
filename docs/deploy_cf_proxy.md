@@ -12,7 +12,7 @@ The `cf-proxy` service is a NestJS backend that acts as a proxy between the API 
 - **Platform**: Cloud Run (Managed)
 - **Region**: `europe-west1`
 - **Ingress**: Internal only (not publicly accessible)
-- **Service Account**: `proxy-svc@serverless-tek89.iam.gserviceaccount.com`
+- **Service Account**: `proxy-svc@serverless-488811.iam.gserviceaccount.com`
 - **Container Registry**: Artifact Registry (`europe-west1-docker.pkg.dev`)
 
 ## Prerequisites
@@ -20,7 +20,7 @@ The `cf-proxy` service is a NestJS backend that acts as a proxy between the API 
 1. **Google Cloud SDK** installed and authenticated
    ```bash
    gcloud auth login
-   gcloud config set project serverless-tek89
+   gcloud config set project serverless-488811
    ```
 
 2. **Required APIs enabled**:
@@ -69,7 +69,7 @@ pnpm run build
 # 2. Submit to Cloud Build
 gcloud builds submit \
   --config=cloudbuild.yaml \
-  --project=serverless-tek89 \
+  --project=serverless-488811 \
   --region=europe-west1
 ```
 
@@ -105,12 +105,12 @@ Cloud Build is used instead of local Docker builds because:
 ### Environment Variables
 
 - `NODE_ENV=production`
-- `GCP_PROJECT=serverless-tek89`
+- `GCP_PROJECT=serverless-488811`
 - `PORT=8080` (set by Cloud Run)
 
 ### Service Account
 
-The service runs as `proxy-svc@serverless-tek89.iam.gserviceaccount.com` which has:
+The service runs as `proxy-svc@serverless-488811.iam.gserviceaccount.com` which has:
 - Firestore access (`roles/datastore.user`)
 - Cloud Run invoker permissions for downstream services
 
@@ -147,15 +147,15 @@ The service runs as `proxy-svc@serverless-tek89.iam.gserviceaccount.com` which h
 View deployment logs:
 ```bash
 # Latest build
-gcloud builds list --limit=1 --project=serverless-tek89
+gcloud builds list --limit=1 --project=serverless-488811
 
 # Build logs
-gcloud builds log BUILD_ID --project=serverless-tek89 --region=europe-west1
+gcloud builds log BUILD_ID --project=serverless-488811 --region=europe-west1
 
 # Cloud Run logs
 gcloud run services logs read cf-proxy \
   --region=europe-west1 \
-  --project=serverless-tek89
+  --project=serverless-488811
 ```
 
 ## Getting the Service URL

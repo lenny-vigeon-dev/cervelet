@@ -32,7 +32,7 @@ Firestore is a serverless, NoSQL document database that automatically scales to 
 Before you begin, ensure you have:
 
 1. **GCP Account**: Active Google Cloud Platform account
-2. **GCP Project**: A GCP project created (`serverless-tek89`)
+2. **GCP Project**: A GCP project created (`serverless-488811`)
 3. **Terraform**: Version 1.0 or higher installed
 4. **gcloud CLI**: Google Cloud SDK installed and configured
 5. **Node.js**: Version 18+ for running the backend application
@@ -102,7 +102,7 @@ Authenticate with Google Cloud to allow Terraform and the application to access 
 gcloud auth login
 
 # Set your project
-gcloud config set project serverless-tek89
+gcloud config set project serverless-488811
 
 # Create Application Default Credentials (ADC)
 gcloud auth application-default login
@@ -142,10 +142,10 @@ Use Terraform to provision the Firestore database and required infrastructure.
 📊 Database Information:
 firestore_database_name = "(default)"
 firestore_database_location = "europe-west1"
-firestore_project_id = "serverless-tek89"
+firestore_project_id = "serverless-488811"
 
 🔑 Service Account Created:
-firestore_service_account_email = "pixelhub-firestore-sa@serverless-tek89.iam.gserviceaccount.com"
+firestore_service_account_email = "pixelhub-firestore-sa@serverless-488811.iam.gserviceaccount.com"
 ```
 
 **Note**: Deployment takes ~2-5 minutes. Indexes may take additional time to build.
@@ -194,7 +194,7 @@ nano .env  # or use your preferred editor
 # .env file
 NODE_ENV="development"
 PORT="8081"
-GCP_PROJECT_ID="serverless-tek89"
+GCP_PROJECT_ID="serverless-488811"
 
 # Path to your service account key
 GOOGLE_APPLICATION_CREDENTIALS="/absolute/path/to/backend/firestore-key.json"
@@ -394,7 +394,7 @@ Cloud Run automatically injects credentials for its service account, so:
 By default, Cloud Run uses the Compute Engine default service account:
 
 ```bash
-PROJECT_ID="serverless-tek89"
+PROJECT_ID="serverless-488811"
 PROJECT_NUMBER="$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')"
 SERVICE_ACCOUNT="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
 
@@ -478,7 +478,7 @@ gcloud run services logs read YOUR_SERVICE_NAME --limit 50
 
 **Symptoms:**
 ```
-Error: Permission denied on resource project serverless-tek89
+Error: Permission denied on resource project serverless-488811
 ```
 
 **Solutions:**
@@ -779,7 +779,7 @@ Composite indexes are defined in `backend/firestore.indexes.json` and can be dep
 ./scripts/deploy-firestore-indexes.sh
 
 # Or manually via Firebase Console
-# https://console.firebase.google.com/project/serverless-tek89/firestore/indexes
+# https://console.firebase.google.com/project/serverless-488811/firestore/indexes
 ```
 
 **Required indexes:**

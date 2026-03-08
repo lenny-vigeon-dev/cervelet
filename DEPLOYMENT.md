@@ -4,7 +4,7 @@ This guide walks you through deploying the Cloud Storage optimization for your r
 
 ## Prerequisites
 
-- GCP project set up (`serverless-tek89`)
+- GCP project set up (`serverless-488811`)
 - Terraform installed and configured
 - `gcloud` CLI installed and authenticated
 - Firestore database deployed
@@ -22,7 +22,7 @@ terraform apply
 Save the output:
 ```bash
 terraform output latest_canvas_snapshot_url
-# Example: https://storage.googleapis.com/serverless-tek89-canvas-snapshots/canvas/latest.png
+# Example: https://storage.googleapis.com/serverless-488811-canvas-snapshots/canvas/latest.png
 ```
 
 ### 2. Deploy Snapshot Generator Function (3 minutes)
@@ -43,7 +43,7 @@ gcloud functions deploy canvas-snapshot-generator \
   --entry-point=generateSnapshot \
   --trigger-http \
   --service-account=$(cd ../../../../infrastructure/terraform && terraform output -raw snapshot_service_account_email) \
-  --set-env-vars GCP_PROJECT_ID=serverless-tek89,CANVAS_SNAPSHOTS_BUCKET=serverless-tek89-canvas-snapshots \
+  --set-env-vars GCP_PROJECT_ID=serverless-488811,CANVAS_SNAPSHOTS_BUCKET=serverless-488811-canvas-snapshots \
   --memory=512MB \
   --timeout=540s
 ```
@@ -60,7 +60,7 @@ gcloud functions describe canvas-snapshot-generator --region=europe-west1 --gen2
 gcloud functions call canvas-snapshot-generator --region=europe-west1 --gen2
 
 # Verify it was created
-gsutil ls gs://serverless-tek89-canvas-snapshots/canvas/
+gsutil ls gs://serverless-488811-canvas-snapshots/canvas/
 ```
 
 ### 4. Enable Scheduled Snapshots (1 minute)
@@ -84,7 +84,7 @@ terraform apply
 cd frontend
 
 # Add snapshot URL to environment
-echo "NEXT_PUBLIC_CANVAS_SNAPSHOT_URL=https://storage.googleapis.com/serverless-tek89-canvas-snapshots/canvas/latest.png" >> .env.local
+echo "NEXT_PUBLIC_CANVAS_SNAPSHOT_URL=https://storage.googleapis.com/serverless-488811-canvas-snapshots/canvas/latest.png" >> .env.local
 
 # Rebuild frontend
 pnpm build
@@ -97,7 +97,7 @@ import { PixelCanvasOptimized as PixelCanvas } from "@/components/pixel-canvas-o
 
 ## Verification
 
-1. **Check snapshot URL**: Visit `https://storage.googleapis.com/serverless-tek89-canvas-snapshots/canvas/latest.png` in your browser
+1. **Check snapshot URL**: Visit `https://storage.googleapis.com/serverless-488811-canvas-snapshots/canvas/latest.png` in your browser
 2. **Monitor scheduler**: `gcloud scheduler jobs describe pixelhub-canvas-snapshot --location=europe-west1`
 3. **View logs**: `gcloud functions logs read canvas-snapshot-generator --region=europe-west1 --limit=10`
 

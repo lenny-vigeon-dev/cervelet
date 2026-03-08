@@ -51,7 +51,7 @@ This directory contains documentation for the PixelHub database infrastructure u
 
 **Location**: europe-west1
 
-**Project**: serverless-tek89
+**Project**: serverless-488811
 
 ### Key Features
 

@@ -84,7 +84,7 @@ terraform apply
 ```
 
 This will create:
-- Cloud Storage bucket: `serverless-tek89-canvas-snapshots`
+- Cloud Storage bucket: `serverless-488811-canvas-snapshots`
 - Service account for snapshot generation
 - Appropriate IAM permissions
 - Lifecycle rules for snapshot retention
@@ -116,7 +116,7 @@ gcloud functions deploy canvas-snapshot-generator \
   --entry-point=generateSnapshot \
   --trigger-http \
   --service-account=$(cd ../../../../infrastructure/terraform && terraform output -raw snapshot_service_account_email) \
-  --set-env-vars GCP_PROJECT_ID=serverless-tek89,CANVAS_SNAPSHOTS_BUCKET=serverless-tek89-canvas-snapshots \
+  --set-env-vars GCP_PROJECT_ID=serverless-488811,CANVAS_SNAPSHOTS_BUCKET=serverless-488811-canvas-snapshots \
   --memory=512MB \
   --timeout=540s \
   --allow-unauthenticated=false
@@ -147,7 +147,7 @@ gcloud functions call canvas-snapshot-generator \
 
 **Verify the snapshot was created:**
 ```bash
-gsutil ls gs://serverless-tek89-canvas-snapshots/canvas/
+gsutil ls gs://serverless-488811-canvas-snapshots/canvas/
 ```
 
 You should see:
@@ -184,7 +184,7 @@ Add the snapshot URL to your frontend environment:
 cd frontend
 
 # Add to .env.local
-echo "NEXT_PUBLIC_CANVAS_SNAPSHOT_URL=https://storage.googleapis.com/serverless-tek89-canvas-snapshots/canvas/latest.png" >> .env.local
+echo "NEXT_PUBLIC_CANVAS_SNAPSHOT_URL=https://storage.googleapis.com/serverless-488811-canvas-snapshots/canvas/latest.png" >> .env.local
 ```
 
 ### Step 6: Use the Optimized Canvas Component
@@ -218,7 +218,7 @@ The optimized component will:
 2. **Wait for the scheduler** (max 5 minutes) or trigger manually
 3. **Check the snapshot URL** in your browser:
    ```
-   https://storage.googleapis.com/serverless-tek89-canvas-snapshots/canvas/latest.png
+   https://storage.googleapis.com/serverless-488811-canvas-snapshots/canvas/latest.png
    ```
 4. **Refresh your frontend** - it should load the snapshot image
 
@@ -269,18 +269,18 @@ gcloud scheduler jobs describe pixelhub-canvas-snapshot \
 
 1. **Check if snapshot exists:**
    ```bash
-   gsutil ls gs://serverless-tek89-canvas-snapshots/canvas/latest.png
+   gsutil ls gs://serverless-488811-canvas-snapshots/canvas/latest.png
    ```
 
 2. **Verify public access:**
    ```bash
-   curl -I https://storage.googleapis.com/serverless-tek89-canvas-snapshots/canvas/latest.png
+   curl -I https://storage.googleapis.com/serverless-488811-canvas-snapshots/canvas/latest.png
    ```
    Should return `200 OK`
 
 3. **Check CORS configuration:**
    ```bash
-   gsutil cors get gs://serverless-tek89-canvas-snapshots
+   gsutil cors get gs://serverless-488811-canvas-snapshots
    ```
 
 ### Function failing to generate snapshot
@@ -292,7 +292,7 @@ gcloud scheduler jobs describe pixelhub-canvas-snapshot \
 
 2. **Verify service account permissions:**
    ```bash
-   gcloud projects get-iam-policy serverless-tek89 \
+   gcloud projects get-iam-policy serverless-488811 \
      --flatten="bindings[].members" \
      --filter="bindings.members:serviceAccount:pixelhub-snapshot-gen@*"
    ```

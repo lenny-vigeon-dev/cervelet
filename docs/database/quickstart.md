@@ -31,7 +31,7 @@ pnpm run start:dev
 # Option A: Via gcloud CLI
 cd ..
 gcloud firestore documents create canvases/main-canvas \
-  --project=serverless-tek89 \
+  --project=serverless-488811 \
   --data='{"id":"main-canvas","width":1000,"height":1000,"version":1,"totalPixels":0}'
 
 # Option B: Let your application create it on first use (recommended)
@@ -133,7 +133,7 @@ terraform destroy
 ```bash
 NODE_ENV="development"
 PORT="8081"
-GCP_PROJECT_ID="serverless-tek89"
+GCP_PROJECT_ID="serverless-488811"
 
 # For service account authentication (local development)
 GOOGLE_APPLICATION_CREDENTIALS="/absolute/path/to/firestore-key.json"
@@ -146,7 +146,7 @@ GOOGLE_APPLICATION_CREDENTIALS="/absolute/path/to/firestore-key.json"
 
 ```bash
 NODE_ENV="production"
-GCP_PROJECT_ID="serverless-tek89"
+GCP_PROJECT_ID="serverless-488811"
 
 # GOOGLE_APPLICATION_CREDENTIALS is NOT needed in production
 # Application Default Credentials (ADC) are used automatically
@@ -257,12 +257,12 @@ ls -la $GOOGLE_APPLICATION_CREDENTIALS
 
 ```bash
 # Check service account permissions
-gcloud projects get-iam-policy serverless-tek89 \
+gcloud projects get-iam-policy serverless-488811 \
   --flatten="bindings[].members" \
   --filter="bindings.members:serviceAccount:YOUR_SA_EMAIL"
 
 # Grant required permissions
-gcloud projects add-iam-policy-binding serverless-tek89 \
+gcloud projects add-iam-policy-binding serverless-488811 \
   --member="serviceAccount:YOUR_SA_EMAIL" \
   --role="roles/datastore.user"
 ```

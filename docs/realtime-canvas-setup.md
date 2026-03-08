@@ -201,10 +201,10 @@ This ensures:
 
 ```bash
 # Firebase Project ID
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=serverless-tek89
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=serverless-488811
 
 # Canvas Snapshot URL
-NEXT_PUBLIC_CANVAS_SNAPSHOT_URL=https://storage.googleapis.com/serverless-tek89-canvas-snapshots/canvas/latest.png
+NEXT_PUBLIC_CANVAS_SNAPSHOT_URL=https://storage.googleapis.com/serverless-488811-canvas-snapshots/canvas/latest.png
 
 # Optional: Firestore Emulator for local dev
 # NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8080

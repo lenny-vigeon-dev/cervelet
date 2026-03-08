@@ -166,7 +166,7 @@ match /users/{userId} {
 
 **Option A: Firebase Console**
 1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Select project: `serverless-tek89`
+2. Select project: `serverless-488811`
 3. Navigate to Firestore Database → Rules
 4. Copy content from `firestore.rules`
 5. Click "Publish"

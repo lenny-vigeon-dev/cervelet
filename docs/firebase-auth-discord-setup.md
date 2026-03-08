@@ -49,8 +49,8 @@ This Cloud Function generates Firebase Custom Tokens for Discord-authenticated u
 
 **Environment Variables Required**:
 ```bash
-FIREBASE_PROJECT_ID=serverless-tek89
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk@serverless-tek89.iam.gserviceaccount.com
+FIREBASE_PROJECT_ID=serverless-488811
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk@serverless-488811.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 FRONTEND_URL=http://localhost:3000
 ```
@@ -139,14 +139,14 @@ gcloud functions deploy createFirebaseToken \
   --allow-unauthenticated \
   --entry-point=createFirebaseToken \
   --region=europe-west1 \
-  --set-env-vars FIREBASE_PROJECT_ID=serverless-tek89,FRONTEND_URL=http://localhost:3000 \
+  --set-env-vars FIREBASE_PROJECT_ID=serverless-488811,FRONTEND_URL=http://localhost:3000 \
   --set-secrets FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest
 ```
 
 **Note**: Add Firebase credentials to Google Cloud Secret Manager:
 ```bash
 # Add service account email
-echo -n "firebase-adminsdk@serverless-tek89.iam.gserviceaccount.com" | \
+echo -n "firebase-adminsdk@serverless-488811.iam.gserviceaccount.com" | \
   gcloud secrets create FIREBASE_CLIENT_EMAIL --data-file=-
 
 # Add private key (from Firebase Console → Project Settings → Service Accounts)
@@ -157,7 +157,7 @@ gcloud secrets create FIREBASE_PRIVATE_KEY --data-file=private-key.json
 
 **Option A: Firebase Console**
 1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Select project: `serverless-tek89`
+2. Select project: `serverless-488811`
 3. Navigate to Firestore Database → Rules
 4. Copy content from `firestore.rules`
 5. Click "Publish"

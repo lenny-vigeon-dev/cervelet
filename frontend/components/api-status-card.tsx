@@ -1,4 +1,3 @@
-import { API_URL } from "@/lib/api";
 import type { CanvasSnapshot, CanvasSummary } from "@/types/canvas";
 
 export interface APIStatusCardProps {

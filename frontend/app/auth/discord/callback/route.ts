@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeCodeForToken } from "@/lib/discord/token-exchange";
-import { fetchDiscordUser, transformToSessionUser } from "@/lib/discord/user-profile";
+import {
+  fetchDiscordUser,
+  transformToSessionUser,
+} from "@/lib/discord/user-profile";
 import { generateAuthCallbackHTML } from "@/lib/discord/auth-response";
 
 /**
  * Discord OAuth callback handler.
- * Exchanges the authorization code for an access token and fetches user profile.
+ * Verifies the CSRF state token, exchanges the authorization code for an
+ * access token, fetches the user profile, and returns an HTML page that
+ * completes client-side auth setup.
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
+  const state = searchParams.get("state");
   const error = searchParams.get("error");
 
   // Handle OAuth errors
@@ -26,6 +32,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Verify CSRF state token
+  const storedState = request.cookies.get("oauth_state")?.value;
+  if (!state || !storedState || state !== storedState) {
+    return NextResponse.redirect(
+      new URL("/?error=invalid_state", request.url)
+    );
+  }
+
   try {
     // Exchange code for access token
     const tokenData = await exchangeCodeForToken(code);
@@ -36,16 +50,19 @@ export async function GET(request: NextRequest) {
     // Transform to session user
     const sessionUser = transformToSessionUser(discordUser);
 
-    // Generate HTML response with localStorage script
+    // Generate HTML response that stores session and signs into Firebase
     const html = generateAuthCallbackHTML(sessionUser, tokenData.access_token);
 
-    return new NextResponse(html, {
-      headers: {
-        "Content-Type": "text/html",
-      },
+    const response = new NextResponse(html, {
+      headers: { "Content-Type": "text/html" },
     });
-  } catch (error) {
-    console.error("OAuth callback error:", error);
+
+    // Clear the CSRF cookie
+    response.cookies.delete("oauth_state");
+
+    return response;
+  } catch (err) {
+    console.error("OAuth callback error:", err);
     return NextResponse.redirect(
       new URL("/?error=internal_error", request.url)
     );

@@ -4,7 +4,7 @@ This guide walks you through deploying your NestJS application as the `cf-proxy`
 
 ## Prerequisites
 
-1. **GCP Project**: `serverless-tek89` (already configured)
+1. **GCP Project**: `serverless-488811` (already configured)
 2. **gcloud CLI**: Installed and authenticated
 3. **pnpm**: Node package manager
 4. **Docker** (optional): Only needed for local testing
@@ -35,12 +35,12 @@ pnpm run build
 
 # 2. Build and push Docker image
 gcloud builds submit \
-  --tag gcr.io/serverless-tek89/cf-proxy \
+  --tag gcr.io/serverless-488811/cf-proxy \
   --timeout=10m
 
 # 3. Deploy to Cloud Run
 gcloud run deploy cf-proxy \
-  --image gcr.io/serverless-tek89/cf-proxy \
+  --image gcr.io/serverless-488811/cf-proxy \
   --platform managed \
   --region europe-west1 \
   --allow-unauthenticated \
@@ -159,7 +159,7 @@ curl https://YOUR-GATEWAY-URL/health
 gcloud auth login
 
 # Set project
-gcloud config set project serverless-tek89
+gcloud config set project serverless-488811
 ```
 
 ### Issue: Build fails with "pnpm: command not found"
@@ -205,7 +205,7 @@ cd backend
                      ▼
 ┌─────────────────────────────────────────────────────────┐
 │              Container Registry (gcr.io)                │
-│  Stores: gcr.io/serverless-tek89/cf-proxy:latest        │
+│  Stores: gcr.io/serverless-488811/cf-proxy:latest        │
 └────────────────────┬────────────────────────────────────┘
                      │
                      ▼

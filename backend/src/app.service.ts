@@ -16,7 +16,7 @@ export class AppService {
 
   constructor() {
     this.pubsub = new PubSub({
-      projectId: process.env.GCP_PROJECT || 'serverless-tek89',
+      projectId: process.env.GCP_PROJECT || 'serverless-488811',
     });
   }
 

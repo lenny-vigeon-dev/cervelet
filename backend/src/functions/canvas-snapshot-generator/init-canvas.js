@@ -1,6 +1,6 @@
 const { Firestore } = require('@google-cloud/firestore');
 
-const firestore = new Firestore({ projectId: 'serverless-tek89' });
+const firestore = new Firestore({ projectId: 'serverless-488811' });
 
 async function initCanvas() {
   const canvasRef = firestore.collection('canvases').doc('main-canvas');

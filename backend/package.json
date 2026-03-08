@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "deploy": "gcloud builds submit --config=cloudbuild.yaml . --project=serverless-tek89",
+    "deploy": "gcloud builds submit --config=cloudbuild.yaml . --project=serverless-488811",
     "gcp-build": "echo 'Skipping build for GCP (already built)'",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

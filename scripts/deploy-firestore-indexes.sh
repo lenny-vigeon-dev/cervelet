@@ -4,7 +4,7 @@ set -e
 # Deploy Firestore Indexes
 # This script deploys the Firestore composite indexes defined in firestore.indexes.json
 
-PROJECT_ID="${GCP_PROJECT_ID:-serverless-tek89}"
+PROJECT_ID="${GCP_PROJECT_ID:-serverless-488811}"
 INDEXES_FILE="backend/firestore.indexes.json"
 
 echo "🔥 Deploying Firestore indexes to project: $PROJECT_ID"

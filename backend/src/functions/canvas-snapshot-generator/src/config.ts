@@ -1,6 +1,6 @@
 export const config = {
   // GCP Project ID
-  projectId: process.env.GCP_PROJECT_ID || process.env.GCLOUD_PROJECT || 'serverless-tek89',
+  projectId: process.env.GCP_PROJECT_ID || process.env.GCLOUD_PROJECT || 'serverless-488811',
 
   // Firestore configuration
   firestore: {
@@ -11,7 +11,7 @@ export const config = {
 
   // Cloud Storage configuration
   storage: {
-    bucketName: process.env.CANVAS_SNAPSHOTS_BUCKET || 'serverless-tek89-canvas-snapshots',
+    bucketName: process.env.CANVAS_SNAPSHOTS_BUCKET || 'serverless-488811-canvas-snapshots',
     latestSnapshotPath: 'canvas/latest.png',
     historicalSnapshotPrefix: 'canvas/historical/',
   },

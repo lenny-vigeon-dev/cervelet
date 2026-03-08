@@ -1,4 +1,7 @@
-# Firestore outputs
+# ===========================================================================
+# Firestore Outputs
+# ===========================================================================
+
 output "firestore_database_name" {
   description = "Firestore database name"
   value       = module.firestore.database_name
@@ -30,6 +33,15 @@ output "firestore_connection_info" {
 }
 
 # ===========================================================================
+# Cloud Run Outputs
+# ===========================================================================
+
+output "cloud_run_service_urls" {
+  description = "Map of Cloud Run service name to URL"
+  value       = module.cloud_run.service_urls
+}
+
+# ===========================================================================
 # API Gateway Outputs
 # ===========================================================================
 
@@ -55,6 +67,11 @@ output "api_gateway_service_account" {
 output "pubsub_topic_names" {
   description = "List of all Pub/Sub topic names"
   value       = module.pubsub.all_topic_names
+}
+
+output "pubsub_subscription_names" {
+  description = "List of all Pub/Sub subscription names"
+  value       = module.pubsub.all_subscription_names
 }
 
 output "discord_cmd_requests_topic" {
@@ -96,11 +113,6 @@ output "latest_canvas_snapshot_url" {
   value       = module.storage.latest_snapshot_url
 }
 
-output "snapshot_service_account_email" {
-  description = "Service account email for snapshot generation"
-  value       = module.storage.service_account_email
-}
-
 # ===========================================================================
 # Cloud Scheduler Outputs
 # ===========================================================================
@@ -113,6 +125,15 @@ output "snapshot_scheduler_job_name" {
 output "snapshot_schedule" {
   description = "Snapshot generation schedule"
   value       = var.enable_snapshot_scheduler ? module.scheduler[0].schedule : null
+}
+
+# ===========================================================================
+# Secret Manager Outputs
+# ===========================================================================
+
+output "secret_ids" {
+  description = "Map of secret names to Secret Manager IDs"
+  value       = module.secrets.secret_ids
 }
 
 # ===========================================================================

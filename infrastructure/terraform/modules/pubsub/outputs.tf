@@ -47,3 +47,12 @@ output "all_topic_names" {
     google_pubsub_topic.pixel_updates_events.name
   ]
 }
+
+output "all_subscription_names" {
+  description = "List of all subscription names that were created"
+  value = compact([
+    length(google_pubsub_subscription.write_pixel_requests_sub) > 0 ? google_pubsub_subscription.write_pixel_requests_sub[0].name : "",
+    length(google_pubsub_subscription.discord_cmd_requests_sub) > 0 ? google_pubsub_subscription.discord_cmd_requests_sub[0].name : "",
+    length(google_pubsub_subscription.snapshot_requests_sub) > 0 ? google_pubsub_subscription.snapshot_requests_sub[0].name : "",
+  ])
+}

@@ -21,8 +21,8 @@ variable "pubsub_subscriptions" {
   default     = []
 }
 
-variable "cloud_functions" {
-  description = "List of Cloud Function names to monitor"
+variable "cloud_run_services" {
+  description = "List of Cloud Run service names to monitor"
   type        = list(string)
   default     = []
 }

@@ -1,7 +1,18 @@
 terraform {
   backend "gcs" {
-    bucket = "serverless-tek89-terraform-state-bucket"
+    bucket = "serverless-488811-terraform-state-bucket"
     prefix = "serverless/state"
+  }
+
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 6.0"
+    }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 6.0"
+    }
   }
 }
 
@@ -15,7 +26,31 @@ provider "google-beta" {
   region  = var.region
 }
 
+# ===========================================================================
+# GCP API Enablement
+# ===========================================================================
+
+resource "google_project_service" "apis" {
+  for_each = toset([
+    "run.googleapis.com",
+    "pubsub.googleapis.com",
+    "secretmanager.googleapis.com",
+    "cloudscheduler.googleapis.com",
+    "apigateway.googleapis.com",
+    "servicemanagement.googleapis.com",
+    "servicecontrol.googleapis.com",
+    "monitoring.googleapis.com",
+  ])
+
+  project            = var.project_id
+  service            = each.key
+  disable_on_destroy = false
+}
+
+# ===========================================================================
 # Firestore Database
+# ===========================================================================
+
 module "firestore" {
   source = "./modules/firestore"
 
@@ -24,21 +59,119 @@ module "firestore" {
   environment  = var.environment
   location_id  = var.firestore_location
 
-  # Configuration
   concurrency_mode       = var.firestore_concurrency_mode
   enable_pitr            = var.firestore_enable_pitr
   deletion_protection    = var.environment != "dev"
   create_service_account = var.firestore_create_service_account
 }
 
-# API Gateway - Single public entry point for the application
+# ===========================================================================
+# Cloud Run Services
+# ===========================================================================
+
+module "cloud_run" {
+  source = "./modules/cloud-run"
+
+  project_id = var.project_id
+  region     = var.region
+
+  services = {
+    cf-proxy = {
+      image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/cf-proxy:latest"
+      service_account_email = google_service_account.proxy.email
+      max_instances         = 10
+      memory                = "512Mi"
+      ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+      env_vars = {
+        GCP_PROJECT_ID = var.project_id
+      }
+      secret_env_vars = {
+        DISCORD_APP_ID     = { secret_name = "DISCORD_APP_ID" }
+        DISCORD_PUBLIC_KEY = { secret_name = "DISCORD_PUBLIC_KEY" }
+        DISCORD_BOT_TOKEN  = { secret_name = "DISCORD_BOT_TOKEN" }
+      }
+    }
+
+    write-pixels-worker = {
+      image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/write-pixels-worker:latest"
+      service_account_email = google_service_account.write_pixels.email
+      max_instances         = 20
+      memory                = "256Mi"
+      env_vars = {
+        GCP_PROJECT_ID = var.project_id
+      }
+    }
+
+    canvas-snapshot-generator = {
+      image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/canvas-snapshot-generator:latest"
+      service_account_email = google_service_account.snap.email
+      max_instances         = 5
+      memory                = "1Gi"
+      timeout               = "540s"
+      env_vars = {
+        GCP_PROJECT_ID = var.project_id
+      }
+    }
+
+    discord-cmd-worker = {
+      image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/discord-cmd-worker:latest"
+      service_account_email = google_service_account.discord_cmd.email
+      max_instances         = 10
+      memory                = "256Mi"
+      env_vars = {
+        GCP_PROJECT_ID = var.project_id
+      }
+      secret_env_vars = {
+        DISCORD_BOT_TOKEN = { secret_name = "DISCORD_BOT_TOKEN" }
+      }
+    }
+
+    pixelhub-frontend = {
+      image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/pixelhub-frontend:latest"
+      service_account_email = google_service_account.proxy.email
+      max_instances         = 10
+      memory                = "512Mi"
+      ingress               = "INGRESS_TRAFFIC_ALL"
+      allow_unauthenticated = true
+      env_vars = {
+        NODE_ENV = "production"
+      }
+    }
+
+    firebase-auth-token = {
+      image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/firebase-auth-token:latest"
+      service_account_email = google_service_account.proxy.email
+      max_instances         = 5
+      memory                = "256Mi"
+      env_vars = {
+        GCP_PROJECT_ID = var.project_id
+      }
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    managed_by  = "terraform"
+    application = "cervelet"
+  }
+
+  depends_on = [
+    google_project_service.apis,
+    module.secrets,
+  ]
+}
+
+# ===========================================================================
+# API Gateway - Single public entry point
+# ===========================================================================
+
 module "api_gateway" {
   source = "./modules/api-gateway"
 
   project_id                   = var.project_id
   region                       = var.region
-  proxy_cloud_run_service_name = var.proxy_cloud_run_service_name
-  proxy_cloud_run_service_url  = var.proxy_cloud_run_service_url
+  proxy_cloud_run_service_name = "cf-proxy"
+  proxy_cloud_run_service_url  = module.cloud_run.service_urls["cf-proxy"]
   api_gateway_id               = var.api_gateway_id
   api_gateway_display_name     = var.api_gateway_display_name
 
@@ -47,22 +180,88 @@ module "api_gateway" {
     managed_by  = "terraform"
     application = "cervelet"
   }
+
+  depends_on = [module.cloud_run]
 }
 
-# Pub/Sub Topics - Asynchronous messaging for the application
+# ===========================================================================
+# Pub/Sub Topics & Push Subscriptions
+# ===========================================================================
+
 module "pubsub" {
   source = "./modules/pubsub"
 
   project_id = var.project_id
+
+  # Push subscription endpoints (from Cloud Run module outputs)
+  write_pixels_worker_url = module.cloud_run.service_urls["write-pixels-worker"]
+  discord_cmd_worker_url  = module.cloud_run.service_urls["discord-cmd-worker"]
+  snapshot_generator_url  = module.cloud_run.service_urls["canvas-snapshot-generator"]
+
+  # Service accounts for OIDC push authentication
+  write_pixels_sa_email = google_service_account.write_pixels.email
+  discord_cmd_sa_email  = google_service_account.discord_cmd.email
+  snapshot_sa_email     = google_service_account.snap.email
 
   labels = {
     environment = var.environment
     managed_by  = "terraform"
     application = "cervelet"
   }
+
+  depends_on = [module.cloud_run]
 }
 
-# Cloud Storage - Canvas snapshots and static assets
+# ===========================================================================
+# Secret Manager
+# ===========================================================================
+
+module "secrets" {
+  source = "./modules/secrets"
+
+  project_id = var.project_id
+
+  secrets = {
+    DISCORD_APP_ID = {
+      description = "Discord application ID"
+      accessors = [
+        "serviceAccount:${google_service_account.proxy.email}",
+      ]
+    }
+    DISCORD_PUBLIC_KEY = {
+      description = "Discord application public key for interaction signature verification"
+      accessors = [
+        "serviceAccount:${google_service_account.proxy.email}",
+      ]
+    }
+    DISCORD_BOT_TOKEN = {
+      description = "Discord bot token for deferred responses"
+      accessors = [
+        "serviceAccount:${google_service_account.proxy.email}",
+        "serviceAccount:${google_service_account.discord_cmd.email}",
+      ]
+    }
+    FIREBASE_PROJECT_ID = {
+      description = "Firebase project ID"
+      accessors = [
+        "serviceAccount:${google_service_account.proxy.email}",
+      ]
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    managed_by  = "terraform"
+    application = "cervelet"
+  }
+
+  depends_on = [google_project_service.apis]
+}
+
+# ===========================================================================
+# Cloud Storage - Canvas snapshots
+# ===========================================================================
+
 module "storage" {
   source = "./modules/storage"
 
@@ -74,7 +273,7 @@ module "storage" {
   enable_versioning       = var.storage_enable_versioning
   snapshot_retention_days = var.storage_snapshot_retention_days
   cors_origins            = var.storage_cors_origins
-  create_service_account  = var.storage_create_service_account
+  create_service_account  = false # Using snap-svc from service_accounts.tf
 
   labels = {
     environment = var.environment
@@ -83,36 +282,35 @@ module "storage" {
   }
 }
 
-# Cloud Scheduler - Periodic canvas snapshots
-# NOTE: This requires the Cloud Function to be deployed first
-# Deploy the Cloud Function, get its URL, then set enable_snapshot_scheduler=true
+# ===========================================================================
+# Cloud Scheduler - Periodic canvas snapshots via Pub/Sub
+# ===========================================================================
+
 module "scheduler" {
   count  = var.enable_snapshot_scheduler ? 1 : 0
   source = "./modules/scheduler"
 
-  region                = var.region
-  cloud_function_url    = var.snapshot_function_url
-  service_account_email = module.storage.service_account_email
+  region            = var.region
+  snapshot_topic_id = module.pubsub.snapshot_requests_topic_id
 
   schedule          = var.snapshot_schedule
   schedule_interval = var.snapshot_schedule_interval
   canvas_id         = "main-canvas"
 }
 
+# ===========================================================================
 # Monitoring and Alerting
+# ===========================================================================
+
 module "monitoring" {
   source = "./modules/monitoring"
 
   project_id            = var.project_id
   notification_channels = var.monitoring_notification_channels
 
-  pubsub_subscriptions = [
-    "discord-cmd-requests-sub",
-    "write-pixel-requests-sub",
-    "snapshot-requests-sub"
-  ]
+  pubsub_subscriptions = module.pubsub.all_subscription_names
 
-  cloud_functions = var.monitoring_cloud_functions
+  cloud_run_services = var.monitoring_cloud_run_services
 
   api_gateway_name = var.api_gateway_id
 

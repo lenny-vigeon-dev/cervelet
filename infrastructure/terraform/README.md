@@ -117,7 +117,7 @@ cp terraform.tfvars.example terraform.tfvars
 ```
 
 Edit `terraform.tfvars` and set:
-- `project_id`: Your GCP project ID (default: `serverless-tek89`)
+- `project_id`: Your GCP project ID (default: `serverless-488811`)
 - `region`: Your deployment region (default: `europe-west1`)
 - **`proxy_cloud_run_service_url`**: **REQUIRED** - Get the cf-proxy URL:
   ```bash
@@ -219,7 +219,7 @@ invokers = [
 
 Terraform state is stored remotely in Google Cloud Storage:
 
-- **Bucket**: `serverless-tek89-terraform-state-bucket`
+- **Bucket**: `serverless-488811-terraform-state-bucket`
 - **Prefix**: `serverless/state`
 - **Configured in**: `main.tf` backend block
 
@@ -238,7 +238,7 @@ terraform state show module.api_gateway.google_api_gateway_gateway.gateway
 If you need to recover state from GCS:
 
 ```bash
-gsutil ls gs://serverless-tek89-terraform-state-bucket/serverless/state/
+gsutil ls gs://serverless-488811-terraform-state-bucket/serverless/state/
 ```
 
 ## Deployment Workflow
@@ -301,7 +301,7 @@ terraform init -reconfigure
 ```bash
 # Grant yourself storage admin on the bucket
 gsutil iam ch user:YOUR-EMAIL@gmail.com:roles/storage.admin \
-  gs://serverless-tek89-terraform-state-bucket
+  gs://serverless-488811-terraform-state-bucket
 ```
 
 ### Issue: OpenAPI spec validation errors

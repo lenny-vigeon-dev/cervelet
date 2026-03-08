@@ -4,34 +4,37 @@
 resource "google_service_account" "proxy" {
   account_id   = "proxy-svc"
   display_name = "proxy service account"
-  description  = "Service account for the proxy Cloud Run service. Handles authenticated calls to internal serverless endpoints with minimal privileges (Run Invoker only)."
+  description  = "Service account for the cf-proxy Cloud Run service. Publishes events to Pub/Sub and invokes internal services."
 }
 
 resource "google_service_account" "write_pixels" {
   account_id   = "write-pixels-svc"
   display_name = "write-pixels service account"
-  description  = "Service account for the write-pixels function. Provides restricted Firestore write access to store pixel data and publish related events if needed."
+  description  = "Service account for the write-pixels-worker. Reads/writes Firestore pixel data, receives Pub/Sub push messages."
 }
 
 resource "google_service_account" "snap" {
   account_id   = "snap-svc"
   display_name = "snap service account"
-  description  = "Service account for the snap function. Grants read-only access to Firestore and permission to call internal Cloud Run services when required."
+  description  = "Service account for the canvas-snapshot-generator. Reads Firestore, writes PNG snapshots to Cloud Storage."
 }
 
 resource "google_service_account" "discord_cmd" {
   account_id   = "discord-cmd-svc"
   display_name = "discord-cmd service account"
-  description  = "Service account for the Discord command handler. Allows invoking internal services, reading/writing Firestore documents, and publishing command-related events."
+  description  = "Service account for the discord-cmd-worker. Reads Firestore, publishes to Pub/Sub for snapshot triggers."
 }
 
-resource "google_service_account" "discord_bot" {
-  account_id   = "discord-bot-sa"
-  display_name = "discord-bot service account"
-  description  = "Service account for the Discord bot Cloud Run service. Allows publishing to Pub/Sub for pixel write requests and subscribing to relevant topics."
-}
+// ===========================================================================
+// Project-level IAM bindings (least-privilege)
+// ===========================================================================
 
-// Project-level IAM bindings (minimal recommended roles)
+// --- proxy-svc ---
+resource "google_project_iam_member" "proxy_pubsub_publisher" {
+  project = var.project_id
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.proxy.email}"
+}
 
 resource "google_project_iam_member" "proxy_run_invoker" {
   project = var.project_id
@@ -39,21 +42,17 @@ resource "google_project_iam_member" "proxy_run_invoker" {
   member  = "serviceAccount:${google_service_account.proxy.email}"
 }
 
+// --- write-pixels-svc ---
 resource "google_project_iam_member" "write_pixels_datastore" {
   project = var.project_id
   role    = "roles/datastore.user"
   member  = "serviceAccount:${google_service_account.write_pixels.email}"
 }
 
+// --- snap-svc ---
 resource "google_project_iam_member" "snap_datastore_viewer" {
   project = var.project_id
   role    = "roles/datastore.viewer"
-  member  = "serviceAccount:${google_service_account.snap.email}"
-}
-
-resource "google_project_iam_member" "snap_run_invoker" {
-  project = var.project_id
-  role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.snap.email}"
 }
 
@@ -63,12 +62,7 @@ resource "google_project_iam_member" "snap_storage_admin" {
   member  = "serviceAccount:${google_service_account.snap.email}"
 }
 
-resource "google_project_iam_member" "discord_run_invoker" {
-  project = var.project_id
-  role    = "roles/run.invoker"
-  member  = "serviceAccount:${google_service_account.discord_cmd.email}"
-}
-
+// --- discord-cmd-svc ---
 resource "google_project_iam_member" "discord_datastore" {
   project = var.project_id
   role    = "roles/datastore.user"
@@ -81,19 +75,7 @@ resource "google_project_iam_member" "discord_pubsub" {
   member  = "serviceAccount:${google_service_account.discord_cmd.email}"
 }
 
-resource "google_project_iam_member" "discord_bot_pubsub_publisher" {
-  project = var.project_id
-  role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:${google_service_account.discord_bot.email}"
-}
-
-resource "google_project_iam_member" "discord_bot_pubsub_subscriber" {
-  project = var.project_id
-  role    = "roles/pubsub.subscriber"
-  member  = "serviceAccount:${google_service_account.discord_bot.email}"
-}
-
-// Note: Assigning roles at the project level is simpler and acceptable for many setups,
-// but for stricter least-privilege you can attach roles to individual resources
-// (for example, granting run.invoker on a specific Cloud Run service). If you
-// prefer that approach, tell me which exact services should receive the binding.
+// Note: Pub/Sub push subscriptions use OIDC tokens to authenticate to Cloud Run.
+// The service account used in push_config.oidc_token needs roles/run.invoker
+// on the target service. This is granted at the project level for simplicity.
+// For stricter least-privilege, bind roles/run.invoker on individual services.

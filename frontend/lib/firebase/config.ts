@@ -18,13 +18,6 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Debug: Log config (remove after testing)
-console.log('🔧 Firebase config loaded:', {
-  hasApiKey: !!firebaseConfig.apiKey,
-  projectId: firebaseConfig.projectId,
-  authDomain: firebaseConfig.authDomain,
-});
-
 let app: FirebaseApp;
 let db: Firestore;
 

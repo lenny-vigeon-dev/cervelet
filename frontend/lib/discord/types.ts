@@ -19,11 +19,8 @@ export interface DiscordUser {
   accent_color?: number;
 }
 
-export interface SessionUser {
-  id: string;
-  username: string;
-  email?: string;
-  discriminator: string;
-  avatarUrl?: string;
-  accentColor?: string;
-}
+/**
+ * Session user type. Matches UserProfile from @/types/session
+ * with an additional discriminator field from Discord.
+ */
+export type { UserProfile as SessionUser } from "@/types/session";

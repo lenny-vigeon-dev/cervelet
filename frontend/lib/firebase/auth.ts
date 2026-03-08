@@ -2,64 +2,51 @@
  * Firebase Authentication with Discord Custom Tokens
  *
  * This module handles the bridge between Discord OAuth and Firebase Auth.
- * After Discord login, we exchange the Discord user info for a Firebase Custom Token.
+ * After Discord login, the Discord access token is exchanged for a
+ * Firebase Custom Token via the firebase-auth-token Cloud Run service.
  */
 
-import { getAuth, signInWithCustomToken, signOut as firebaseSignOut } from 'firebase/auth';
-import { getFirebaseApp } from './config';
-import type { UserProfile } from '@/types/session';
+import {
+  getAuth,
+  signInWithCustomToken,
+  signOut as firebaseSignOut,
+} from "firebase/auth";
+import { getFirebaseApp } from "./config";
 
 /**
- * Sign in to Firebase using Discord user information
+ * Sign in to Firebase using a Discord access token.
  *
  * Flow:
  * 1. User completes Discord OAuth
- * 2. Frontend calls backend to get Firebase Custom Token
- * 3. Use Custom Token to sign in to Firebase
- * 4. Firebase Auth session is now active for Firestore access
+ * 2. Frontend sends Discord access token to /api/firebase-auth-token
+ * 3. Backend verifies token with Discord, mints Firebase Custom Token
+ * 4. Frontend signs into Firebase with the custom token
  *
- * @param discordUser - Discord user profile from OAuth
+ * @param discordAccessToken - Discord OAuth access token
  * @returns Firebase user object or null on error
  */
-export async function signInWithDiscord(discordUser: UserProfile) {
+export async function signInWithDiscord(discordAccessToken: string) {
   try {
-    console.log('🔐 Signing in to Firebase with Discord user:', discordUser.id);
-
-    // 1. Get Firebase Custom Token from backend
-    // Use local API route to avoid CORS issues
-    const response = await fetch(
-      `/api/firebase-auth-token`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          discordUserId: discordUser.id,
-          username: discordUser.username,
-          email: discordUser.email,
-        }),
-      }
-    );
+    const response = await fetch("/api/firebase-auth-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ discordAccessToken }),
+    });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to get Firebase token');
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || "Failed to get Firebase token");
     }
 
     const { token } = await response.json();
 
-    // 2. Sign in to Firebase with Custom Token
     const app = getFirebaseApp();
     const auth = getAuth(app);
-
     const userCredential = await signInWithCustomToken(auth, token);
-
-    console.log('✅ Firebase Auth successful:', userCredential.user.uid);
 
     return userCredential.user;
   } catch (error) {
-    console.error('❌ Firebase Auth failed:', error);
+    console.error("Firebase Auth failed:", error);
     return null;
   }
 }
@@ -72,9 +59,8 @@ export async function signOut() {
     const app = getFirebaseApp();
     const auth = getAuth(app);
     await firebaseSignOut(auth);
-    console.log('✅ Firebase sign out successful');
   } catch (error) {
-    console.error('❌ Firebase sign out failed:', error);
+    console.error("Firebase sign out failed:", error);
   }
 }
 

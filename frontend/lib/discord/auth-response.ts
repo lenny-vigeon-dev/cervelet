@@ -1,7 +1,22 @@
 import type { SessionUser } from "./types";
 
 /**
- * Generates an HTML page that stores the session in localStorage and redirects.
+ * Safely serializes a value into a <script> context.
+ * Prevents XSS by escaping characters that could break out of the script tag.
+ */
+function safeJsonStringify(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
+
+/**
+ * Generates an HTML page that:
+ * 1. Stores the Discord session in localStorage
+ * 2. Exchanges the Discord token for a Firebase Custom Token
+ * 3. Signs into Firebase with the custom token
+ * 4. Redirects to the canvas page
  *
  * @param user - The session user object
  * @param accessToken - The Discord access token
@@ -16,18 +31,56 @@ export function generateAuthCallbackHTML(
 <head>
   <meta charset="UTF-8">
   <title>Authenticating...</title>
+  <style>
+    body { background: #0a0a0a; color: #e5e5e5; font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    .loader { text-align: center; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #7c3aed; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error { color: #ef4444; margin-top: 8px; }
+  </style>
 </head>
 <body>
+  <div class="loader">
+    <div class="spinner"></div>
+    <p id="status">Signing in...</p>
+  </div>
   <script>
-    const user = ${JSON.stringify(user)};
-    const token = ${JSON.stringify(accessToken)};
+    (async function() {
+      const user = ${safeJsonStringify(user)};
+      const discordToken = ${safeJsonStringify(accessToken)};
+      const statusEl = document.getElementById('status');
 
-    localStorage.setItem('discord_session', JSON.stringify(user));
-    localStorage.setItem('discord_access_token', token);
+      try {
+        // 1. Store Discord session in localStorage
+        localStorage.setItem('discord_session', JSON.stringify(user));
+        localStorage.setItem('discord_access_token', discordToken);
 
-    window.location.href = '/';
+        // 2. Exchange Discord token for Firebase Custom Token
+        statusEl.textContent = 'Setting up Firebase auth...';
+
+        const response = await fetch('/api/firebase-auth-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            discordAccessToken: discordToken,
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          console.warn('Firebase auth skipped:', err.error || response.statusText);
+          // Non-fatal: Discord session is stored, canvas still works in read-only
+        }
+
+        // 3. Redirect to canvas
+        window.location.href = '/';
+      } catch (err) {
+        console.error('Auth callback error:', err);
+        // Still redirect -- Discord session is stored for basic functionality
+        window.location.href = '/';
+      }
+    })();
   </script>
-  <p>Redirecting...</p>
 </body>
 </html>`;
 }

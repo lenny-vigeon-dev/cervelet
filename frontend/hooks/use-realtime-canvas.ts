@@ -118,7 +118,7 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
 
       let q = query(
         pixelsCollection,
-        orderBy('lastUpdatedAt', 'desc')
+        orderBy('updatedAt', 'desc')
       );
 
       // If we have a snapshot timestamp, only get pixels after that
@@ -126,8 +126,8 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
         const firestoreTimestamp = Timestamp.fromDate(snapshotTime);
         q = query(
           pixelsCollection,
-          where('lastUpdatedAt', '>', firestoreTimestamp),
-          orderBy('lastUpdatedAt', 'desc')
+          where('updatedAt', '>', firestoreTimestamp),
+          orderBy('updatedAt', 'desc')
         );
       }
 

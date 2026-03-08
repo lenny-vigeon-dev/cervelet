@@ -58,7 +58,7 @@ export default function CanvaPage() {
           </svg>
         </Link>
       </div>
-      <div className="max-w">
+      <div className="max-w-full">
         <PixelCanvas />
       </div>
     </main>

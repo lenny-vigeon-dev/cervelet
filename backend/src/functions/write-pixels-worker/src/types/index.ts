@@ -39,7 +39,22 @@ export interface PixelDoc {
   y: number;
   color: number;
   userId: string;
+  username: string;
   updatedAt: Timestamp;
+}
+
+/**
+ * Firestore document for 'pixelHistory' collection (append-only audit trail)
+ * Document ID = auto-generated
+ */
+export interface PixelHistoryDoc {
+  canvasId: string;
+  x: number;
+  y: number;
+  color: number;
+  userId: string;
+  username: string;
+  createdAt: Timestamp;
 }
 
 /**

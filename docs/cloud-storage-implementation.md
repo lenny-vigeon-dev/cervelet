@@ -9,7 +9,7 @@ This document provides an overview of the Cloud Storage implementation for optim
 **Location**: `infrastructure/terraform/modules/storage/`
 
 Created a complete Terraform module for Cloud Storage:
-- **Bucket**: `serverless-tek89-canvas-snapshots`
+- **Bucket**: `serverless-488811-canvas-snapshots`
 - **Public access**: Latest snapshot is publicly readable
 - **Lifecycle rules**: Historical snapshots deleted after 30 days
 - **Service account**: For Cloud Function to write snapshots
@@ -256,10 +256,10 @@ gcloud scheduler jobs describe pixelhub-canvas-snapshot \
 
 ```bash
 # List all snapshots
-gsutil ls -lh gs://serverless-tek89-canvas-snapshots/canvas/
+gsutil ls -lh gs://serverless-488811-canvas-snapshots/canvas/
 
 # Download latest snapshot
-gsutil cp gs://serverless-tek89-canvas-snapshots/canvas/latest.png ./latest.png
+gsutil cp gs://serverless-488811-canvas-snapshots/canvas/latest.png ./latest.png
 ```
 
 ### Monitor Costs
@@ -269,7 +269,7 @@ gsutil cp gs://serverless-tek89-canvas-snapshots/canvas/latest.png ./latest.png
 gcloud billing accounts list
 
 # View Cloud Storage usage
-gsutil du -sh gs://serverless-tek89-canvas-snapshots
+gsutil du -sh gs://serverless-488811-canvas-snapshots
 ```
 
 ## Optimization Tips

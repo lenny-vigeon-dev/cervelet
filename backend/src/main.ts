@@ -2,7 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    // Preserve raw body bytes for Discord Ed25519 signature verification
+    rawBody: true,
+  });
 
   // Enable CORS with manual middleware for better control
   app.use((req, res, next) => {

@@ -22,19 +22,20 @@ x-google-backend:
   deadline: 30.0
 
 paths:
-  /discord/webhook:
+  /discord/interactions:
     post:
-      summary: Discord webhook endpoint
-      operationId: discordWebhook
-      security:
-        - api_key: []
+      summary: Discord Interactions endpoint (slash commands, buttons)
+      operationId: discordInteractions
+      # No API key -- Discord authenticates via Ed25519 signature.
+      # The proxy verifies the signature using DISCORD_PUBLIC_KEY.
+      security: []
+      consumes:
+        - application/json
       responses:
         200:
-          description: Success
-        400:
-          description: Bad Request
+          description: Interaction response (PONG, message, or deferred ACK)
         401:
-          description: Unauthorized
+          description: Invalid signature
         500:
           description: Internal Server Error
 

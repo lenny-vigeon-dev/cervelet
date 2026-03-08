@@ -29,18 +29,13 @@ variable "time_zone" {
 }
 
 variable "attempt_deadline" {
-  description = "The deadline for job attempts (max time allowed for function execution)"
+  description = "The deadline for job attempts"
   type        = string
   default     = "540s"
 }
 
-variable "cloud_function_url" {
-  description = "URL of the Cloud Function to trigger"
-  type        = string
-}
-
-variable "service_account_email" {
-  description = "Service account email for authentication"
+variable "snapshot_topic_id" {
+  description = "Full resource ID of the snapshot-requests Pub/Sub topic"
   type        = string
 }
 

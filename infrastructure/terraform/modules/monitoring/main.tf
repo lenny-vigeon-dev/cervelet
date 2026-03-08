@@ -30,11 +30,11 @@ resource "google_monitoring_alert_policy" "pubsub_queue_depth" {
   }
 }
 
-# Cloud Function Error Rate Alert
-resource "google_monitoring_alert_policy" "function_error_rate" {
-  for_each = toset(var.cloud_functions)
+# Cloud Run Service Error Rate Alert
+resource "google_monitoring_alert_policy" "service_error_rate" {
+  for_each = toset(var.cloud_run_services)
 
-  display_name = "Cloud Function Error Rate - ${each.value}"
+  display_name = "Cloud Run Error Rate - ${each.value}"
   project      = var.project_id
   combiner     = "OR"
 
@@ -42,7 +42,7 @@ resource "google_monitoring_alert_policy" "function_error_rate" {
     display_name = "Error rate > ${var.function_error_rate_threshold}%"
 
     condition_threshold {
-      filter          = "resource.type = \"cloud_function\" AND resource.labels.function_name = \"${each.value}\" AND metric.type = \"cloudfunctions.googleapis.com/function/execution_count\" AND metric.labels.status != \"ok\""
+      filter          = "resource.type = \"cloud_run_revision\" AND resource.labels.service_name = \"${each.value}\" AND metric.type = \"run.googleapis.com/request_count\" AND metric.labels.response_code_class != \"2xx\""
       duration        = "300s"
       comparison      = "COMPARISON_GT"
       threshold_value = var.function_error_rate_threshold
@@ -58,24 +58,24 @@ resource "google_monitoring_alert_policy" "function_error_rate" {
   notification_channels = var.notification_channels
 
   documentation {
-    content   = "Cloud Function ${each.value} error rate exceeds ${var.function_error_rate_threshold}%."
+    content   = "Cloud Run service ${each.value} error rate exceeds ${var.function_error_rate_threshold}%."
     mime_type = "text/markdown"
   }
 }
 
-# Cloud Function Execution Time Alert
-resource "google_monitoring_alert_policy" "function_execution_time" {
-  for_each = toset(var.cloud_functions)
+# Cloud Run Service Latency Alert (P99)
+resource "google_monitoring_alert_policy" "service_latency" {
+  for_each = toset(var.cloud_run_services)
 
-  display_name = "Cloud Function Execution Time - ${each.value}"
+  display_name = "Cloud Run Latency - ${each.value}"
   project      = var.project_id
   combiner     = "OR"
 
   conditions {
-    display_name = "Execution time > ${var.function_execution_time_threshold_ms}ms"
+    display_name = "P99 latency > ${var.function_execution_time_threshold_ms}ms"
 
     condition_threshold {
-      filter          = "resource.type = \"cloud_function\" AND resource.labels.function_name = \"${each.value}\" AND metric.type = \"cloudfunctions.googleapis.com/function/execution_times\""
+      filter          = "resource.type = \"cloud_run_revision\" AND resource.labels.service_name = \"${each.value}\" AND metric.type = \"run.googleapis.com/request_latencies\""
       duration        = "300s"
       comparison      = "COMPARISON_GT"
       threshold_value = var.function_execution_time_threshold_ms * 1000000 # Convert to nanoseconds
@@ -90,7 +90,7 @@ resource "google_monitoring_alert_policy" "function_execution_time" {
   notification_channels = var.notification_channels
 
   documentation {
-    content   = "Cloud Function ${each.value} P99 execution time exceeds ${var.function_execution_time_threshold_ms}ms."
+    content   = "Cloud Run service ${each.value} P99 latency exceeds ${var.function_execution_time_threshold_ms}ms."
     mime_type = "text/markdown"
   }
 }
@@ -129,11 +129,11 @@ resource "google_monitoring_alert_policy" "api_gateway_errors" {
   }
 }
 
-# Firestore Read/Write Operations Dashboard
-resource "google_monitoring_dashboard" "firestore_operations" {
+# Firestore & Pub/Sub Operations Dashboard
+resource "google_monitoring_dashboard" "operations" {
   project = var.project_id
   dashboard_json = jsonencode({
-    displayName = "Firestore Operations"
+    displayName = "Cervelet Operations"
     gridLayout = {
       columns = 2
       widgets = [
@@ -172,20 +172,22 @@ resource "google_monitoring_dashboard" "firestore_operations" {
           }
         },
         {
-          title = "Firestore Delete Operations"
+          title = "Cloud Run Request Count"
           xyChart = {
             dataSets = [{
               timeSeriesQuery = {
                 timeSeriesFilter = {
-                  filter = "resource.type = \"firestore_instance\" AND metric.type = \"firestore.googleapis.com/document/delete_count\""
+                  filter = "resource.type = \"cloud_run_revision\" AND metric.type = \"run.googleapis.com/request_count\""
                   aggregation = {
-                    alignmentPeriod  = "60s"
-                    perSeriesAligner = "ALIGN_RATE"
+                    alignmentPeriod    = "60s"
+                    perSeriesAligner   = "ALIGN_RATE"
+                    crossSeriesReducer = "REDUCE_SUM"
+                    groupByFields      = ["resource.labels.service_name"]
                   }
                 }
               }
             }]
-            yAxis = { label = "deletes/sec" }
+            yAxis = { label = "requests/sec" }
           }
         },
         {

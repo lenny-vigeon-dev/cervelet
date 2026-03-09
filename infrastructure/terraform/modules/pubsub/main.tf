@@ -142,7 +142,10 @@ resource "google_pubsub_subscription" "snapshot_requests_sub" {
 
   labels = var.labels
 
-  ack_deadline_seconds       = 120
+  # Match the Cloud Run service timeout (540s). The handler generates the
+  # snapshot synchronously, so the ack deadline must cover worst-case
+  # processing time to avoid premature retries. Max allowed is 600s.
+  ack_deadline_seconds       = 600
   message_retention_duration = "604800s"
 
   push_config {

@@ -75,7 +75,25 @@ resource "google_project_iam_member" "discord_pubsub" {
   member  = "serviceAccount:${google_service_account.discord_cmd.email}"
 }
 
-// Note: Pub/Sub push subscriptions use OIDC tokens to authenticate to Cloud Run.
-// The service account used in push_config.oidc_token needs roles/run.invoker
-// on the target service. This is granted at the project level for simplicity.
-// For stricter least-privilege, bind roles/run.invoker on individual services.
+// --- Pub/Sub push subscription OIDC authentication ---
+// Push subscriptions authenticate to Cloud Run using OIDC tokens from the
+// push_config service accounts. These SAs need roles/run.invoker to invoke
+// the target Cloud Run services.
+
+resource "google_project_iam_member" "write_pixels_run_invoker" {
+  project = var.project_id
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.write_pixels.email}"
+}
+
+resource "google_project_iam_member" "snap_run_invoker" {
+  project = var.project_id
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.snap.email}"
+}
+
+resource "google_project_iam_member" "discord_cmd_run_invoker" {
+  project = var.project_id
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.discord_cmd.email}"
+}

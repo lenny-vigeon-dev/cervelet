@@ -132,7 +132,7 @@ variable "monitoring_queue_depth_threshold" {
 }
 
 variable "monitoring_function_error_rate_threshold" {
-  description = "Threshold for Cloud Run error rate (percentage)"
+  description = "Threshold for Cloud Run non-2xx error rate (errors per second)"
   type        = number
   default     = 5
 }
@@ -144,7 +144,7 @@ variable "monitoring_function_execution_time_threshold_ms" {
 }
 
 variable "monitoring_api_error_rate_threshold" {
-  description = "Threshold for API Gateway error rate (percentage)"
+  description = "Threshold for API Gateway 4xx/5xx error rate (errors per second)"
   type        = number
   default     = 5
 }

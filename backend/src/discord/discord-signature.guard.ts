@@ -32,6 +32,9 @@ export class DiscordSignatureGuard implements CanActivate {
     this.publicKey = Buffer.from(key, 'hex');
   }
 
+  /** Maximum allowed age of a signed request (seconds). */
+  private static readonly MAX_TIMESTAMP_AGE_S = 5;
+
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
 
@@ -47,22 +50,43 @@ export class DiscordSignatureGuard implements CanActivate {
       throw new UnauthorizedException('Missing signature headers');
     }
 
+    // Reject stale timestamps to prevent replay attacks
+    const timestampSeconds = Number(timestamp);
+    if (
+      Number.isNaN(timestampSeconds) ||
+      Math.abs(Date.now() / 1000 - timestampSeconds) >
+        DiscordSignatureGuard.MAX_TIMESTAMP_AGE_S
+    ) {
+      this.logger.warn('Stale or invalid Discord timestamp');
+      throw new UnauthorizedException('Invalid request timestamp');
+    }
+
     const rawBody = this.getRawBody(request);
     if (!rawBody) {
       this.logger.warn('Could not extract raw body for signature verification');
       throw new UnauthorizedException('Cannot verify signature');
     }
 
-    const message = Buffer.concat([Buffer.from(timestamp, 'utf8'), rawBody]);
+    try {
+      const message = Buffer.concat([Buffer.from(timestamp, 'utf8'), rawBody]);
 
-    const isValid = nacl.sign.detached.verify(
-      message,
-      Buffer.from(signature, 'hex'),
-      this.publicKey,
-    );
+      const isValid = nacl.sign.detached.verify(
+        message,
+        Buffer.from(signature, 'hex'),
+        this.publicKey,
+      );
 
-    if (!isValid) {
-      this.logger.warn('Invalid Discord signature');
+      if (!isValid) {
+        this.logger.warn('Invalid Discord signature');
+        throw new UnauthorizedException('Invalid request signature');
+      }
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      this.logger.warn(
+        `Signature verification error: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new UnauthorizedException('Invalid request signature');
     }
 

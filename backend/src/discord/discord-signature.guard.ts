@@ -32,8 +32,11 @@ export class DiscordSignatureGuard implements CanActivate {
     this.publicKey = Buffer.from(key, 'hex');
   }
 
-  /** Maximum allowed age of a signed request (seconds). */
-  private static readonly MAX_TIMESTAMP_AGE_S = 5;
+  /** Maximum allowed age of a signed request (seconds). Default: 300 (5 min). */
+  private static readonly MAX_TIMESTAMP_AGE_S = parseInt(
+    process.env.DISCORD_MAX_TIMESTAMP_AGE_S || '300',
+    10,
+  );
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();

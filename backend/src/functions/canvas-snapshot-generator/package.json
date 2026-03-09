@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/src/main.js",
     "start:dev": "ts-node src/main.ts",
-    "deploy": "pnpm build && gcloud run deploy canvas-snapshot-generator --region=europe-west1 --source . --allow-unauthenticated --clear-base-image",
+    "deploy": "pnpm build && gcloud run deploy canvas-snapshot-generator --region=europe-west1 --source . --no-allow-unauthenticated --clear-base-image",
     "test": "jest",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\""

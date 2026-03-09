@@ -17,6 +17,8 @@ const WRITE_ENDPOINT =
     ? `${process.env.NEXT_PUBLIC_API_URL}/write`
     : "/write");
 
+const API_KEY = process.env.NEXT_PUBLIC_API_GATEWAY_KEY || "";
+
 /**
  * Write a pixel via the serverless worker (Discord token is validated server-side).
  * This avoids Firebase Auth on the client while still enforcing cooldowns on the backend.
@@ -43,12 +45,17 @@ export async function writePixel(params: WritePixelParams): Promise<WritePixelRe
   }
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    };
+    if (API_KEY) {
+      headers["x-api-key"] = API_KEY;
+    }
+
     const response = await fetch(WRITE_ENDPOINT, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers,
       body: JSON.stringify({ x, y, color }),
     });
 

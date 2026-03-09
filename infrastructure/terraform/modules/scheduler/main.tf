@@ -8,7 +8,7 @@ data "google_project" "project" {
 
 resource "google_pubsub_topic_iam_member" "scheduler_publisher" {
   project = var.project_id
-  topic   = var.snapshot_topic_id
+  topic   = var.snapshot_topic_name
   role    = "roles/pubsub.publisher"
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 }

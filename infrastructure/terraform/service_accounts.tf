@@ -104,3 +104,29 @@ resource "google_project_iam_member" "discord_cmd_run_invoker" {
   role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.discord_cmd.email}"
 }
+
+// --- Pub/Sub service agent: OIDC token minting ---
+// The Pub/Sub service agent must be able to create OIDC tokens for the push
+// service accounts. Grant roles/iam.serviceAccountTokenCreator on each SA.
+
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+resource "google_service_account_iam_member" "pubsub_token_creator_write_pixels" {
+  service_account_id = google_service_account.write_pixels.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_service_account_iam_member" "pubsub_token_creator_snap" {
+  service_account_id = google_service_account.snap.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_service_account_iam_member" "pubsub_token_creator_discord_cmd" {
+  service_account_id = google_service_account.discord_cmd.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}

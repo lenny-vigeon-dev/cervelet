@@ -13,40 +13,6 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    // Validate pixel coordinates and color
-    function isValidPixel(canvasWidth, canvasHeight) {
-      let data = request.resource.data;
-      return data.x >= 0 && data.x < canvasWidth &&
-             data.y >= 0 && data.y < canvasHeight &&
-             data.color >= 0 && data.color <= 16777215;  // Valid RGB color (0x000000 to 0xFFFFFF)
-    }
-
-    // Check canvas exists and pixel is valid in one call.
-    // exists() short-circuits so get() is only evaluated when the canvas exists.
-    // Firestore caches get()/exists() on the same path, so no extra reads.
-    function canvasExistsAndPixelValid(canvasId) {
-      return exists(/databases/$(database)/documents/canvases/$(canvasId)) &&
-             isValidPixel(
-               get(/databases/$(database)/documents/canvases/$(canvasId)).data.width,
-               get(/databases/$(database)/documents/canvases/$(canvasId)).data.height
-             );
-    }
-
-    // Validate required pixel fields
-    function hasRequiredPixelFields() {
-      let data = request.resource.data;
-      return data.keys().hasAll(['canvasId', 'x', 'y', 'color', 'userId', 'updatedAt']);
-    }
-
-    // Validate user cannot change other user's pixel ownership
-    function isPixelOwnershipValid() {
-      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId']);
-    }
-
     // ===========================================
     // CANVASES COLLECTION
     // ===========================================

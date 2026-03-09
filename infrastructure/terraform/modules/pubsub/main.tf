@@ -194,3 +194,74 @@ resource "google_pubsub_topic" "snapshot_requests_dlq" {
   project = var.project_id
   labels  = var.labels
 }
+
+# ===========================================================================
+# Dead Letter Queue IAM Bindings
+#
+# The Pub/Sub service agent needs:
+# - roles/pubsub.publisher on DLQ topics (to forward dead-lettered messages)
+# - roles/pubsub.subscriber on source subscriptions (to ack forwarded messages)
+#
+# Without these bindings, messages exceeding max_delivery_attempts are
+# silently dropped instead of being forwarded to the DLQ topic.
+# ===========================================================================
+
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+locals {
+  pubsub_service_agent = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+# Publisher on DLQ topics
+
+resource "google_pubsub_topic_iam_member" "write_pixel_dlq_publisher" {
+  count   = var.write_pixels_worker_url != "" ? 1 : 0
+  project = var.project_id
+  topic   = google_pubsub_topic.write_pixel_requests_dlq.name
+  role    = "roles/pubsub.publisher"
+  member  = local.pubsub_service_agent
+}
+
+resource "google_pubsub_topic_iam_member" "discord_cmd_dlq_publisher" {
+  count   = var.discord_cmd_worker_url != "" ? 1 : 0
+  project = var.project_id
+  topic   = google_pubsub_topic.discord_cmd_requests_dlq.name
+  role    = "roles/pubsub.publisher"
+  member  = local.pubsub_service_agent
+}
+
+resource "google_pubsub_topic_iam_member" "snapshot_dlq_publisher" {
+  count   = var.snapshot_generator_url != "" ? 1 : 0
+  project = var.project_id
+  topic   = google_pubsub_topic.snapshot_requests_dlq.name
+  role    = "roles/pubsub.publisher"
+  member  = local.pubsub_service_agent
+}
+
+# Subscriber on source subscriptions (to ack forwarded messages)
+
+resource "google_pubsub_subscription_iam_member" "write_pixel_sub_subscriber" {
+  count        = var.write_pixels_worker_url != "" ? 1 : 0
+  project      = var.project_id
+  subscription = google_pubsub_subscription.write_pixel_requests_sub[0].name
+  role         = "roles/pubsub.subscriber"
+  member       = local.pubsub_service_agent
+}
+
+resource "google_pubsub_subscription_iam_member" "discord_cmd_sub_subscriber" {
+  count        = var.discord_cmd_worker_url != "" ? 1 : 0
+  project      = var.project_id
+  subscription = google_pubsub_subscription.discord_cmd_requests_sub[0].name
+  role         = "roles/pubsub.subscriber"
+  member       = local.pubsub_service_agent
+}
+
+resource "google_pubsub_subscription_iam_member" "snapshot_sub_subscriber" {
+  count        = var.snapshot_generator_url != "" ? 1 : 0
+  project      = var.project_id
+  subscription = google_pubsub_subscription.snapshot_requests_sub[0].name
+  role         = "roles/pubsub.subscriber"
+  member       = local.pubsub_service_agent
+}

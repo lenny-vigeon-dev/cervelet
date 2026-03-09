@@ -108,7 +108,7 @@ resource "google_monitoring_alert_policy" "api_gateway_errors" {
     display_name = "4xx/5xx error rate > ${var.api_error_rate_threshold} errors/sec"
 
     condition_threshold {
-      filter          = "resource.type = \"apigateway.googleapis.com/Gateway\" AND resource.labels.gateway_id = \"${var.api_gateway_name}\" AND metric.type = \"apigateway.googleapis.com/gateway/response_count\" AND metric.labels.response_code_class = \"4xx\" OR metric.labels.response_code_class = \"5xx\""
+      filter          = "resource.type = \"apigateway.googleapis.com/Gateway\" AND resource.labels.gateway_id = \"${var.api_gateway_name}\" AND metric.type = \"apigateway.googleapis.com/gateway/response_count\" AND metric.labels.response_code_class != \"2xx\""
       duration        = "300s"
       comparison      = "COMPARISON_GT"
       threshold_value = var.api_error_rate_threshold

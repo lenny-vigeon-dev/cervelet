@@ -33,7 +33,9 @@ export class AppService {
       const message = {
         userId: discordUser.id,
         username: discordUser.username,
-        avatarUrl: discordUser.avatar,
+        avatarUrl: discordUser.avatar
+          ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
+          : undefined,
         x: payload.x,
         y: payload.y,
         color: payload.color,

@@ -57,10 +57,11 @@ export function PixelInfoModal({ x, y, canvasId = 'main-canvas', onClose }: Pixe
     return date.toLocaleDateString();
   };
 
-  // Get Discord avatar URL
-  const getAvatarUrl = (userId: string, avatarHash?: string) => {
-    if (avatarHash) {
-      return `https://cdn.discordapp.com/avatars/${userId}/${avatarHash}.png?size=128`;
+  // Get Discord avatar URL.
+  // avatarUrl is stored as a full CDN URL by all write paths.
+  const getAvatarUrl = (userId: string, avatarUrl?: string) => {
+    if (avatarUrl) {
+      return avatarUrl;
     }
     // Default Discord avatar
     const defaultAvatarIndex = parseInt(userId) % 5;

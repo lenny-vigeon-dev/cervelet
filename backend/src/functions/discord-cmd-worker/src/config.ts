@@ -2,7 +2,7 @@ export const CONFIG = {
   port: parseInt(process.env['PORT'] || '8080', 10),
 
   gcpProject:
-    process.env['GCP_PROJECT'] ||
+    process.env['GCP_PROJECT_ID'] ||
     process.env['GOOGLE_CLOUD_PROJECT'] ||
     'serverless-488811',
 

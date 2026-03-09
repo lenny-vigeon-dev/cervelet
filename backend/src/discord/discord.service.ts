@@ -101,7 +101,7 @@ export class DiscordService {
       '`/canvas` -- View canvas information',
       '`/session <action>` -- Manage the canvas session (admin only)',
       '`/help` -- Show this help message',
-      '`/allo` -- ???',
+      "`/allo` -- Respond to the call",
     ].join('\n');
 
     return {

@@ -43,23 +43,26 @@ export class FirestoreService {
     }
 
     const data = canvasDoc.data() as CanvasDoc;
+    const newVersion = (data.version || 0) + 1;
 
-    // Increment version and reset status
+    // Delete all pixels first so metadata never claims a reset that
+    // hasn't fully completed. If deletion fails partway, Pub/Sub retries
+    // and the canvas metadata still reflects the old (consistent) state.
+    await this.deleteCollection(`pixels`, canvasId);
+
+    // Only update metadata after all pixels are deleted
     await canvasRef.update({
       status: 'active',
-      version: (data.version || 0) + 1,
+      version: newVersion,
       totalPixels: 0,
       updatedAt: FieldValue.serverTimestamp(),
     });
-
-    // Delete all pixels for this canvas in batches
-    await this.deleteCollection(`pixels`, canvasId);
 
     console.log(
       JSON.stringify({
         level: 'info',
         message: `Canvas ${canvasId} reset successfully`,
-        newVersion: (data.version || 0) + 1,
+        newVersion,
       }),
     );
   }

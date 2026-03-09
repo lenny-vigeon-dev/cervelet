@@ -1,6 +1,21 @@
 import { Timestamp } from '@google-cloud/firestore';
 
 /**
+ * Thrown when a pixel write is rejected due to rate-limiting.
+ * Use `instanceof CooldownError` instead of string matching on error messages.
+ */
+export class CooldownError extends Error {
+  readonly remainingMs: number;
+
+  constructor(remainingMs: number) {
+    const remainingSeconds = Math.ceil(remainingMs / 1000);
+    super(`Cooldown active. Wait ${remainingSeconds} second${remainingSeconds !== 1 ? 's' : ''}.`);
+    this.name = 'CooldownError';
+    this.remainingMs = remainingMs;
+  }
+}
+
+/**
  * Pub/Sub Contract - Incoming message structure
  */
 export interface PixelPayload {

@@ -3,7 +3,7 @@ import { FirestoreService } from './services/firestore.service';
 import { DiscordService } from './services/discord.service';
 import { PubSubService } from './services/pubsub.service';
 import { WritePixelService } from './write-pixel.service';
-import { PixelPayload, PubSubMessage } from './types';
+import { CooldownError, PixelPayload, PubSubMessage } from './types';
 import { logger } from './utils/logger';
 
 /**
@@ -119,7 +119,7 @@ app.post('/', async (req: Request, res: Response) => {
         const durationMs = Date.now() - startTime;
         const errorMessage = error instanceof Error ? error.message : String(error);
 
-        if (errorMessage.includes('Cooldown active')) {
+        if (error instanceof CooldownError) {
             logger.pubsubProcessed(messageId, durationMs, true);
             if (payload) {
                 logger.info(`Cooldown prevented pixel placement for user ${payload.userId}`, {

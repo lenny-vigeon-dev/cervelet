@@ -2,7 +2,7 @@ import { Timestamp } from '@google-cloud/firestore';
 import { FirestoreService } from './services/firestore.service';
 import { DiscordService } from './services/discord.service';
 import { PubSubService } from './services/pubsub.service';
-import { PixelPayload } from './types';
+import { CooldownError, PixelPayload } from './types';
 import { logger } from './utils/logger';
 
 /**
@@ -52,11 +52,7 @@ export class WritePixelService {
                     }
                 }
 
-                const error = new Error(
-                    `Cooldown active. Wait ${remainingSeconds} second${remainingSeconds !== 1 ? 's' : ''}.`,
-                ) as Error & { remainingMs?: number };
-                error.remainingMs = remainingMs;
-                throw error;
+                throw new CooldownError(remainingMs);
             }
 
             // 3. Trigger snapshot generation asynchronously (best-effort)
@@ -93,7 +89,7 @@ export class WritePixelService {
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            const isCooldownError = errorMessage.includes('Cooldown active');
+            const isCooldownError = error instanceof CooldownError;
 
             if (!isCooldownError) {
                 logger.error(`Pixel placement failed: ${payload.userId} at (${payload.x}, ${payload.y}) - ${errorMessage}`, {

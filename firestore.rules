@@ -62,26 +62,16 @@ service cloud.firestore {
     // ===========================================
     // PIXELS COLLECTION (Primary pixel storage)
     // ===========================================
-    // Individual pixels - readable by all, writable by authenticated users
+    // Pixels are written exclusively by the write-pixels-worker via the
+    // Firebase Admin SDK (which bypasses security rules). Client writes are
+    // denied to enforce server-side cooldown/rate-limiting and the Pub/Sub
+    // event-driven pipeline.
     match /pixels/{pixelId} {
-      // Anyone can read pixels (public canvas viewing)
+      // Anyone can read pixels (public canvas viewing via onSnapshot)
       allow read: if true;
 
-      // Authenticated users can create pixels
-      // Validates canvas exists and coordinates are within bounds
-      allow create: if isAuthenticated() &&
-                      hasRequiredPixelFields() &&
-                      request.resource.data.userId == request.auth.uid &&
-                      canvasExistsAndPixelValid(request.resource.data.canvasId);
-
-      // Authenticated users can update pixels
-      // Must preserve userId (cannot change pixel ownership)
-      // Validates canvas exists and coordinates are within bounds
-      allow update: if isAuthenticated() &&
-                      hasRequiredPixelFields() &&
-                      request.resource.data.userId == request.auth.uid &&
-                      isPixelOwnershipValid() &&
-                      canvasExistsAndPixelValid(request.resource.data.canvasId);
+      // All writes go through the backend worker (Admin SDK bypasses rules)
+      allow create, update: if false;
 
       // Only admins can delete pixels
       allow delete: if isAdmin();
@@ -108,21 +98,15 @@ service cloud.firestore {
     // ===========================================
     // PIXEL HISTORY COLLECTION
     // ===========================================
-    // Audit trail - readable by all, append-only (write through backend)
+    // Audit trail - readable by all, written exclusively by the backend
+    // worker via Admin SDK to ensure data integrity and consistency with
+    // the pixel write transaction.
     match /pixelHistory/{historyId} {
       // Anyone can read pixel history (canvas replay feature)
       allow read: if true;
 
-      // Only authenticated users can create history entries
-      // This should primarily be done through backend/Cloud Functions
-      // to ensure data integrity
-      allow create: if isAuthenticated() &&
-                      request.resource.data.userId == request.auth.uid &&
-                      request.resource.data.keys().hasAll(['canvasId', 'x', 'y', 'color', 'userId', 'createdAt']);
-
-      // History is append-only - no updates or deletes allowed
-      // This preserves the audit trail integrity
-      allow update, delete: if false;
+      // All writes go through the backend worker (Admin SDK bypasses rules)
+      allow create, update, delete: if false;
     }
   }
 }

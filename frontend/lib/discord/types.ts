@@ -20,7 +20,6 @@ export interface DiscordUser {
 }
 
 /**
- * Session user type. Matches UserProfile from @/types/session
- * with an additional discriminator field from Discord.
+ * Session user type. Re-exports UserProfile from @/types/session.
  */
 export type { UserProfile as SessionUser } from "@/types/session";

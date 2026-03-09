@@ -324,6 +324,7 @@ module "scheduler" {
   count  = var.enable_snapshot_scheduler ? 1 : 0
   source = "./modules/scheduler"
 
+  project_id        = var.project_id
   region            = var.region
   snapshot_topic_id = module.pubsub.snapshot_requests_topic_id
 

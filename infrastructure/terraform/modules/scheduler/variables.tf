@@ -1,3 +1,8 @@
+variable "project_id" {
+  description = "The GCP project ID (used to look up the project number for IAM bindings)"
+  type        = string
+}
+
 variable "job_name_prefix" {
   description = "Prefix for the Cloud Scheduler job name"
   type        = string

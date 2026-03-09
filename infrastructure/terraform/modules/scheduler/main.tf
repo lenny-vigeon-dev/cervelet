@@ -1,3 +1,22 @@
+# ===========================================================================
+# IAM: Grant Cloud Scheduler service agent publish access to the topic
+# ===========================================================================
+
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+resource "google_pubsub_topic_iam_member" "scheduler_publisher" {
+  project = var.project_id
+  topic   = var.snapshot_topic_id
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
+}
+
+# ===========================================================================
+# Cloud Scheduler Job
+# ===========================================================================
+
 resource "google_cloud_scheduler_job" "canvas_snapshot" {
   name             = "${var.job_name_prefix}-canvas-snapshot"
   description      = "Triggers canvas snapshot generation every ${var.schedule_interval} via Pub/Sub"

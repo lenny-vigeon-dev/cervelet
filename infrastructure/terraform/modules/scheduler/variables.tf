@@ -40,7 +40,12 @@ variable "attempt_deadline" {
 }
 
 variable "snapshot_topic_id" {
-  description = "Full resource ID of the snapshot-requests Pub/Sub topic"
+  description = "Full resource ID of the snapshot-requests Pub/Sub topic (for pubsub_target)"
+  type        = string
+}
+
+variable "snapshot_topic_name" {
+  description = "Short name of the snapshot-requests Pub/Sub topic (for IAM bindings)"
   type        = string
 }
 

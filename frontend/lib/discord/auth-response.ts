@@ -8,15 +8,17 @@ function safeJsonStringify(value: unknown): string {
   return JSON.stringify(value)
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e")
-    .replace(/&/g, "\\u0026");
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
 }
 
 /**
  * Generates an HTML page that:
  * 1. Stores the Discord session in localStorage
  * 2. Exchanges the Discord token for a Firebase Custom Token
- * 3. Signs into Firebase with the custom token
- * 4. Redirects to the canvas page
+ * 3. Stores the Firebase token in localStorage for the React app to consume
+ * 4. Redirects to the canvas page (Firebase sign-in happens in useSession hook)
  *
  * @param user - The session user object
  * @param accessToken - The Discord access token
@@ -66,13 +68,19 @@ export function generateAuthCallbackHTML(
           }),
         });
 
-        if (!response.ok) {
+        if (response.ok) {
+          // 3. Store Firebase custom token for the app to consume on load
+          const data = await response.json();
+          if (data.token) {
+            localStorage.setItem('firebase_custom_token', data.token);
+          }
+        } else {
           const err = await response.json().catch(() => ({}));
           console.warn('Firebase auth skipped:', err.error || response.statusText);
           // Non-fatal: Discord session is stored, canvas still works in read-only
         }
 
-        // 3. Redirect to canvas
+        // 4. Redirect to canvas (Firebase sign-in happens in the React app)
         window.location.href = '/';
       } catch (err) {
         console.error('Auth callback error:', err);

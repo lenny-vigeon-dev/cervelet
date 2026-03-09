@@ -6,8 +6,7 @@ variable "project_id" {
 variable "secrets" {
   description = "Map of secret names to create in Secret Manager (values are managed outside Terraform)"
   type = map(object({
-    description = optional(string, "")
-    accessors   = list(string) # list of IAM members (e.g. serviceAccount:xxx@...)
+    accessors = list(string) # list of IAM members (e.g. serviceAccount:xxx@...)
   }))
 }
 

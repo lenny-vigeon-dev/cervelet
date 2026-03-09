@@ -54,8 +54,13 @@ async function verifyDiscordToken(
 /**
  * HTTP Cloud Function to create Firebase Custom Token.
  *
- * Expects POST request with:
- *   Authorization: Bearer <discord_access_token>
+ * Expects POST request with the Discord access token in the JSON body:
+ *   { "discordAccessToken": "<token>" }
+ *
+ * The Authorization header is reserved for Cloud Run IAM (OIDC ID token)
+ * when the service is invoked by the frontend proxy. A legacy fallback
+ * reads the Discord token from the Authorization header for direct calls
+ * (e.g. local testing).
  *
  * Returns:
  *   { "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..." }
@@ -77,18 +82,26 @@ export const createFirebaseToken = async (req: Request, res: Response) => {
   }
 
   try {
-    // Extract Discord access token from Authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
-      res.status(401).json({
-        error: 'Missing Discord access token. Send Authorization: Bearer <token>',
-      });
-      return;
+    // Extract Discord access token from body (preferred) or Authorization
+    // header (legacy fallback). The frontend proxy sends the OIDC ID token
+    // in Authorization for Cloud Run IAM, so the Discord token lives in the
+    // request body.
+    let accessToken: string | undefined;
+
+    if (req.body?.discordAccessToken && typeof req.body.discordAccessToken === 'string') {
+      accessToken = req.body.discordAccessToken;
+    } else {
+      // Legacy fallback: Authorization header (direct / local testing)
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+        accessToken = authHeader.split(' ')[1];
+      }
     }
 
-    const accessToken = authHeader.split(' ')[1];
     if (!accessToken) {
-      res.status(401).json({ error: 'Invalid Authorization header' });
+      res.status(401).json({
+        error: 'Missing Discord access token. Send as { "discordAccessToken": "<token>" } in the body.',
+      });
       return;
     }
 

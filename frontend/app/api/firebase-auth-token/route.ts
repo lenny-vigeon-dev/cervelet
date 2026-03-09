@@ -1,9 +1,40 @@
 import { NextResponse } from "next/server";
 
 /**
+ * Fetch a Google OIDC ID token from the GCP metadata server.
+ *
+ * On Cloud Run the metadata server is always available. The returned
+ * token authenticates the calling service's SA (`proxy-svc`) to the
+ * target Cloud Run service (firebase-auth-token) via `roles/run.invoker`.
+ *
+ * Returns `null` when not running on GCP (local dev).
+ */
+async function getIdToken(audience: string): Promise<string | null> {
+  const url =
+    `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${audience}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { "Metadata-Flavor": "Google" },
+    });
+    if (res.ok) return res.text();
+
+    console.warn(`Metadata server returned ${res.status} fetching ID token`);
+    return null;
+  } catch {
+    // Metadata server unreachable (local dev / non-GCP environment)
+    return null;
+  }
+}
+
+/**
  * Proxies Firebase Custom Token requests to the firebase-auth-token Cloud Run service.
- * The client sends its Discord access token; the backend verifies it with Discord
- * before minting a Firebase token.
+ *
+ * The client sends its Discord access token in the JSON body. This route:
+ *  1. Obtains a Google OIDC ID token to authenticate to the internal Cloud Run
+ *     service (required because firebase-auth-token is not publicly accessible).
+ *  2. Forwards the Discord token in the request body (NOT the Authorization
+ *     header, which carries the OIDC token for Cloud Run IAM).
  */
 export async function POST(request: Request) {
   try {
@@ -28,13 +59,21 @@ export async function POST(request: Request) {
       );
     }
 
+    // Build headers: OIDC ID token for Cloud Run auth (when on GCP)
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    const idToken = await getIdToken(serviceUrl);
+    if (idToken) {
+      headers["Authorization"] = `Bearer ${idToken}`;
+    }
+
+    // Discord token goes in the body, not the Authorization header
     const response = await fetch(serviceUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${discordAccessToken}`,
-      },
-      body: JSON.stringify({}),
+      headers,
+      body: JSON.stringify({ discordAccessToken }),
     });
 
     if (!response.ok) {

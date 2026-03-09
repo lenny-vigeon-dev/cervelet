@@ -1,5 +1,4 @@
 import { PixelCanvas } from "@/components/pixel-canvas";
-import { APIStatusCard } from "@/components/api-status-card";
 import { AuthCard } from "@/components/auth-card";
 import { FeaturesGrid } from "@/components/features-grid";
 import Link from "next/link";

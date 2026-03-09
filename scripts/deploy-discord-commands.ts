@@ -2,18 +2,20 @@
  * Register Discord slash commands via the REST API.
  *
  * Usage:
- *   DISCORD_TOKEN=... CLIENT_ID=... npx ts-node scripts/deploy-discord-commands.ts
+ *   DISCORD_BOT_TOKEN=... CLIENT_ID=... npx ts-node scripts/deploy-discord-commands.ts
  *   GUILD_ID=... (optional, for guild-specific deployment during development)
+ *
+ * Accepts DISCORD_BOT_TOKEN (preferred) or DISCORD_TOKEN for backward compat.
  *
  * This script does NOT use discord.js -- it calls the Discord REST API directly
  * with plain fetch, keeping the project serverless-compliant.
  */
 
-const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
+const DISCORD_TOKEN = process.env.DISCORD_BOT_TOKEN || process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
 
-if (!DISCORD_TOKEN) throw new Error('DISCORD_TOKEN is required');
+if (!DISCORD_TOKEN) throw new Error('DISCORD_BOT_TOKEN (or DISCORD_TOKEN) is required');
 if (!CLIENT_ID) throw new Error('CLIENT_ID is required');
 
 const API_BASE = 'https://discord.com/api/v10';

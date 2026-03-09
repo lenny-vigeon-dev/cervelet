@@ -127,18 +127,6 @@ module "cloud_run" {
       }
     }
 
-    pixelhub-frontend = {
-      image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/pixelhub-frontend:latest"
-      service_account_email = google_service_account.proxy.email
-      max_instances         = 10
-      memory                = "512Mi"
-      ingress               = "INGRESS_TRAFFIC_ALL"
-      allow_unauthenticated = true
-      env_vars = {
-        NODE_ENV = "production"
-      }
-    }
-
     # firebase-auth-token is intentionally NOT routed through API Gateway.
     # It is an internal token-exchange service invoked by the frontend's
     # server-side API route (/api/firebase-auth-token). The frontend proxies
@@ -165,6 +153,43 @@ module "cloud_run" {
   depends_on = [
     google_project_service.apis,
     module.secrets,
+  ]
+}
+
+# ===========================================================================
+# Frontend (separate module to resolve dependency on firebase-auth-token URL)
+# ===========================================================================
+
+module "cloud_run_frontend" {
+  source = "./modules/cloud-run"
+
+  project_id = var.project_id
+  region     = var.region
+
+  services = {
+    pixelhub-frontend = {
+      image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/pixelhub-frontend:latest"
+      service_account_email = google_service_account.proxy.email
+      max_instances         = 10
+      memory                = "512Mi"
+      ingress               = "INGRESS_TRAFFIC_ALL"
+      allow_unauthenticated = true
+      env_vars = {
+        NODE_ENV                = "production"
+        FIREBASE_AUTH_TOKEN_URL = module.cloud_run.service_urls["firebase-auth-token"]
+      }
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    managed_by  = "terraform"
+    application = "cervelet"
+  }
+
+  depends_on = [
+    google_project_service.apis,
+    module.cloud_run,
   ]
 }
 
@@ -230,26 +255,22 @@ module "secrets" {
 
   secrets = {
     DISCORD_APP_ID = {
-      description = "Discord application ID"
       accessors = [
         "serviceAccount:${google_service_account.proxy.email}",
       ]
     }
     DISCORD_PUBLIC_KEY = {
-      description = "Discord application public key for interaction signature verification"
       accessors = [
         "serviceAccount:${google_service_account.proxy.email}",
       ]
     }
     DISCORD_BOT_TOKEN = {
-      description = "Discord bot token for deferred responses"
       accessors = [
         "serviceAccount:${google_service_account.proxy.email}",
         "serviceAccount:${google_service_account.discord_cmd.email}",
       ]
     }
     FIREBASE_PROJECT_ID = {
-      description = "Firebase project ID"
       accessors = [
         "serviceAccount:${google_service_account.proxy.email}",
       ]

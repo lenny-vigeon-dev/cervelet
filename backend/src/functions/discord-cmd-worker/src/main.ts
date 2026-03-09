@@ -81,9 +81,10 @@ app.post('/', async (req, res) => {
       }),
     );
 
-    // Return 200 to prevent Pub/Sub infinite retries on unrecoverable errors.
-    // Transient errors should throw before reaching here.
-    res.status(200).json({ error: 'Processing failed' });
+    // Return 500 so Pub/Sub retries the message (and eventually routes to DLQ).
+    // Only ACK (200) permanently invalid messages -- those are handled above
+    // (e.g. missing message.data).
+    res.status(500).json({ error: 'Processing failed' });
   }
 });
 

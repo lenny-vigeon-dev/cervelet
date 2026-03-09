@@ -143,11 +143,12 @@ export class FirestoreService {
       }
 
       // 6. Update canvas metadata (totalPixels counter)
-      //    Uses FieldValue.increment so it doesn't conflict with other writes.
-      transaction.update(canvasRef, {
+      //    Uses set+merge so this works even if the canvas doc doesn't exist yet.
+      //    FieldValue.increment creates the field with value 1 if missing.
+      transaction.set(canvasRef, {
         totalPixels: FieldValue.increment(1),
         updatedAt: newTimestamp,
-      });
+      }, { merge: true });
 
       return { success: true };
     });

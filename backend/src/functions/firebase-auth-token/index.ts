@@ -22,7 +22,7 @@ if (!getApps().length) {
           privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
         })
       : applicationDefault(),
-    projectId: process.env.FIREBASE_PROJECT_ID || process.env.GCP_PROJECT,
+    projectId: process.env.FIREBASE_PROJECT_ID || process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT,
   });
 }
 

@@ -26,10 +26,10 @@ resource "google_service_account" "api_gateway_config" {
 # IAM Permission: Allow API Gateway to Invoke Cloud Run Service
 # ============================================================================
 
-resource "google_cloud_run_service_iam_member" "api_gateway_invoker" {
+resource "google_cloud_run_v2_service_iam_member" "api_gateway_invoker" {
   project  = var.project_id
   location = var.region
-  service  = var.proxy_cloud_run_service_name
+  name     = var.proxy_cloud_run_service_name
 
   role   = "roles/run.invoker"
   member = "serviceAccount:${google_service_account.api_gateway_config.email}"
@@ -85,7 +85,7 @@ resource "google_api_gateway_api_config" "api_config" {
   depends_on = [
     google_api_gateway_api.api,
     google_service_account.api_gateway_config,
-    google_cloud_run_service_iam_member.api_gateway_invoker
+    google_cloud_run_v2_service_iam_member.api_gateway_invoker
   ]
 
   lifecycle {

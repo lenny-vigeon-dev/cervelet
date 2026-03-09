@@ -17,10 +17,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Use a dedicated env var for the Cloud Run service URL
-    const serviceUrl =
-      process.env.FIREBASE_AUTH_TOKEN_URL ||
-      `https://firebase-auth-token-${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "serverless-488811"}.run.app`;
+    // Require an explicit env var for the Cloud Run service URL.
+    // The Cloud Run URL format is not derivable; fail fast if not configured.
+    const serviceUrl = process.env.FIREBASE_AUTH_TOKEN_URL;
+    if (!serviceUrl) {
+      console.error("FIREBASE_AUTH_TOKEN_URL environment variable is not set");
+      return NextResponse.json(
+        { error: "Firebase auth token service is not configured" },
+        { status: 500 }
+      );
+    }
 
     const response = await fetch(serviceUrl, {
       method: "POST",

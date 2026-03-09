@@ -25,6 +25,17 @@ service cloud.firestore {
              data.color >= 0 && data.color <= 16777215;  // Valid RGB color (0x000000 to 0xFFFFFF)
     }
 
+    // Check canvas exists and pixel is valid in one call.
+    // exists() short-circuits so get() is only evaluated when the canvas exists.
+    // Firestore caches get()/exists() on the same path, so no extra reads.
+    function canvasExistsAndPixelValid(canvasId) {
+      return exists(/databases/$(database)/documents/canvases/$(canvasId)) &&
+             isValidPixel(
+               get(/databases/$(database)/documents/canvases/$(canvasId)).data.width,
+               get(/databases/$(database)/documents/canvases/$(canvasId)).data.height
+             );
+    }
+
     // Validate required pixel fields
     function hasRequiredPixelFields() {
       let data = request.resource.data;
@@ -57,27 +68,20 @@ service cloud.firestore {
       allow read: if true;
 
       // Authenticated users can create pixels
-      // Validates coordinates against the referenced canvas dimensions
+      // Validates canvas exists and coordinates are within bounds
       allow create: if isAuthenticated() &&
                       hasRequiredPixelFields() &&
                       request.resource.data.userId == request.auth.uid &&
-                      exists(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)) &&
-                      isValidPixel(
-                        get(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)).data.width,
-                        get(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)).data.height
-                      );
+                      canvasExistsAndPixelValid(request.resource.data.canvasId);
 
       // Authenticated users can update pixels
       // Must preserve userId (cannot change pixel ownership)
-      // Validates coordinates and color against canvas dimensions
+      // Validates canvas exists and coordinates are within bounds
       allow update: if isAuthenticated() &&
                       hasRequiredPixelFields() &&
                       request.resource.data.userId == request.auth.uid &&
                       isPixelOwnershipValid() &&
-                      isValidPixel(
-                        get(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)).data.width,
-                        get(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)).data.height
-                      );
+                      canvasExistsAndPixelValid(request.resource.data.canvasId);
 
       // Only admins can delete pixels
       allow delete: if isAdmin();

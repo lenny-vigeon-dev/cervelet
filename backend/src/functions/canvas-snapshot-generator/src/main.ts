@@ -97,8 +97,10 @@ app.post('/', async (req: Request, res: Response) => {
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('Error generating snapshot from Pub/Sub:', error);
-    // Return 200 to prevent Pub/Sub retries on unrecoverable errors
-    res.status(200).json({
+    // Return 500 so Pub/Sub retries the message (and eventually routes to DLQ).
+    // Only ACK (200) permanently invalid messages -- those are handled above
+    // (e.g. unparseable Pub/Sub data falls through to the default canvasId).
+    res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     });

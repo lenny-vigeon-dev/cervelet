@@ -1,6 +1,6 @@
 export const config = {
   // GCP Project ID
-  projectId: process.env.GCP_PROJECT_ID || process.env.GCLOUD_PROJECT || 'serverless-488811',
+  projectId: process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || 'serverless-488811',
 
   // Firestore configuration
   firestore: {

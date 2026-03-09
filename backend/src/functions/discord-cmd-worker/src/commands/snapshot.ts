@@ -18,7 +18,7 @@ export async function handleSnapshot(payload: DiscordCommandPayload): Promise<vo
     // Optionally trigger a fresh snapshot generation
     if (CONFIG.snapshotGeneratorUrl) {
       try {
-        const res = await fetch(CONFIG.snapshotGeneratorUrl, {
+        const res = await fetch(`${CONFIG.snapshotGeneratorUrl}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ canvasId: CONFIG.canvasId }),
@@ -62,7 +62,7 @@ export async function handleSnapshot(payload: DiscordCommandPayload): Promise<vo
       applicationId,
       interactionToken,
       'Here is the latest canvas snapshot:',
-      CONFIG.snapshotUrl,
+      snapshotUrl,
     );
 
     console.log(

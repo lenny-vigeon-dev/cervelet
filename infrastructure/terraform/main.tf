@@ -100,6 +100,7 @@ module "cloud_run" {
       service_account_email = google_service_account.write_pixels.email
       max_instances         = 20
       memory                = "256Mi"
+      ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
       env_vars = {
         GCP_PROJECT_ID         = var.project_id
         SNAPSHOT_TRIGGER_TOPIC = "snapshot-requests"
@@ -112,6 +113,7 @@ module "cloud_run" {
       max_instances         = 5
       memory                = "1Gi"
       timeout               = "540s"
+      ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
       env_vars = {
         GCP_PROJECT_ID = var.project_id
       }
@@ -122,6 +124,7 @@ module "cloud_run" {
       service_account_email = google_service_account.discord_cmd.email
       max_instances         = 10
       memory                = "256Mi"
+      ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
       env_vars = {
         GCP_PROJECT_ID = var.project_id
       }

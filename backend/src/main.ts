@@ -7,13 +7,20 @@ async function bootstrap() {
     rawBody: true,
   });
 
-  // Enable CORS -- restrict origin in production via CORS_ORIGIN env var
-  const allowedOrigin = process.env.CORS_ORIGIN || '*';
+  // Enable CORS -- restrict origin in production via CORS_ORIGIN env var.
+  // When origin is '*', credentials must be omitted (browsers reject
+  // Access-Control-Allow-Credentials: true with a wildcard origin).
+  const configuredOrigin = process.env.CORS_ORIGIN || '*';
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', allowedOrigin);
+    const origin = configuredOrigin === '*' ? '*' : configuredOrigin;
+    res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, x-api-key');
-    res.header('Access-Control-Allow-Credentials', 'true');
+
+    if (configuredOrigin !== '*') {
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header('Vary', 'Origin');
+    }
 
     // Handle preflight OPTIONS request
     if (req.method === 'OPTIONS') {

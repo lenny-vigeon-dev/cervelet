@@ -50,20 +50,13 @@ infrastructure/
 ├── .terraform.lock.hcl        # Provider version lock file
 └── modules/                   # Reusable Terraform modules
     ├── api-gateway/           # API Gateway module
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   ├── openapi.yaml       # API routing specification
-    │   └── README.md
+    ├── cloud-run/             # Cloud Run services module
     ├── firestore/             # Firestore database module
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   ├── outputs.tf
-    │   └── README.md
-    └── pubsub/                # Pub/Sub topics module
-        ├── main.tf
-        ├── variables.tf
-        ├── outputs.tf
-        └── README.md
+    ├── monitoring/            # Cloud Monitoring alerts & dashboard
+    ├── pubsub/                # Pub/Sub topics & push subscriptions
+    ├── scheduler/             # Cloud Scheduler for snapshots
+    ├── secrets/               # Secret Manager module
+    └── storage/               # Cloud Storage for snapshots
 ```
 
 ## Modules
@@ -119,12 +112,6 @@ cp terraform.tfvars.example terraform.tfvars
 Edit `terraform.tfvars` and set:
 - `project_id`: Your GCP project ID (default: `serverless-488811`)
 - `region`: Your deployment region (default: `europe-west1`)
-- **`proxy_cloud_run_service_url`**: **REQUIRED** - Get the cf-proxy URL:
-  ```bash
-  gcloud run services describe cf-proxy \
-    --region=europe-west1 \
-    --format='value(status.url)'
-  ```
 
 ### 2. Initialize Terraform
 
@@ -169,25 +156,11 @@ Key outputs:
 
 ### API Gateway Setup
 
-The API Gateway requires the cf-proxy Cloud Run service to exist. If you haven't deployed it yet:
-
-1. **Deploy cf-proxy first**:
-   ```bash
-   cd ../backend
-   # Deploy your Cloud Run service
-   ```
-
-2. **Get the service URL**:
-   ```bash
-   gcloud run services describe cf-proxy \
-     --region=europe-west1 \
-     --format='value(status.url)'
-   ```
-
-3. **Add to terraform.tfvars**:
-   ```hcl
-   proxy_cloud_run_service_url = "https://cf-proxy-xxxxx-ew.a.run.app"
-   ```
+The API Gateway routes public traffic to the `cf-proxy` Cloud Run service.
+Terraform derives the proxy URL automatically from the `cloud_run` module
+outputs (`module.cloud_run.service_urls["cf-proxy"]`), so no manual URL
+configuration is needed. Simply deploy cf-proxy container images before
+running `terraform apply`.
 
 ### Variable Customization
 
@@ -195,24 +168,17 @@ Edit `terraform.tfvars` to customize:
 
 ```hcl
 # Core settings
-project_id = "your-project-id"
-region     = "europe-west1"
+project_id  = "your-project-id"
+region      = "europe-west1"
 environment = "prod"  # dev, staging, or prod
 
 # API Gateway
-proxy_cloud_run_service_name = "cf-proxy"
-proxy_cloud_run_service_url  = "https://cf-proxy-xxxxx.run.app"
 api_gateway_id = "cervelet-api-gateway"
 
 # Firestore
-firestore_location = "europe-west1"
+firestore_location         = "europe-west1"
 firestore_concurrency_mode = "OPTIMISTIC"
-firestore_enable_pitr = true
-
-# Access control
-invokers = [
-  "user:your-email@example.com"
-]
+firestore_enable_pitr      = true
 ```
 
 ## State Management
@@ -284,14 +250,14 @@ terraform init -reconfigure
 
 ### Issue: API Gateway deployment fails
 
-**Cause**: cf-proxy service doesn't exist or URL is incorrect
+**Cause**: cf-proxy Cloud Run service doesn't exist yet (Terraform derives the URL automatically)
 
 **Solution**:
-1. Verify cf-proxy exists:
+1. Verify cf-proxy has been deployed:
    ```bash
    gcloud run services list --region=europe-west1
    ```
-2. Update `proxy_cloud_run_service_url` in `terraform.tfvars`
+2. If missing, deploy the backend first, then re-run `terraform apply`
 
 ### Issue: "Permission denied" on state bucket
 
@@ -367,6 +333,6 @@ For issues or questions:
 
 ---
 
-**Last Updated**: 2025-11-14
+**Last Updated**: 2026-03-09
 **Terraform Version**: >= 1.5
-**GCP Provider Version**: ~> 5.0
+**GCP Provider Version**: ~> 6.0

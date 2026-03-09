@@ -1,4 +1,7 @@
 terraform {
+  # NOTE: The backend bucket is hardcoded because Terraform's backend block
+  # does not support variables or interpolation. To deploy to a different
+  # project, override via: terraform init -backend-config="bucket=<bucket>"
   backend "gcs" {
     bucket = "serverless-488811-terraform-state-bucket"
     prefix = "serverless/state"

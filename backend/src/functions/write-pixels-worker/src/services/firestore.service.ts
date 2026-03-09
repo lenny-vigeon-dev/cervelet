@@ -75,11 +75,15 @@ export class FirestoreService {
     const historyRef = this.db.collection(PIXEL_HISTORY_COLLECTION).doc();
 
     return this.db.runTransaction(async (transaction) => {
-      // 1. Read user document to check cooldown INSIDE the transaction
-      const userSnapshot = await transaction.get(userRef);
+      // 1. Read user and pixel documents INSIDE the transaction
+      const [userSnapshot, pixelSnapshot] = await Promise.all([
+        transaction.get(userRef),
+        transaction.get(pixelRef),
+      ]);
       const existingUser = userSnapshot.exists
         ? (userSnapshot.data() as UserDoc)
         : null;
+      const isNewPixel = !pixelSnapshot.exists;
 
       // 2. Enforce rate limit (cooldown check within transaction prevents TOCTOU race)
       if (existingUser?.lastPixelPlaced) {
@@ -142,13 +146,17 @@ export class FirestoreService {
         transaction.set(userRef, newUserData);
       }
 
-      // 6. Update canvas metadata (totalPixels counter)
+      // 6. Update canvas metadata
       //    Uses set+merge so this works even if the canvas doc doesn't exist yet.
-      //    FieldValue.increment creates the field with value 1 if missing.
-      transaction.set(canvasRef, {
-        totalPixels: FieldValue.increment(1),
+      //    Only increment totalPixels when placing a pixel at a new coordinate
+      //    to avoid drift from overwrites of existing pixels.
+      const canvasUpdate: Record<string, unknown> = {
         updatedAt: newTimestamp,
-      }, { merge: true });
+      };
+      if (isNewPixel) {
+        canvasUpdate.totalPixels = FieldValue.increment(1);
+      }
+      transaction.set(canvasRef, canvasUpdate, { merge: true });
 
       return { success: true };
     });

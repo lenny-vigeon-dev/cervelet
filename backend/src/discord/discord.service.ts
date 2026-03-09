@@ -8,7 +8,6 @@ import {
   type ApplicationCommandOptionData,
   InteractionType,
   InteractionResponseType,
-  ApplicationCommandOptionType,
   COLOR_MAP,
   EPHEMERAL_FLAG,
   ADMINISTRATOR_PERMISSION,
@@ -173,8 +172,8 @@ export class DiscordService {
     };
 
     // Publish asynchronously -- don't await, we need to respond within 3s
-    this.publishToTopic(this.pixelTopic, payload).catch((err) => {
-      this.logger.error(`Failed to publish /draw to Pub/Sub: ${err.message}`);
+    this.publishToTopic(this.pixelTopic, payload).catch((err: unknown) => {
+      this.logger.error(`Failed to publish /draw to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
     });
 
     return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
@@ -193,8 +192,8 @@ export class DiscordService {
       channelId: interaction.channel_id,
     };
 
-    this.publishToTopic(this.cmdTopic, payload).catch((err) => {
-      this.logger.error(`Failed to publish /snapshot to Pub/Sub: ${err.message}`);
+    this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
+      this.logger.error(`Failed to publish /snapshot to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
     });
 
     return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
@@ -231,8 +230,8 @@ export class DiscordService {
       channelId: interaction.channel_id,
     };
 
-    this.publishToTopic(this.cmdTopic, payload).catch((err) => {
-      this.logger.error(`Failed to publish /session to Pub/Sub: ${err.message}`);
+    this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
+      this.logger.error(`Failed to publish /session to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
     });
 
     return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
@@ -251,8 +250,8 @@ export class DiscordService {
       channelId: interaction.channel_id,
     };
 
-    this.publishToTopic(this.cmdTopic, payload).catch((err) => {
-      this.logger.error(`Failed to publish /canvas to Pub/Sub: ${err.message}`);
+    this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
+      this.logger.error(`Failed to publish /canvas to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
     });
 
     return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };

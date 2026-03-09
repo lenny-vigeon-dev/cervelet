@@ -16,7 +16,7 @@ export const DEFAULT_CANVAS_ID = 'main-canvas';
 export const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || '';
 
 // Google Cloud Project ID (GOOGLE_CLOUD_PROJECT is auto-set by Cloud Run)
-export const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT_ID || 'serverless-488811';
+export const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT_ID || 'serverless-488811';
 
 // Discord API Base URL
 export const DISCORD_API_BASE_URL = 'https://discord.com/api/v10';

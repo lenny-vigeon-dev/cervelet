@@ -98,7 +98,8 @@ module "cloud_run" {
       max_instances         = 20
       memory                = "256Mi"
       env_vars = {
-        GCP_PROJECT_ID = var.project_id
+        GCP_PROJECT_ID         = var.project_id
+        SNAPSHOT_TRIGGER_TOPIC = "snapshot-requests"
       }
     }
 

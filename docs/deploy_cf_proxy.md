@@ -104,15 +104,15 @@ Cloud Build is used instead of local Docker builds because:
 
 ### Environment Variables
 
-- `NODE_ENV=production`
-- `GCP_PROJECT=serverless-488811`
-- `PORT=8080` (set by Cloud Run)
+- `GCP_PROJECT_ID` -- set by Terraform to the project ID
+- `PORT=8080` (set automatically by Cloud Run)
+- Secrets (`DISCORD_APP_ID`, `DISCORD_PUBLIC_KEY`, `DISCORD_BOT_TOKEN`) are mounted from Secret Manager
 
 ### Service Account
 
 The service runs as `proxy-svc@serverless-488811.iam.gserviceaccount.com` which has:
-- Firestore access (`roles/datastore.user`)
-- Cloud Run invoker permissions for downstream services
+- Pub/Sub publisher (`roles/pubsub.publisher`) -- publishes events to topic queues
+- Cloud Run invoker (`roles/run.invoker`) -- invokes internal services
 
 ## Troubleshooting
 
@@ -179,13 +179,7 @@ https://cf-proxy-d7nhytzhtq-ew.a.run.app
 
 After deploying `cf-proxy`, you need to:
 
-1. **Update Terraform variables** with the service URL:
-   ```hcl
-   # infrastructure/terraform/terraform.tfvars
-   proxy_cloud_run_service_url = "https://cf-proxy-d7nhytzhtq-ew.a.run.app"
-   ```
-
-2. **Deploy API Gateway** to route public traffic to cf-proxy:
+1. **Deploy API Gateway** via Terraform (it derives the proxy URL automatically):
    ```bash
    cd infrastructure/terraform
    terraform init

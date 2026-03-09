@@ -57,18 +57,27 @@ service cloud.firestore {
       allow read: if true;
 
       // Authenticated users can create pixels
+      // Validates coordinates against the referenced canvas dimensions
       allow create: if isAuthenticated() &&
                       hasRequiredPixelFields() &&
                       request.resource.data.userId == request.auth.uid &&
-                      exists(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId));
+                      exists(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)) &&
+                      isValidPixel(
+                        get(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)).data.width,
+                        get(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)).data.height
+                      );
 
       // Authenticated users can update pixels
       // Must preserve userId (cannot change pixel ownership)
-      // Must validate coordinates and color
+      // Validates coordinates and color against canvas dimensions
       allow update: if isAuthenticated() &&
                       hasRequiredPixelFields() &&
                       request.resource.data.userId == request.auth.uid &&
-                      isPixelOwnershipValid();
+                      isPixelOwnershipValid() &&
+                      isValidPixel(
+                        get(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)).data.width,
+                        get(/databases/$(database)/documents/canvases/$(request.resource.data.canvasId)).data.height
+                      );
 
       // Only admins can delete pixels
       allow delete: if isAdmin();

@@ -19,6 +19,16 @@ const WRITE_ENDPOINT =
 
 const API_KEY = process.env.NEXT_PUBLIC_API_GATEWAY_KEY || "";
 
+// When targeting the API Gateway, the key is required for all non-exempt
+// endpoints (see openapi.yaml). Fail fast so misconfiguration surfaces
+// immediately rather than as a confusing 401/403 at runtime.
+const TARGETS_API_GATEWAY = Boolean(process.env.NEXT_PUBLIC_API_URL);
+if (TARGETS_API_GATEWAY && !API_KEY) {
+  console.error(
+    "NEXT_PUBLIC_API_GATEWAY_KEY is required when NEXT_PUBLIC_API_URL targets the API Gateway",
+  );
+}
+
 /**
  * Write a pixel via the serverless worker (Discord token is validated server-side).
  * This avoids Firebase Auth on the client while still enforcing cooldowns on the backend.

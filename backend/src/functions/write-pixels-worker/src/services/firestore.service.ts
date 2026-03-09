@@ -75,11 +75,19 @@ export class FirestoreService {
     const historyRef = this.db.collection(PIXEL_HISTORY_COLLECTION).doc();
 
     return this.db.runTransaction(async (transaction) => {
-      // 1. Read user and pixel documents INSIDE the transaction
-      const [userSnapshot, pixelSnapshot] = await Promise.all([
+      // 1. Read user, pixel, and canvas documents INSIDE the transaction
+      const [userSnapshot, pixelSnapshot, canvasSnapshot] = await Promise.all([
         transaction.get(userRef),
         transaction.get(pixelRef),
+        transaction.get(canvasRef),
       ]);
+
+      // Fail fast if the canvas document doesn't exist -- pixels can only
+      // be placed on a canvas that was created by an admin.
+      if (!canvasSnapshot.exists) {
+        throw new Error(`Canvas "${canvasId}" does not exist`);
+      }
+
       const existingUser = userSnapshot.exists
         ? (userSnapshot.data() as UserDoc)
         : null;
@@ -146,8 +154,7 @@ export class FirestoreService {
         transaction.set(userRef, newUserData);
       }
 
-      // 6. Update canvas metadata
-      //    Uses set+merge so this works even if the canvas doc doesn't exist yet.
+      // 6. Update canvas metadata (canvas existence verified in step 1)
       //    Only increment totalPixels when placing a pixel at a new coordinate
       //    to avoid drift from overwrites of existing pixels.
       const canvasUpdate: Record<string, unknown> = {
@@ -156,7 +163,7 @@ export class FirestoreService {
       if (isNewPixel) {
         canvasUpdate.totalPixels = FieldValue.increment(1);
       }
-      transaction.set(canvasRef, canvasUpdate, { merge: true });
+      transaction.update(canvasRef, canvasUpdate);
 
       return { success: true };
     });

@@ -165,7 +165,7 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
                   y,
                   color: colorHex,
                   authorId: data.userId || 'unknown',
-                  updatedAt: data.lastUpdatedAt?.toDate().toISOString() || new Date().toISOString(),
+                  updatedAt: data.updatedAt?.toDate().toISOString() || new Date().toISOString(),
                 };
 
                 setState((prev) => {

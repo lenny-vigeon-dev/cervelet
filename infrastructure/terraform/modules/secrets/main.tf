@@ -19,7 +19,7 @@ resource "google_secret_manager_secret" "secrets" {
 
 # Grant secretAccessor role to the specified service accounts
 resource "google_secret_manager_secret_iam_member" "accessor" {
-  for_each = merge([
+  for_each = merge({}, [
     for secret_key, secret in var.secrets : {
       for accessor in secret.accessors :
       "${secret_key}--${accessor}" => {

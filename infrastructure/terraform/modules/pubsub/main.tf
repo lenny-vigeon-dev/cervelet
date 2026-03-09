@@ -104,7 +104,10 @@ resource "google_pubsub_subscription" "discord_cmd_requests_sub" {
 
   labels = var.labels
 
-  ack_deadline_seconds       = 30
+  # Match the Cloud Run default timeout (300s). Some commands like
+  # /session reset perform batch deletes that can exceed 30s; a short
+  # ack deadline causes premature retries and duplicate work.
+  ack_deadline_seconds       = 300
   message_retention_duration = "604800s"
 
   push_config {

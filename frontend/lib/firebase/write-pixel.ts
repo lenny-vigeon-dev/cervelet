@@ -20,14 +20,10 @@ const WRITE_ENDPOINT =
 const API_KEY = process.env.NEXT_PUBLIC_API_GATEWAY_KEY || "";
 
 // When targeting the API Gateway, the key is required for all non-exempt
-// endpoints (see openapi.yaml). Fail fast so misconfiguration surfaces
-// immediately rather than as a confusing 401/403 at runtime.
+// endpoints (see openapi.yaml). Detect once at module load so writePixel()
+// can return a clear error instead of a confusing 401/403 from the gateway.
 const TARGETS_API_GATEWAY = Boolean(process.env.NEXT_PUBLIC_API_URL);
-if (TARGETS_API_GATEWAY && !API_KEY) {
-  console.error(
-    "NEXT_PUBLIC_API_GATEWAY_KEY is required when NEXT_PUBLIC_API_URL targets the API Gateway",
-  );
-}
+const MISSING_API_KEY = TARGETS_API_GATEWAY && !API_KEY;
 
 /**
  * Write a pixel via the serverless worker (Discord token is validated server-side).
@@ -35,6 +31,13 @@ if (TARGETS_API_GATEWAY && !API_KEY) {
  */
 export async function writePixel(params: WritePixelParams): Promise<WritePixelResult> {
   const { x, y, color } = params;
+
+  if (MISSING_API_KEY) {
+    return {
+      success: false,
+      error: "Server misconfiguration: API Gateway key is not set",
+    };
+  }
 
   if (!Number.isInteger(x) || !Number.isInteger(y)) {
     return { success: false, error: "Coordinates must be integers" };

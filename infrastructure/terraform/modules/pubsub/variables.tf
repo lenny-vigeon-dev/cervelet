@@ -34,16 +34,31 @@ variable "write_pixels_sa_email" {
   description = "Service account email for write-pixels-worker push subscription"
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.write_pixels_sa_email != "" || var.write_pixels_worker_url == ""
+    error_message = "write_pixels_sa_email must be set when write_pixels_worker_url is provided."
+  }
 }
 
 variable "discord_cmd_sa_email" {
   description = "Service account email for discord-cmd-worker push subscription"
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.discord_cmd_sa_email != "" || var.discord_cmd_worker_url == ""
+    error_message = "discord_cmd_sa_email must be set when discord_cmd_worker_url is provided."
+  }
 }
 
 variable "snapshot_sa_email" {
   description = "Service account email for snapshot-generator push subscription"
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.snapshot_sa_email != "" || var.snapshot_generator_url == ""
+    error_message = "snapshot_sa_email must be set when snapshot_generator_url is provided."
+  }
 }

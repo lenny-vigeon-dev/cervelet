@@ -54,7 +54,11 @@ export async function GET(request: NextRequest) {
     const html = generateAuthCallbackHTML(sessionUser, tokenData.access_token);
 
     const response = new NextResponse(html, {
-      headers: { "Content-Type": "text/html" },
+      headers: {
+        "Content-Type": "text/html",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Pragma": "no-cache",
+      },
     });
 
     // Clear the CSRF cookie

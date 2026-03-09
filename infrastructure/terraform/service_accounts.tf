@@ -33,7 +33,13 @@ resource "google_service_account" "discord_cmd" {
 }
 
 // ===========================================================================
-// Project-level IAM bindings (least-privilege)
+// Project-level IAM bindings
+// ---------------------------------------------------------------------------
+// Roles are granted at the project level for simplicity. This means each SA
+// can act on any resource of that type in the project (e.g. run.invoker
+// allows invoking any Cloud Run service). For a single-project deployment
+// this is acceptable; scope bindings to individual resources if the project
+// grows or multiple tenants share the project.
 // ===========================================================================
 
 // --- proxy-svc ---

@@ -1,10 +1,17 @@
 // Service accounts for serverless functions
 // Names follow convention: <module>-svc@<project>.iam.gserviceaccount.com
+//
+// Design decision: proxy-svc is shared by cf-proxy, pixelhub-frontend, and
+// firebase-auth-token. All three need Pub/Sub publish + Cloud Run invoke and
+// have no write access to Firestore. A dedicated SA per service would add
+// granularity but no practical privilege reduction at the current scale.
+// This is acceptable for the project scope and can be split later if the
+// services diverge in permission requirements.
 
 resource "google_service_account" "proxy" {
   account_id   = "proxy-svc"
   display_name = "proxy service account"
-  description  = "Service account for the cf-proxy Cloud Run service. Publishes events to Pub/Sub and invokes internal services."
+  description  = "Service account for cf-proxy, pixelhub-frontend, and firebase-auth-token. Publishes events to Pub/Sub and invokes internal services."
 }
 
 resource "google_service_account" "write_pixels" {

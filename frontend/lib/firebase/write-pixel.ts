@@ -24,8 +24,13 @@ const WRITE_ENDPOINT =
 export async function writePixel(params: WritePixelParams): Promise<WritePixelResult> {
   const { x, y, color } = params;
 
+  if (!Number.isInteger(x) || !Number.isInteger(y)) {
+    return { success: false, error: "Coordinates must be integers" };
+  }
+
+  // Canvas bounds are enforced server-side; reject obviously invalid values
   if (x < 0 || y < 0) {
-    return { success: false, error: "Invalid coordinates" };
+    return { success: false, error: "Coordinates must be non-negative" };
   }
 
   if (color < 0 || color > 0xFFFFFF) {

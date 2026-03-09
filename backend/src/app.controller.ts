@@ -9,7 +9,13 @@ interface WritePixelDto {
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  private readonly maxX: number;
+  private readonly maxY: number;
+
+  constructor(private readonly appService: AppService) {
+    this.maxX = parseInt(process.env.CANVAS_MAX_X || '1000', 10);
+    this.maxY = parseInt(process.env.CANVAS_MAX_Y || '1000', 10);
+  }
 
   @Get('health')
   health() {
@@ -38,6 +44,18 @@ export class AppController {
 
     if (body.color < 0 || body.color > 0xFFFFFF) {
       throw new HttpException('Color must be between 0 and 16777215 (0xFFFFFF)', HttpStatus.BAD_REQUEST);
+    }
+
+    // Validate coordinate bounds against canvas dimensions
+    if (!Number.isInteger(body.x) || !Number.isInteger(body.y)) {
+      throw new HttpException('Coordinates must be integers', HttpStatus.BAD_REQUEST);
+    }
+
+    if (body.x < 0 || body.x >= this.maxX || body.y < 0 || body.y >= this.maxY) {
+      throw new HttpException(
+        `Coordinates out of bounds. X must be 0-${this.maxX - 1}, Y must be 0-${this.maxY - 1}`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     // Publish to Pub/Sub

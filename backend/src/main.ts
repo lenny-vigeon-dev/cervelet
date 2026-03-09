@@ -7,11 +7,12 @@ async function bootstrap() {
     rawBody: true,
   });
 
-  // Enable CORS with manual middleware for better control
+  // Enable CORS -- restrict origin in production via CORS_ORIGIN env var
+  const allowedOrigin = process.env.CORS_ORIGIN || '*';
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Origin', allowedOrigin);
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, x-api-key');
     res.header('Access-Control-Allow-Credentials', 'true');
 
     // Handle preflight OPTIONS request

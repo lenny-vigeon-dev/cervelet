@@ -49,31 +49,7 @@ service cloud.firestore {
     }
 
     // ===========================================
-    // CANVAS COLLECTION (Real-time pixel data)
-    // ===========================================
-    // Canvas pixels stored as {x}_{y} document IDs
-    match /canvas/{pixelId} {
-      // Anyone can read canvas pixels (public viewing + real-time updates)
-      allow read: if true;
-
-      // Authenticated users can write pixels (Discord users via Firebase Custom Token)
-      // Validation: check required fields and valid color range
-      // Also verify that userId matches the authenticated user's Discord ID
-      allow create, update: if isAuthenticated() &&
-                              request.resource.data.keys().hasAll(['canvasId', 'x', 'y', 'color', 'userId', 'lastUpdatedAt']) &&
-                              request.resource.data.userId == request.auth.uid &&
-                              request.resource.data.x is int &&
-                              request.resource.data.y is int &&
-                              request.resource.data.color is int &&
-                              request.resource.data.color >= 0 &&
-                              request.resource.data.color <= 16777215;
-
-      // Only admins can delete pixels
-      allow delete: if isAdmin();
-    }
-
-    // ===========================================
-    // PIXELS COLLECTION (Legacy - keeping for compatibility)
+    // PIXELS COLLECTION (Primary pixel storage)
     // ===========================================
     // Individual pixels - readable by all, writable by authenticated users
     match /pixels/{pixelId} {

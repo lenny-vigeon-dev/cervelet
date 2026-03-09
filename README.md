@@ -78,7 +78,7 @@ cervelet/
 │           ├── write-pixels-worker/  # Pub/Sub -> Firestore pixel writes
 │           ├── discord-cmd-worker/   # Discord command processor
 │           ├── canvas-snapshot-generator/ # Firestore -> PNG snapshots
-│           └── firebase-auth-token/  # Discord -> Firebase custom tokens
+│           └── firebase-auth-token/  # Discord -> Firebase custom tokens (internal, not routed via API Gateway)
 ├── frontend/                         # Next.js 16 (App Router, standalone)
 │   ├── app/                          # Pages, layouts, API routes
 │   ├── components/                   # React components
@@ -183,6 +183,12 @@ terraform apply
 - [Firestore Setup Guide](docs/database/firestore-setup.md)
 - [Firestore Data Model](docs/database/firestore-data-model.md)
 - [OAuth Authentication](docs/oauth-authentication.md)
+- [Firebase Auth + Discord Setup](docs/firebase-auth-discord-setup.md)
+- [Cloud Storage Setup](docs/cloud-storage-setup.md)
+- [Real-time Canvas Setup](docs/realtime-canvas-setup.md)
+- [Frontend Pixel Writing](docs/frontend-pixel-writing.md)
+- [cf-proxy Deployment](docs/deploy_cf_proxy.md)
+- [DNS Setup Guide](docs/DNS-SETUP-GUIDE.md)
 
 ## Security
 

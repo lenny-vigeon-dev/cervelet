@@ -40,7 +40,7 @@ variable "queue_depth_threshold" {
 }
 
 variable "function_error_rate_threshold" {
-  description = "Threshold for function error rate (percentage)"
+  description = "Threshold for Cloud Run non-2xx error rate (errors per second)"
   type        = number
   default     = 5
 }
@@ -52,7 +52,7 @@ variable "function_execution_time_threshold_ms" {
 }
 
 variable "api_error_rate_threshold" {
-  description = "Threshold for API Gateway error rate (percentage)"
+  description = "Threshold for API Gateway 4xx/5xx error rate (errors per second)"
   type        = number
   default     = 5
 }

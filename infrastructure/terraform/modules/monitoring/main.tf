@@ -39,7 +39,7 @@ resource "google_monitoring_alert_policy" "service_error_rate" {
   combiner     = "OR"
 
   conditions {
-    display_name = "Error rate > ${var.function_error_rate_threshold}%"
+    display_name = "Error rate > ${var.function_error_rate_threshold} errors/sec"
 
     condition_threshold {
       filter          = "resource.type = \"cloud_run_revision\" AND resource.labels.service_name = \"${each.value}\" AND metric.type = \"run.googleapis.com/request_count\" AND metric.labels.response_code_class != \"2xx\""
@@ -58,7 +58,7 @@ resource "google_monitoring_alert_policy" "service_error_rate" {
   notification_channels = var.notification_channels
 
   documentation {
-    content   = "Cloud Run service ${each.value} error rate exceeds ${var.function_error_rate_threshold}%."
+    content   = "Cloud Run service ${each.value} error rate exceeds ${var.function_error_rate_threshold} errors/sec."
     mime_type = "text/markdown"
   }
 }
@@ -105,7 +105,7 @@ resource "google_monitoring_alert_policy" "api_gateway_errors" {
   combiner     = "OR"
 
   conditions {
-    display_name = "4xx/5xx error rate > ${var.api_error_rate_threshold}%"
+    display_name = "4xx/5xx error rate > ${var.api_error_rate_threshold} errors/sec"
 
     condition_threshold {
       filter          = "resource.type = \"apigateway.googleapis.com/Gateway\" AND resource.labels.gateway_id = \"${var.api_gateway_name}\" AND metric.type = \"apigateway.googleapis.com/gateway/response_count\" AND metric.labels.response_code_class = \"4xx\" OR metric.labels.response_code_class = \"5xx\""
@@ -124,7 +124,7 @@ resource "google_monitoring_alert_policy" "api_gateway_errors" {
   notification_channels = var.notification_channels
 
   documentation {
-    content   = "API Gateway ${var.api_gateway_name} error rate (4xx/5xx) exceeds ${var.api_error_rate_threshold}%."
+    content   = "API Gateway ${var.api_gateway_name} error rate (4xx/5xx) exceeds ${var.api_error_rate_threshold} errors/sec."
     mime_type = "text/markdown"
   }
 }

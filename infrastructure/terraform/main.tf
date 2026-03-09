@@ -139,6 +139,12 @@ module "cloud_run" {
       }
     }
 
+    # firebase-auth-token is intentionally NOT routed through API Gateway.
+    # It is an internal token-exchange service invoked by the frontend's
+    # server-side API route (/api/firebase-auth-token). The frontend proxies
+    # the request, so the Cloud Run service stays internal-only. The function
+    # validates the Discord OAuth access token against Discord's API before
+    # minting a Firebase Custom Token, providing its own authentication layer.
     firebase-auth-token = {
       image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/firebase-auth-token:latest"
       service_account_email = google_service_account.proxy.email

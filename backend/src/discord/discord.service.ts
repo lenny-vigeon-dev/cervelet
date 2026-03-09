@@ -26,7 +26,7 @@ export class DiscordService {
 
   constructor() {
     this.pubsub = new PubSub({
-      projectId: process.env.GCP_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || 'serverless-488811',
+      projectId: process.env.GCP_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || 'serverless-488811',
     });
 
     this.pixelTopic = process.env.PIXEL_TOPIC || 'write-pixel-requests';

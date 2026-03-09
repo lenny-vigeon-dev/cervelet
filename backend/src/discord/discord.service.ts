@@ -31,8 +31,12 @@ export class DiscordService {
 
     this.pixelTopic = process.env.PIXEL_TOPIC || 'write-pixel-requests';
     this.cmdTopic = process.env.DISCORD_CMD_TOPIC || 'discord-cmd-requests';
-    this.maxX = parseInt(process.env.CANVAS_MAX_X || '1000', 10);
-    this.maxY = parseInt(process.env.CANVAS_MAX_Y || '1000', 10);
+
+    const DEFAULT_MAX = 1000;
+    const parsedX = parseInt(process.env.CANVAS_MAX_X || '', 10);
+    const parsedY = parseInt(process.env.CANVAS_MAX_Y || '', 10);
+    this.maxX = Number.isNaN(parsedX) ? DEFAULT_MAX : parsedX;
+    this.maxY = Number.isNaN(parsedY) ? DEFAULT_MAX : parsedY;
   }
 
   /**

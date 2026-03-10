@@ -58,8 +58,6 @@ resource "google_pubsub_topic" "pixel_updates_events" {
 
 # Write Pixel Requests -> write-pixels-worker
 resource "google_pubsub_subscription" "write_pixel_requests_sub" {
-  count = var.write_pixels_worker_url != "" ? 1 : 0
-
   name    = "write-pixel-requests-sub"
   topic   = google_pubsub_topic.write_pixel_requests.id
   project = var.project_id
@@ -96,8 +94,6 @@ resource "google_pubsub_subscription" "write_pixel_requests_sub" {
 
 # Discord Command Requests -> discord-cmd-worker
 resource "google_pubsub_subscription" "discord_cmd_requests_sub" {
-  count = var.discord_cmd_worker_url != "" ? 1 : 0
-
   name    = "discord-cmd-requests-sub"
   topic   = google_pubsub_topic.discord_cmd_requests.id
   project = var.project_id
@@ -137,8 +133,6 @@ resource "google_pubsub_subscription" "discord_cmd_requests_sub" {
 
 # Snapshot Requests -> canvas-snapshot-generator
 resource "google_pubsub_subscription" "snapshot_requests_sub" {
-  count = var.snapshot_generator_url != "" ? 1 : 0
-
   name    = "snapshot-requests-sub"
   topic   = google_pubsub_topic.snapshot_requests.id
   project = var.project_id
@@ -220,7 +214,6 @@ locals {
 # Publisher on DLQ topics
 
 resource "google_pubsub_topic_iam_member" "write_pixel_dlq_publisher" {
-  count   = var.write_pixels_worker_url != "" ? 1 : 0
   project = var.project_id
   topic   = google_pubsub_topic.write_pixel_requests_dlq.name
   role    = "roles/pubsub.publisher"
@@ -228,7 +221,6 @@ resource "google_pubsub_topic_iam_member" "write_pixel_dlq_publisher" {
 }
 
 resource "google_pubsub_topic_iam_member" "discord_cmd_dlq_publisher" {
-  count   = var.discord_cmd_worker_url != "" ? 1 : 0
   project = var.project_id
   topic   = google_pubsub_topic.discord_cmd_requests_dlq.name
   role    = "roles/pubsub.publisher"
@@ -236,7 +228,6 @@ resource "google_pubsub_topic_iam_member" "discord_cmd_dlq_publisher" {
 }
 
 resource "google_pubsub_topic_iam_member" "snapshot_dlq_publisher" {
-  count   = var.snapshot_generator_url != "" ? 1 : 0
   project = var.project_id
   topic   = google_pubsub_topic.snapshot_requests_dlq.name
   role    = "roles/pubsub.publisher"
@@ -246,25 +237,22 @@ resource "google_pubsub_topic_iam_member" "snapshot_dlq_publisher" {
 # Subscriber on source subscriptions (to ack forwarded messages)
 
 resource "google_pubsub_subscription_iam_member" "write_pixel_sub_subscriber" {
-  count        = var.write_pixels_worker_url != "" ? 1 : 0
   project      = var.project_id
-  subscription = google_pubsub_subscription.write_pixel_requests_sub[0].name
+  subscription = google_pubsub_subscription.write_pixel_requests_sub.name
   role         = "roles/pubsub.subscriber"
   member       = local.pubsub_service_agent
 }
 
 resource "google_pubsub_subscription_iam_member" "discord_cmd_sub_subscriber" {
-  count        = var.discord_cmd_worker_url != "" ? 1 : 0
   project      = var.project_id
-  subscription = google_pubsub_subscription.discord_cmd_requests_sub[0].name
+  subscription = google_pubsub_subscription.discord_cmd_requests_sub.name
   role         = "roles/pubsub.subscriber"
   member       = local.pubsub_service_agent
 }
 
 resource "google_pubsub_subscription_iam_member" "snapshot_sub_subscriber" {
-  count        = var.snapshot_generator_url != "" ? 1 : 0
   project      = var.project_id
-  subscription = google_pubsub_subscription.snapshot_requests_sub[0].name
+  subscription = google_pubsub_subscription.snapshot_requests_sub.name
   role         = "roles/pubsub.subscriber"
   member       = local.pubsub_service_agent
 }

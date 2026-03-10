@@ -16,10 +16,24 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  afterEach(async () => {
+    await app.close();
+  });
+
+  it('/health (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/health')
       .expect(200)
-      .expect('Hello World!');
+      .expect((res) => {
+        expect(res.body).toHaveProperty('status', 'ok');
+        expect(res.body).toHaveProperty('timestamp');
+      });
+  });
+
+  it('/write (POST) - rejects unauthenticated requests', () => {
+    return request(app.getHttpServer())
+      .post('/write')
+      .send({ x: 0, y: 0, color: 0xff0000 })
+      .expect(401);
   });
 });

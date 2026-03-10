@@ -5,7 +5,7 @@
 
 set -e
 
-PROJECT_ID="serverless-tek89"
+PROJECT_ID="serverless-488811"
 SERVICE_NAME="frontend"
 REGION="europe-west1"
 DOMAIN="pixelhub.now"

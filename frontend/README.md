@@ -129,9 +129,9 @@ This script:
 **Manual deployment:**
 
 ```bash
-gcloud builds submit --tag gcr.io/serverless-tek89/frontend
+gcloud builds submit --tag gcr.io/serverless-488811/frontend
 gcloud run deploy frontend \
-  --image gcr.io/serverless-tek89/frontend \
+  --image gcr.io/serverless-488811/frontend \
   --region europe-west1 \
   --platform managed \
   --allow-unauthenticated

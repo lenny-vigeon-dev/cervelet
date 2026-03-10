@@ -6,20 +6,25 @@ import type { ApiRequestOptions } from "./types";
  */
 
 export function buildUrl(path: string, query?: ApiRequestOptions["query"]) {
-  const url = new URL(path.startsWith("/") ? `${BASE_URL}${path}` : path);
-  if (!query) {
-    return url.toString();
-  }
+  // Build the base URL string. When BASE_URL is empty (NEXT_PUBLIC_API_URL
+  // not set), relative paths like "/write" are kept as-is so fetch() resolves
+  // them against the current origin. Using new URL() here would throw for
+  // relative paths, so we build the query string with URLSearchParams instead.
+  const base = path.startsWith("/") ? `${BASE_URL}${path}` : path;
 
+  if (!query) return base;
+
+  const params = new URLSearchParams();
   for (const [key, rawValue] of Object.entries(query)) {
     if (rawValue === undefined) continue;
     const values = Array.isArray(rawValue) ? rawValue : [rawValue];
     for (const value of values) {
-      url.searchParams.append(key, String(value));
+      params.append(key, String(value));
     }
   }
 
-  return url.toString();
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
 }
 
 export async function parseResponse<T>(

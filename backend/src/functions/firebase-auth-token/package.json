@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "gcp-build": "tsc",
-    "deploy": "gcloud functions deploy createFirebaseToken --runtime nodejs20 --trigger-http --no-allow-unauthenticated --entry-point=createFirebaseToken --region=europe-west1"
+    "deploy": "pnpm build && gcloud run deploy firebase-auth-token --region=europe-west1 --source . --no-allow-unauthenticated"
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^4.0.1",

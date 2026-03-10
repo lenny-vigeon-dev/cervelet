@@ -434,8 +434,9 @@ export function PixelCanvas({
       } else {
         // Remove the optimistic pixel -- Firestore onSnapshot will deliver the confirmed version
         setDrawnPixels((prev) => prev.filter(p => p.x !== pixel.x || p.y !== pixel.y));
-        // Start 5-minute cooldown (300000ms)
-        startCooldown(300000);
+        // Start cooldown matching backend COOLDOWN_MS (default 3000ms = 20px/min)
+        const cooldownMs = Number(process.env.NEXT_PUBLIC_COOLDOWN_MS) || 3000;
+        startCooldown(cooldownMs);
       }
     } catch (error) {
       // Revert optimistic update on error

@@ -1,12 +1,12 @@
 import { Firestore, Timestamp } from '@google-cloud/firestore';
-import { Storage } from '@google-cloud/storage';
+import { Storage, Bucket } from '@google-cloud/storage';
 import { config } from './config';
 import type { Canvas, Pixel, SnapshotMetadata } from './types';
 
 export class SnapshotService {
   private firestore: Firestore;
   private storage: Storage;
-  private bucket: any;
+  private bucket: Bucket;
 
   constructor() {
     this.firestore = new Firestore({

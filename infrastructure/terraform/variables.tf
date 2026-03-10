@@ -14,6 +14,10 @@ variable "environment" {
   description = "Environment (dev, staging, prod)"
   type        = string
   default     = "dev"
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "environment must be one of: dev, staging, prod."
+  }
 }
 
 # ===========================================================================
@@ -77,9 +81,11 @@ variable "storage_snapshot_retention_days" {
 }
 
 variable "storage_cors_origins" {
-  description = "Allowed CORS origins for the storage bucket"
+  description = "Allowed CORS origins for the storage bucket. Set to your frontend domain(s) in production."
   type        = list(string)
   default     = ["*"]
+  # Override in terraform.tfvars for production, e.g.:
+  #   storage_cors_origins = ["https://pixelhub.example.com"]
 }
 
 # ===========================================================================

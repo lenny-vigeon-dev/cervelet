@@ -39,6 +39,9 @@ paths:
         500:
           description: Internal Server Error
 
+  # Note: Access-Control-Allow-Origin headers below are informational only.
+  # Actual CORS enforcement is handled by the cf-proxy backend (NestJS middleware).
+  # Restrict the backend CORS origin to the frontend domain in production.
   /**:
     get:
       summary: Catch-all GET

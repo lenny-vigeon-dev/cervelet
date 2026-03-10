@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PubSub } from '@google-cloud/pubsub';
+import axios from 'axios';
 import {
   type DiscordInteraction,
   type InteractionResponse,
@@ -174,6 +175,7 @@ export class DiscordService {
     // Publish asynchronously -- don't await, we need to respond within 3s
     this.publishToTopic(this.pixelTopic, payload).catch((err: unknown) => {
       this.logger.error(`Failed to publish /draw to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
+      this.sendErrorFollowUp(interaction.application_id, interaction.token, 'Failed to process your pixel draw. Please try again.');
     });
 
     return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
@@ -194,6 +196,7 @@ export class DiscordService {
 
     this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
       this.logger.error(`Failed to publish /snapshot to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
+      this.sendErrorFollowUp(interaction.application_id, interaction.token, 'Failed to process your snapshot request. Please try again.');
     });
 
     return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
@@ -232,6 +235,7 @@ export class DiscordService {
 
     this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
       this.logger.error(`Failed to publish /session to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
+      this.sendErrorFollowUp(interaction.application_id, interaction.token, 'Failed to process your session command. Please try again.');
     });
 
     return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
@@ -252,6 +256,7 @@ export class DiscordService {
 
     this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
       this.logger.error(`Failed to publish /canvas to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
+      this.sendErrorFollowUp(interaction.application_id, interaction.token, 'Failed to process your canvas request. Please try again.');
     });
 
     return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
@@ -272,6 +277,18 @@ export class DiscordService {
   ): T | undefined {
     const opt = options.find((o) => o.name === name);
     return opt?.value as T | undefined;
+  }
+
+  /**
+   * Send an error follow-up message to Discord when Pub/Sub publish fails.
+   * Since we already sent a DEFERRED response, the user sees "Bot is thinking..."
+   * and this follow-up replaces it with an error message.
+   */
+  private sendErrorFollowUp(applicationId: string, interactionToken: string, message: string): void {
+    const url = `https://discord.com/api/v10/webhooks/${applicationId}/${interactionToken}`;
+    axios.post(url, { content: message, flags: EPHEMERAL_FLAG }).catch((followUpErr: unknown) => {
+      this.logger.error(`Failed to send error follow-up to Discord: ${followUpErr instanceof Error ? followUpErr.message : String(followUpErr)}`);
+    });
   }
 
   private isAdmin(interaction: DiscordInteraction): boolean {

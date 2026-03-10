@@ -38,20 +38,6 @@ export class FirestoreService {
   }
 
   /**
-   * Retrieves the user document.
-   */
-  async getUser(userId: string): Promise<UserDoc | null> {
-    const userRef = this.db.collection(USERS_COLLECTION).doc(userId);
-    const userDoc = await userRef.get();
-
-    if (!userDoc.exists) {
-      return null;
-    }
-
-    return userDoc.data() as UserDoc;
-  }
-
-  /**
    * Atomically:
    * 1. Check cooldown (rate limit) inside the transaction
    * 2. Write pixel to 'pixels' collection
@@ -86,6 +72,12 @@ export class FirestoreService {
       // be placed on a canvas that was created by an admin.
       if (!canvasSnapshot.exists) {
         throw new Error(`Canvas "${canvasId}" does not exist`);
+      }
+
+      // Reject writes when the canvas is not active (e.g. paused or resetting)
+      const canvasStatus = canvasSnapshot.data()?.status as string | undefined;
+      if (canvasStatus && canvasStatus !== 'active') {
+        throw new Error(`Canvas "${canvasId}" is not active (status: ${canvasStatus})`);
       }
 
       const existingUser = userSnapshot.exists

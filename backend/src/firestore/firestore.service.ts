@@ -28,6 +28,7 @@ export class FirestoreService implements OnModuleInit, OnModuleDestroy {
   onModuleInit(): void {
     this.initPromise = this.initialize().catch((err) => {
       console.error('Failed to initialize Firestore:', err);
+      throw err;
     });
   }
 

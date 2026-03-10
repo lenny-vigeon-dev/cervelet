@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Next.js proxy for security headers and request processing.
+ * Next.js middleware for security headers and request processing.
  * Runs on every request before reaching the route handlers.
  */
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Extract origins from env (avoid duplicates)

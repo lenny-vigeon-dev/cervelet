@@ -109,16 +109,9 @@ export class DiscordSignatureGuard implements CanActivate {
       return Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
     }
 
-    // Fallback: reconstruct from parsed body (less reliable but functional)
-    const body: unknown = req.body;
-    if (!body) return null;
-    if (Buffer.isBuffer(body)) return body;
-    if (typeof body === 'string') return Buffer.from(body, 'utf8');
-
-    try {
-      return Buffer.from(JSON.stringify(body));
-    } catch {
-      return null;
-    }
+    // No fallback: rawBody is required for correct Ed25519 verification.
+    // JSON re-serialization is non-deterministic and would compromise
+    // signature security. Ensure NestJS is bootstrapped with rawBody: true.
+    return null;
   }
 }

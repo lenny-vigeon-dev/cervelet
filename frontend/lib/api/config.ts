@@ -1,13 +1,11 @@
 /**
  * API configuration and environment variables.
+ *
+ * Note: NEXT_PUBLIC_API_URL may be undefined during SSR or build when
+ * the env var is not set. Consumers must guard against undefined values
+ * rather than relying on a top-level throw that breaks module loading.
  */
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-if (!API_URL) {
-  throw new Error(
-    "NEXT_PUBLIC_API_URL is not defined. Please set it in your environment."
-  );
-}
-
-export const BASE_URL = API_URL.replace(/\/+$/, "");
+export const BASE_URL = API_URL ? API_URL.replace(/\/+$/, "") : "";

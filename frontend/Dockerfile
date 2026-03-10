@@ -57,9 +57,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=8080
-
-# Install pnpm again (required for workspace paths)
-RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV HOSTNAME=0.0.0.0
 
 # Copy standalone build output
 COPY --from=builder /app/.next/standalone ./

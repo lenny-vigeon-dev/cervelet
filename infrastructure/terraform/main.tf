@@ -99,7 +99,7 @@ module "cloud_run" {
       image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/write-pixels-worker:latest"
       service_account_email = google_service_account.write_pixels.email
       max_instances         = 20
-      memory                = "256Mi"
+      memory                = "512Mi"
       ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
       env_vars = {
         GCP_PROJECT_ID         = var.project_id
@@ -123,7 +123,7 @@ module "cloud_run" {
       image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/discord-cmd-worker:latest"
       service_account_email = google_service_account.discord_cmd.email
       max_instances         = 10
-      memory                = "256Mi"
+      memory                = "512Mi"
       ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
       env_vars = {
         GCP_PROJECT_ID = var.project_id
@@ -143,7 +143,7 @@ module "cloud_run" {
       image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/firebase-auth-token:latest"
       service_account_email = google_service_account.proxy.email
       max_instances         = 5
-      memory                = "256Mi"
+      memory                = "512Mi"
       env_vars = {
         GCP_PROJECT_ID = var.project_id
       }

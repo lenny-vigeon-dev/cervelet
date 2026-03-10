@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
  */
 async function getIdToken(audience: string): Promise<string | null> {
   const url =
-    `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${audience}`;
+    `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${encodeURIComponent(audience)}`;
 
   try {
     const res = await fetch(url, {

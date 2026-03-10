@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "Pixelhub - Collaborative Pixel Art Canvas",
   description:
     "Collaborative pixel art canvas connected to a cloud-native serverless API gateway.",
-  metadataBase: new URL("https://pixless.local"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://pixelhub.example.com"),
   applicationName: "Pixelhub",
 };
 

@@ -42,6 +42,20 @@ app.post('/', async (req, res) => {
     const rawData = Buffer.from(pubsubMessage.message.data, 'base64').toString('utf-8');
     const payload: DiscordCommandPayload = JSON.parse(rawData);
 
+    // Validate required fields
+    if (!payload.command || !payload.interactionToken || !payload.applicationId) {
+      console.error(
+        JSON.stringify({
+          level: 'error',
+          message: 'Invalid Discord command payload: missing required fields',
+          receivedFields: Object.keys(payload),
+        }),
+      );
+      // ACK to avoid retry on permanently invalid messages
+      res.status(200).json({ error: 'Invalid payload structure' });
+      return;
+    }
+
     console.log(
       JSON.stringify({
         level: 'info',
@@ -65,9 +79,15 @@ app.post('/', async (req, res) => {
         console.warn(
           JSON.stringify({
             level: 'warn',
-            message: `Unknown command: ${(payload as DiscordCommandPayload).command}`,
+            message: `Unknown command: ${payload.command}`,
           }),
         );
+        // Send error follow-up so the deferred response doesn't hang
+        {
+          const { DiscordService } = await import('./services/discord.service.js');
+          const discord = new DiscordService();
+          await discord.sendError(payload.applicationId, payload.interactionToken, `Unknown command: \`/${payload.command}\``);
+        }
     }
 
     res.status(200).json({ success: true });

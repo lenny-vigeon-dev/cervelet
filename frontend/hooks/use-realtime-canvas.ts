@@ -12,7 +12,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { collection, onSnapshot, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { getFirestoreDb, COLLECTIONS } from '@/lib/firebase/config';
-import { loadCanvasSnapshotImage, getSnapshotUrl } from '@/lib/canvas-snapshot';
+import { loadCanvasSnapshotImage } from '@/lib/canvas-snapshot';
 import type { CanvasPixel } from '@/types/canvas';
 
 interface RealtimeCanvasState {
@@ -85,14 +85,7 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
 
       snapshotLoadedAtRef.current = loadedAt;
 
-      console.log('✅ Canvas snapshot loaded:', {
-        url: getSnapshotUrl(),
-        width: image.width,
-        height: image.height,
-        loadedAt: loadedAt.toISOString(),
-      });
     } catch (error) {
-      console.error('❌ Failed to load canvas snapshot:', error);
       setState((prev) => ({
         ...prev,
         isLoading: false,
@@ -131,11 +124,6 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
         );
       }
 
-      console.log('🔴 Subscribing to real-time pixel updates...', {
-        canvasId,
-        sinceSnapshot: snapshotTime?.toISOString() || 'all',
-      });
-
       const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
@@ -144,8 +132,6 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
           const changes = snapshot.docChanges();
 
           if (changes.length > 0) {
-            console.log(`🎨 Received ${changes.length} pixel update(s)`);
-
             changes.forEach((change) => {
               if (change.type === 'added' || change.type === 'modified') {
                 const data = change.doc.data();
@@ -183,7 +169,6 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
           }
         },
         (error) => {
-          console.error('❌ Firestore snapshot error:', error);
           setState((prev) => ({
             ...prev,
             error: error instanceof Error ? error : new Error('Firestore subscription failed'),
@@ -194,7 +179,6 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
 
       unsubscribeRef.current = unsubscribe;
     } catch (error) {
-      console.error('❌ Failed to subscribe to pixel updates:', error);
       setState((prev) => ({
         ...prev,
         error: error instanceof Error ? error : new Error('Failed to subscribe'),
@@ -207,7 +191,6 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
    */
   const unsubscribe = useCallback(() => {
     if (unsubscribeRef.current) {
-      console.log('🔴 Unsubscribing from pixel updates');
       unsubscribeRef.current();
       unsubscribeRef.current = null;
       setState((prev) => ({ ...prev, isListening: false }));
@@ -239,7 +222,6 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
     }
 
     const intervalId = setInterval(() => {
-      console.log('🔄 Refreshing canvas snapshot...');
       loadSnapshotImage();
     }, refreshInterval);
 

@@ -267,7 +267,6 @@ export function PixelCanvas({
     if (!coords) return;
 
     setSelectedPixel(coords);
-    console.log(`Pixel clicked: (${coords.x}, ${coords.y})`);
     setIsPanning(false);
   };
 
@@ -277,7 +276,6 @@ export function PixelCanvas({
     const coords = getPixelCoordinates(event);
     if (!coords) return;
 
-    console.log(`Pixel right-clicked: (${coords.x}, ${coords.y})`);
     setShowPixelInfo(coords);
   };
 
@@ -434,7 +432,8 @@ export function PixelCanvas({
           }
         }
       } else {
-        console.log('✅ Pixel placed successfully!');
+        // Remove the optimistic pixel -- Firestore onSnapshot will deliver the confirmed version
+        setDrawnPixels((prev) => prev.filter(p => p.x !== pixel.x || p.y !== pixel.y));
         // Start 5-minute cooldown (300000ms)
         startCooldown(300000);
       }

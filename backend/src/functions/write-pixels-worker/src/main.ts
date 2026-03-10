@@ -32,6 +32,13 @@ function isValidPixelPayload(payload: unknown): payload is PixelPayload {
         typeof p['x'] === 'number' &&
         typeof p['y'] === 'number' &&
         typeof p['color'] === 'number' &&
+        Number.isInteger(p['x']) &&
+        Number.isInteger(p['y']) &&
+        Number.isInteger(p['color']) &&
+        (p['x'] as number) >= 0 &&
+        (p['y'] as number) >= 0 &&
+        (p['color'] as number) >= 0 &&
+        (p['color'] as number) <= 0xFFFFFF &&
         (typeof p['interactionToken'] === 'string' || p['interactionToken'] === undefined) &&
         (typeof p['applicationId'] === 'string' || p['applicationId'] === undefined)
     );

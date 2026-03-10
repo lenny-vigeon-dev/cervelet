@@ -45,8 +45,8 @@ export class AppController {
       throw new HttpException('Invalid payload. Expected { x: number, y: number, color: number }', HttpStatus.BAD_REQUEST);
     }
 
-    if (body.color < 0 || body.color > 0xFFFFFF) {
-      throw new HttpException('Color must be between 0 and 16777215 (0xFFFFFF)', HttpStatus.BAD_REQUEST);
+    if (!Number.isInteger(body.color) || body.color < 0 || body.color > 0xFFFFFF) {
+      throw new HttpException('Color must be an integer between 0 and 16777215 (0xFFFFFF)', HttpStatus.BAD_REQUEST);
     }
 
     // Validate coordinate bounds against canvas dimensions

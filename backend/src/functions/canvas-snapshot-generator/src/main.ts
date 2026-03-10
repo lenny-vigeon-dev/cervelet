@@ -22,6 +22,9 @@ import { SnapshotService } from './snapshot.service';
 const app = express();
 app.use(express.json());
 
+// Singleton service instance -- avoids creating new Firestore/Storage clients per request
+const snapshotService = new SnapshotService();
+
 /**
  * CORS handling
  */
@@ -83,7 +86,6 @@ app.post('/', async (req: Request, res: Response) => {
       }),
     );
 
-    const snapshotService = new SnapshotService();
     await snapshotService.generateSnapshot(canvasId);
 
     const duration = Date.now() - startTime;
@@ -123,7 +125,6 @@ app.post('/generate', async (req: Request, res: Response) => {
     console.log(`Generating snapshot for canvas: ${canvasId}`);
 
     // Generate snapshot
-    const snapshotService = new SnapshotService();
     const metadata = await snapshotService.generateSnapshot(canvasId);
 
     const duration = Date.now() - startTime;

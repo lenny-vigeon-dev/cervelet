@@ -69,6 +69,16 @@ export function PixelCanvas({
     return { width: 256, height: 256 };
   }, [snapshotImage, snapshot]);
   
+  useEffect(() => {
+    if (realtimePixels.length > 0 || snapshotImage) {
+      setDrawnPixels((prev) =>
+        prev.filter(
+          (dp) => !realtimePixels.some((rp) => rp.x === dp.x && rp.y === dp.y)
+        )
+      );
+    }
+  }, [realtimePixels, snapshotImage]);
+
   // Selected pixel
   const [selectedPixel, setSelectedPixel] = useState<{ x: number; y: number } | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -432,9 +442,6 @@ export function PixelCanvas({
           }
         }
       } else {
-        // Remove the optimistic pixel -- Firestore onSnapshot will deliver the confirmed version
-        setDrawnPixels((prev) => prev.filter(p => p.x !== pixel.x || p.y !== pixel.y));
-        // Start cooldown matching backend COOLDOWN_MS (default 3000ms = 20px/min)
         const cooldownMs = Number(process.env.NEXT_PUBLIC_COOLDOWN_MS) || 3000;
         startCooldown(cooldownMs);
       }

@@ -204,16 +204,17 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
     }
   }, [autoLoadSnapshot, loadSnapshotImage]);
 
-  // Subscribe to real-time updates after snapshot loads
+  const snapshotResolved = state.snapshotImage !== null || (!state.isLoading && state.error !== null);
+
   useEffect(() => {
-    if (state.snapshotImage && enableRealtime) {
+    if (snapshotResolved && enableRealtime) {
       subscribeToPixelUpdates();
     }
 
     return () => {
       unsubscribe();
     };
-  }, [state.snapshotImage, enableRealtime, subscribeToPixelUpdates, unsubscribe]);
+  }, [snapshotResolved, enableRealtime, subscribeToPixelUpdates, unsubscribe]);
 
   // Periodic snapshot refresh
   useEffect(() => {

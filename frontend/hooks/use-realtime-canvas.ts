@@ -10,7 +10,7 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { collection, onSnapshot, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { getFirestoreDb, COLLECTIONS } from '@/lib/firebase/config';
 import { loadCanvasSnapshotImage } from '@/lib/canvas-snapshot';
 import type { CanvasPixel } from '@/types/canvas';
@@ -61,8 +61,6 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
     isListening: false,
   });
 
-  // Track when snapshot was loaded to filter Firestore updates
-  const snapshotLoadedAtRef = useRef<Date | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   /**
@@ -73,17 +71,12 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       const image = await loadCanvasSnapshotImage();
-      const loadedAt = new Date();
 
       setState((prev) => ({
         ...prev,
         snapshotImage: image,
         isLoading: false,
-        // Clear real-time pixels when snapshot refreshes
-        realtimePixels: [],
       }));
-
-      snapshotLoadedAtRef.current = loadedAt;
 
     } catch (error) {
       setState((prev) => ({
@@ -106,23 +99,10 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
       const db = getFirestoreDb();
       const pixelsCollection = collection(db, COLLECTIONS.PIXELS);
 
-      // Only listen to pixels updated AFTER snapshot was loaded
-      const snapshotTime = snapshotLoadedAtRef.current;
-
-      let q = query(
+      const q = query(
         pixelsCollection,
         orderBy('updatedAt', 'desc')
       );
-
-      // If we have a snapshot timestamp, only get pixels after that
-      if (snapshotTime) {
-        const firestoreTimestamp = Timestamp.fromDate(snapshotTime);
-        q = query(
-          pixelsCollection,
-          where('updatedAt', '>', firestoreTimestamp),
-          orderBy('updatedAt', 'desc')
-        );
-      }
 
       const unsubscribe = onSnapshot(
         q,

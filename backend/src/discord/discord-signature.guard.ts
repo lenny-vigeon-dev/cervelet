@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import nacl from 'tweetnacl';
+import * as nacl from 'tweetnacl';
 
 /**
  * NestJS Guard that verifies Discord Ed25519 interaction signatures.

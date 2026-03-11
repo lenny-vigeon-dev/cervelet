@@ -1,49 +1,38 @@
+import { PubSub } from '@google-cloud/pubsub';
 import { CONFIG } from '../config.js';
 import { DiscordService } from '../services/discord.service.js';
 import type { DiscordCommandPayload } from '../types.js';
 
 const discord = new DiscordService();
+const pubsub = new PubSub({ projectId: CONFIG.gcpProject });
 
 /**
  * Handle /snapshot command.
- * Fetches the latest canvas snapshot PNG and posts it to Discord.
- *
- * If SNAPSHOT_GENERATOR_URL is set, triggers a fresh generation first.
- * Otherwise, uses the latest snapshot from Cloud Storage directly.
+ * Triggers a fresh snapshot generation via Pub/Sub, waits for it,
+ * then posts the resulting PNG to Discord.
  */
 export async function handleSnapshot(payload: DiscordCommandPayload): Promise<void> {
   const { applicationId, interactionToken } = payload;
 
   try {
-    // Optionally trigger a fresh snapshot generation
-    if (CONFIG.snapshotGeneratorUrl) {
-      try {
-        const res = await fetch(`${CONFIG.snapshotGeneratorUrl}/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ canvasId: CONFIG.canvasId }),
-        });
-
-        if (!res.ok) {
-          console.log(
-            JSON.stringify({
-              level: 'warn',
-              message: `Snapshot generation returned ${res.status}, falling back to cached snapshot`,
-            }),
-          );
-        }
-      } catch (err) {
-        console.log(
-          JSON.stringify({
-            level: 'warn',
-            message: 'Could not trigger snapshot generation, using cached',
-            error: err instanceof Error ? err.message : String(err),
-          }),
-        );
-      }
+    // Trigger a fresh snapshot via Pub/Sub and wait for it to generate
+    try {
+      await pubsub.topic('snapshot-requests').publishMessage({
+        data: Buffer.from(JSON.stringify({
+          canvasId: CONFIG.canvasId,
+          requestedBy: payload.userId,
+        })),
+      });
+      // Wait for the snapshot generator to process
+      await new Promise((r) => setTimeout(r, 5000));
+    } catch (err) {
+      console.log(JSON.stringify({
+        level: 'warn',
+        message: 'Could not trigger snapshot generation, using cached',
+        error: err instanceof Error ? err.message : String(err),
+      }));
     }
 
-    // Add cache-busting timestamp to get the freshest version
     const snapshotUrl = `${CONFIG.snapshotUrl}?t=${Date.now()}`;
 
     // Verify the snapshot is accessible

@@ -30,7 +30,7 @@ and Firebase/Firestore (data).
 - **Real-time Updates**: Firestore `onSnapshot` for live pixel placement
 - **Discord Integration**: Slash commands via Interactions API (serverless)
 - **Discord Authentication**: OAuth2 integration for user management
-- **Cooldown System**: 20 pixels per minute rate limiting
+- **Cooldown System**: Configurable rate limiting (default: 1 pixel per 3s, admin-adjustable via `/set_cooldown`)
 - **Cloud Native**: 100% serverless on Google Cloud Run
 - **Docker**: Multi-stage Alpine builds for optimized deployments
 - **Modern Stack**: Next.js 16, React 19, TypeScript, Tailwind CSS v4
@@ -78,7 +78,7 @@ cervelet/
 │           ├── write-pixels-worker/  # Pub/Sub -> Firestore pixel writes
 │           ├── discord-cmd-worker/   # Discord command processor
 │           ├── canvas-snapshot-generator/ # Firestore -> PNG snapshots
-│           └── firebase-auth-token/  # Discord -> Firebase custom tokens (internal, not routed via API Gateway)
+│           └── firebase-auth-token/  # Discord -> Firebase custom tokens (routed via API Gateway)
 ├── frontend/                         # Next.js 16 (App Router, standalone)
 │   ├── app/                          # Pages, layouts, API routes
 │   ├── components/                   # React components
@@ -164,8 +164,24 @@ terraform apply
 | Firestore        | `(default)`                 | Primary database                 |
 | Cloud Storage    | `canvas-snapshots`          | PNG snapshots                    |
 | Secret Manager   | Discord & Firebase secrets  | Credentials                      |
-| Cloud Scheduler  | Snapshot cron (optional)    | Periodic snapshot generation     |
+| Cloud Scheduler  | Snapshot cron (every 5 min) | Periodic snapshot generation     |
 | Cloud Monitoring | Alerts + dashboard          | Observability                    |
+
+## Discord Bot Commands
+
+| Command | Type | Description |
+|---------|------|-------------|
+| `/draw x y color` | User | Place a pixel at (x, y) with a hex color |
+| `/snapshot` | User | Generate and display a PNG snapshot of the canvas |
+| `/canvas` | User | Show canvas info (size, status, pixel count, cooldown) |
+| `/help` | User | Display available commands |
+| `/allo` | User | Ping the bot |
+| `/session start\|pause\|reset` | Admin | Control canvas session state |
+| `/clear` | Admin | Delete all pixels and reset the canvas |
+| `/resize width height` | Admin | Change canvas dimensions |
+| `/lock` | Admin | Pause the canvas (block new pixels) |
+| `/unlock` | Admin | Resume the canvas |
+| `/set_cooldown seconds` | Admin | Set per-user cooldown between pixel placements |
 
 ## Scripts
 
@@ -180,6 +196,7 @@ terraform apply
 ## Documentation
 
 - [Documentation Index](docs/README.md)
+- [Architecture Diagrams](docs/architecture.md) -- cloud services, event pipeline, auth flow, Pub/Sub, data model, IAM
 - [Firestore Setup Guide](docs/database/firestore-setup.md)
 - [Firestore Data Model](docs/database/firestore-data-model.md)
 - [OAuth Authentication](docs/oauth-authentication.md)
@@ -189,6 +206,14 @@ terraform apply
 - [Frontend Pixel Writing](docs/frontend-pixel-writing.md)
 - [cf-proxy Deployment](docs/deploy_cf_proxy.md)
 - [DNS Setup Guide](docs/DNS-SETUP-GUIDE.md)
+
+## Live URLs
+
+| Service | URL |
+|---------|-----|
+| Web Frontend | https://pixelhub-frontend-164028691762.europe-west1.run.app |
+| API Gateway | https://cervelet-api-gateway-gateway-23cqg4ky.ew.gateway.dev |
+| Canvas Snapshot | https://storage.googleapis.com/serverless-488811-canvas-snapshots/canvas/latest.png |
 
 ## Security
 

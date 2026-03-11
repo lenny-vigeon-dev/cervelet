@@ -26,7 +26,8 @@ Welcome to the PixelHub documentation! This directory contains all project docum
 - **[Frontend Pixel Writing](frontend-pixel-writing.md)** - Pixel write flow, rate limiting, color format
 
 ### Architecture
-- **[Infrastructure Diagram](infrastructure_diagram.jpg)** - Visual architecture diagram (GCP services, data flow)
+- **[Architecture Diagrams](architecture.md)** - Comprehensive Mermaid diagrams: cloud services, event pipeline, auth flow, Pub/Sub, data model, IAM
+- **[Infrastructure Diagram (JPG)](infrastructure_diagram.jpg)** - Legacy visual architecture diagram
 
 ### Application READMEs
 - **[Backend README](../backend/README.md)** - Backend application documentation

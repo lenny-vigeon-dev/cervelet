@@ -4,7 +4,7 @@ import {
   PIXELS_COLLECTION,
   DEFAULT_CANVAS_ID,
   PROJECT_ID,
-  COOLDOWN_MS,
+  COOLDOWN_MS as DEFAULT_COOLDOWN_MS,
 } from '../config';
 import { UserDoc, PixelDoc, PixelHistoryDoc, PixelPayload } from '../types';
 
@@ -75,10 +75,18 @@ export class FirestoreService {
       }
 
       // Reject writes when the canvas is not active (e.g. paused or resetting)
-      const canvasStatus = canvasSnapshot.data()?.status as string | undefined;
+      const canvasData = canvasSnapshot.data();
+      const canvasStatus = canvasData?.status as string | undefined;
       if (canvasStatus && canvasStatus !== 'active') {
         throw new Error(`Canvas "${canvasId}" is not active (status: ${canvasStatus})`);
       }
+
+      // Read per-canvas cooldown (set by /set_cooldown admin command).
+      // Falls back to the hardcoded default if not configured.
+      const cooldownMs =
+        typeof canvasData?.cooldownSeconds === 'number'
+          ? canvasData.cooldownSeconds * 1000
+          : DEFAULT_COOLDOWN_MS;
 
       const existingUser = userSnapshot.exists
         ? (userSnapshot.data() as UserDoc)
@@ -90,10 +98,10 @@ export class FirestoreService {
         const lastPixelTime = existingUser.lastPixelPlaced.toMillis();
         const elapsedMs = newTimestamp.toMillis() - lastPixelTime;
 
-        if (elapsedMs < COOLDOWN_MS) {
+        if (elapsedMs < cooldownMs) {
           return {
             success: false,
-            cooldownRemainingMs: COOLDOWN_MS - elapsedMs,
+            cooldownRemainingMs: cooldownMs - elapsedMs,
           };
         }
       }

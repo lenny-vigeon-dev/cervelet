@@ -94,7 +94,9 @@ module "cloud_run" {
       service_account_email = google_service_account.proxy.email
       max_instances         = 10
       memory                = "512Mi"
-      ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+      # API Gateway traffic is not considered internal/LB by Cloud Run.
+      # Access is restricted by IAM (roles/run.invoker on the API Gateway SA).
+      ingress = "INGRESS_TRAFFIC_ALL"
       env_vars = {
         GCP_PROJECT_ID          = var.project_id
         FIREBASE_AUTH_TOKEN_URL = local.firebase_auth_token_url

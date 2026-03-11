@@ -2,7 +2,9 @@
  * Configuration and constants for the write-pixels-worker
  */
 
-// Cooldown: 20 pixels per minute = 1 pixel every 3 seconds (3000 ms)
+// Default cooldown: 1 pixel every 3 seconds (3000 ms).
+// Overridden at runtime by `cooldownSeconds` on the canvas Firestore document
+// (set via the /set_cooldown admin command).
 export const COOLDOWN_MS = 3000;
 
 // Firestore Collections

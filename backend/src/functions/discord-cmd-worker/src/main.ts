@@ -3,6 +3,10 @@ import { CONFIG } from './config.js';
 import { handleSnapshot } from './commands/snapshot.js';
 import { handleSession } from './commands/session.js';
 import { handleCanvasInfo } from './commands/canvas.js';
+import { handleClear } from './commands/clear.js';
+import { handleResize } from './commands/resize.js';
+import { handleLock } from './commands/lock.js';
+import { handleSetCooldown } from './commands/set-cooldown.js';
 import type { PubSubMessage, DiscordCommandPayload } from './types.js';
 
 const app = express();
@@ -74,6 +78,19 @@ app.post('/', async (req, res) => {
         break;
       case 'canvas':
         await handleCanvasInfo(payload);
+        break;
+      case 'clear':
+        await handleClear(payload);
+        break;
+      case 'resize':
+        await handleResize(payload);
+        break;
+      case 'lock':
+      case 'unlock':
+        await handleLock(payload);
+        break;
+      case 'set_cooldown':
+        await handleSetCooldown(payload);
         break;
       default:
         console.warn(

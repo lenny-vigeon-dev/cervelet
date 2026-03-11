@@ -91,6 +91,54 @@ const commands = [
     ],
   },
   {
+    name: 'clear',
+    description: 'Clear all pixels from the canvas (admin only)',
+  },
+  {
+    name: 'resize',
+    description: 'Resize the canvas (admin only)',
+    options: [
+      {
+        name: 'width',
+        description: 'New canvas width',
+        type: 4, // INTEGER
+        required: true,
+        min_value: 1,
+        max_value: 10000,
+      },
+      {
+        name: 'height',
+        description: 'New canvas height',
+        type: 4, // INTEGER
+        required: true,
+        min_value: 1,
+        max_value: 10000,
+      },
+    ],
+  },
+  {
+    name: 'lock',
+    description: 'Lock the canvas to prevent pixel placement (admin only)',
+  },
+  {
+    name: 'unlock',
+    description: 'Unlock the canvas to allow pixel placement (admin only)',
+  },
+  {
+    name: 'set_cooldown',
+    description: 'Set the pixel placement cooldown in seconds (admin only)',
+    options: [
+      {
+        name: 'seconds',
+        description: 'Cooldown duration in seconds',
+        type: 4, // INTEGER
+        required: true,
+        min_value: 0,
+        max_value: 3600,
+      },
+    ],
+  },
+  {
     name: 'help',
     description: 'Show available commands',
   },

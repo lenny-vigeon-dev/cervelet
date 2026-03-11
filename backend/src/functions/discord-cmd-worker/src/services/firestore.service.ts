@@ -81,12 +81,69 @@ export class FirestoreService {
   }
 
   /**
+   * Clear all pixels from a canvas without changing version or status.
+   */
+  async clearCanvas(canvasId: string): Promise<number> {
+    const canvasRef = this.db.collection('canvases').doc(canvasId);
+    const canvasDoc = await canvasRef.get();
+
+    if (!canvasDoc.exists) {
+      throw new Error(`Canvas ${canvasId} not found`);
+    }
+
+    const deleted = await this.deleteCollection('pixels', canvasId);
+
+    await canvasRef.update({
+      totalPixels: 0,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    return deleted;
+  }
+
+  /**
+   * Resize the canvas dimensions.
+   */
+  async resizeCanvas(canvasId: string, width: number, height: number): Promise<void> {
+    const canvasRef = this.db.collection('canvases').doc(canvasId);
+    const canvasDoc = await canvasRef.get();
+
+    if (!canvasDoc.exists) {
+      throw new Error(`Canvas ${canvasId} not found`);
+    }
+
+    await canvasRef.update({
+      width,
+      height,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  /**
+   * Set the cooldown duration (in seconds) on the canvas document.
+   */
+  async setCooldown(canvasId: string, cooldownSeconds: number): Promise<void> {
+    const canvasRef = this.db.collection('canvases').doc(canvasId);
+    const canvasDoc = await canvasRef.get();
+
+    if (!canvasDoc.exists) {
+      throw new Error(`Canvas ${canvasId} not found`);
+    }
+
+    await canvasRef.update({
+      cooldownSeconds,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  /**
    * Delete all documents in a collection matching a canvasId, in batches.
+   * Returns the total number of deleted documents.
    */
   private async deleteCollection(
     collectionName: string,
     canvasId: string,
-  ): Promise<void> {
+  ): Promise<number> {
     const batchSize = 500;
     const query = this.db
       .collection(collectionName)
@@ -116,5 +173,7 @@ export class FirestoreService {
 
       if (snapshot.size < batchSize) break;
     }
+
+    return deleted;
   }
 }

@@ -86,6 +86,16 @@ export class DiscordService {
         return this.handleSession(interaction);
       case 'canvas':
         return this.handleCanvas(interaction);
+      case 'clear':
+        return this.handleAdminCommand(interaction, 'clear');
+      case 'resize':
+        return this.handleResize(interaction);
+      case 'lock':
+        return this.handleAdminCommand(interaction, 'lock');
+      case 'unlock':
+        return this.handleAdminCommand(interaction, 'unlock');
+      case 'set_cooldown':
+        return this.handleSetCooldown(interaction);
       default:
         this.logger.warn(`Unknown command: /${commandName}`);
         return {
@@ -103,7 +113,12 @@ export class DiscordService {
       '`/draw x:<X> y:<Y> color:<color>` -- Place a pixel on the canvas',
       '`/snapshot` -- Generate and display a canvas snapshot',
       '`/canvas` -- View canvas information',
-      '`/session <action>` -- Manage the canvas session (admin only)',
+      '`/session <action>` -- Manage the canvas session (admin)',
+      '`/clear` -- Clear all pixels from the canvas (admin)',
+      '`/resize width:<W> height:<H>` -- Resize the canvas (admin)',
+      '`/lock` -- Lock the canvas (admin)',
+      '`/unlock` -- Unlock the canvas (admin)',
+      '`/set_cooldown seconds:<S>` -- Set pixel cooldown (admin)',
       '`/help` -- Show this help message',
       "`/allo` -- Respond to the call",
     ].join('\n');
@@ -257,6 +272,116 @@ export class DiscordService {
     this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
       this.logger.error(`Failed to publish /canvas to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
       this.sendErrorFollowUp(interaction.application_id, interaction.token, 'Failed to process your canvas request. Please try again.');
+    });
+
+    return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
+  }
+
+  // --- Admin commands (generic pattern: check admin, build payload, publish) ---
+
+  private handleAdminCommand(interaction: DiscordInteraction, command: DiscordCommandPayload['command']): InteractionResponse {
+    if (!this.isAdmin(interaction)) {
+      return {
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: { content: `You need administrator permissions to use \`/${command}\`.`, flags: EPHEMERAL_FLAG },
+      };
+    }
+
+    const user = interaction.member?.user || interaction.user;
+    const payload: DiscordCommandPayload = {
+      command,
+      userId: user?.id || 'unknown',
+      username: user?.username || 'unknown',
+      isAdmin: true,
+      interactionToken: interaction.token,
+      applicationId: interaction.application_id,
+      guildId: interaction.guild_id,
+      channelId: interaction.channel_id,
+    };
+
+    this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
+      this.logger.error(`Failed to publish /${command} to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
+      this.sendErrorFollowUp(interaction.application_id, interaction.token, `Failed to process /${command}. Please try again.`);
+    });
+
+    return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
+  }
+
+  private handleResize(interaction: DiscordInteraction): InteractionResponse {
+    if (!this.isAdmin(interaction)) {
+      return {
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: { content: 'You need administrator permissions to use `/resize`.', flags: EPHEMERAL_FLAG },
+      };
+    }
+
+    const options = interaction.data?.options || [];
+    const width = this.getOptionValue<number>(options, 'width');
+    const height = this.getOptionValue<number>(options, 'height');
+
+    if (width === undefined || height === undefined || width < 1 || height < 1) {
+      return {
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: { content: 'Width and height must be positive integers.', flags: EPHEMERAL_FLAG },
+      };
+    }
+
+    const user = interaction.member?.user || interaction.user;
+    const payload: DiscordCommandPayload = {
+      command: 'resize',
+      width,
+      height,
+      userId: user?.id || 'unknown',
+      username: user?.username || 'unknown',
+      isAdmin: true,
+      interactionToken: interaction.token,
+      applicationId: interaction.application_id,
+      guildId: interaction.guild_id,
+      channelId: interaction.channel_id,
+    };
+
+    this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
+      this.logger.error(`Failed to publish /resize to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
+      this.sendErrorFollowUp(interaction.application_id, interaction.token, 'Failed to process /resize. Please try again.');
+    });
+
+    return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };
+  }
+
+  private handleSetCooldown(interaction: DiscordInteraction): InteractionResponse {
+    if (!this.isAdmin(interaction)) {
+      return {
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: { content: 'You need administrator permissions to use `/set_cooldown`.', flags: EPHEMERAL_FLAG },
+      };
+    }
+
+    const options = interaction.data?.options || [];
+    const seconds = this.getOptionValue<number>(options, 'seconds');
+
+    if (seconds === undefined || seconds < 0) {
+      return {
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: { content: 'Seconds must be a non-negative integer.', flags: EPHEMERAL_FLAG },
+      };
+    }
+
+    const user = interaction.member?.user || interaction.user;
+    const payload: DiscordCommandPayload = {
+      command: 'set_cooldown',
+      cooldownSeconds: seconds,
+      userId: user?.id || 'unknown',
+      username: user?.username || 'unknown',
+      isAdmin: true,
+      interactionToken: interaction.token,
+      applicationId: interaction.application_id,
+      guildId: interaction.guild_id,
+      channelId: interaction.channel_id,
+    };
+
+    this.publishToTopic(this.cmdTopic, payload).catch((err: unknown) => {
+      this.logger.error(`Failed to publish /set_cooldown to Pub/Sub: ${err instanceof Error ? err.message : String(err)}`);
+      this.sendErrorFollowUp(interaction.application_id, interaction.token, 'Failed to process /set_cooldown. Please try again.');
     });
 
     return { type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE };

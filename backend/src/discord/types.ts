@@ -119,12 +119,14 @@ export interface PixelCommandPayload {
 }
 
 /**
- * Payload published to 'discord-cmd-requests' for non-draw commands
- * (/snapshot, /session, /canvas).
+ * Payload published to 'discord-cmd-requests' for non-draw commands.
  */
 export interface DiscordCommandPayload {
-  command: 'snapshot' | 'session' | 'canvas';
+  command: 'snapshot' | 'session' | 'canvas' | 'clear' | 'resize' | 'lock' | 'unlock' | 'set_cooldown';
   action?: 'start' | 'pause' | 'reset';
+  width?: number;
+  height?: number;
+  cooldownSeconds?: number;
   userId: string;
   username: string;
   isAdmin: boolean;

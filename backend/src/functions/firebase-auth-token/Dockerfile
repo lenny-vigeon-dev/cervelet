@@ -31,4 +31,4 @@ ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["node", "node_modules/.bin/functions-framework", "--target=createFirebaseToken", "--port=8080"]
+CMD ["node", "node_modules/@google-cloud/functions-framework/build/src/main.js", "--target=createFirebaseToken", "--port=8080"]

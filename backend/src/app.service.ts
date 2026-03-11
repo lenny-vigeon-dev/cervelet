@@ -54,6 +54,48 @@ export class AppService {
     }
   }
 
+  /**
+   * Exchange a Discord access token for a Firebase Custom Token.
+   * Calls the firebase-auth-token Cloud Run service with OIDC auth.
+   */
+  async getFirebaseToken(discordAccessToken: string): Promise<{ token: string }> {
+    const serviceUrl = process.env.FIREBASE_AUTH_TOKEN_URL;
+    if (!serviceUrl) {
+      throw new Error('FIREBASE_AUTH_TOKEN_URL is not configured');
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // On Cloud Run, fetch an OIDC ID token from the metadata server
+    // to authenticate to the firebase-auth-token service (IAM auth).
+    const idToken = await this.getIdToken(serviceUrl);
+    if (idToken) {
+      headers['Authorization'] = `Bearer ${idToken}`;
+    }
+
+    const response = await axios.post(serviceUrl, { discordAccessToken }, { headers });
+    return response.data;
+  }
+
+  /**
+   * Fetch a Google OIDC ID token from the metadata server.
+   * Returns null when not running on GCP (local dev).
+   */
+  private async getIdToken(audience: string): Promise<string | null> {
+    const url = `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${encodeURIComponent(audience)}`;
+    try {
+      const res = await axios.get(url, {
+        headers: { 'Metadata-Flavor': 'Google' },
+        timeout: 3000,
+      });
+      return res.data;
+    } catch {
+      return null;
+    }
+  }
+
   private async fetchDiscordUser(accessToken: string): Promise<{ id: string; username: string; avatar?: string }> {
     try {
       const response = await axios.get('https://discord.com/api/v10/users/@me', {

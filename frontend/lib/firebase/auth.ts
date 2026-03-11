@@ -13,23 +13,37 @@ import {
 } from "firebase/auth";
 import { getFirebaseApp } from "./config";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_KEY = process.env.NEXT_PUBLIC_API_GATEWAY_KEY || "";
+const FIREBASE_TOKEN_ENDPOINT = API_URL
+  ? `${API_URL}/auth/firebase-token`
+  : "/auth/firebase-token";
+
 /**
  * Sign in to Firebase using a Discord access token.
  *
  * Flow:
  * 1. User completes Discord OAuth
- * 2. Frontend sends Discord access token to /api/firebase-auth-token
- * 3. Backend verifies token with Discord, mints Firebase Custom Token
- * 4. Frontend signs into Firebase with the custom token
+ * 2. Frontend sends Discord access token to API Gateway /auth/firebase-token
+ * 3. cf-proxy forwards to firebase-auth-token service (OIDC auth)
+ * 4. Service verifies token with Discord, mints Firebase Custom Token
+ * 5. Frontend signs into Firebase with the custom token
  *
  * @param discordAccessToken - Discord OAuth access token
  * @returns Firebase user object or null on error
  */
 export async function signInWithDiscord(discordAccessToken: string) {
   try {
-    const response = await fetch("/api/firebase-auth-token", {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (API_KEY) {
+      headers["x-api-key"] = API_KEY;
+    }
+
+    const response = await fetch(FIREBASE_TOKEN_ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ discordAccessToken }),
     });
 

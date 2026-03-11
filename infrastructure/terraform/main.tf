@@ -30,6 +30,16 @@ provider "google-beta" {
 }
 
 # ===========================================================================
+# Locals
+# ===========================================================================
+
+locals {
+  # Cloud Run URL for service-to-service calls. The new URL format uses the
+  # project number and is predictable without querying Cloud Run outputs.
+  firebase_auth_token_url = "https://firebase-auth-token-${data.google_project.project.number}.${var.region}.run.app"
+}
+
+# ===========================================================================
 # GCP API Enablement
 # ===========================================================================
 
@@ -86,7 +96,8 @@ module "cloud_run" {
       memory                = "512Mi"
       ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
       env_vars = {
-        GCP_PROJECT_ID = var.project_id
+        GCP_PROJECT_ID          = var.project_id
+        FIREBASE_AUTH_TOKEN_URL = local.firebase_auth_token_url
       }
       secret_env_vars = {
         DISCORD_APP_ID     = { secret_name = "DISCORD_APP_ID" }
@@ -133,17 +144,19 @@ module "cloud_run" {
       }
     }
 
-    # firebase-auth-token is intentionally NOT routed through API Gateway.
-    # It is an internal token-exchange service invoked by the frontend's
-    # server-side API route (/api/firebase-auth-token). The frontend proxies
-    # the request, so the Cloud Run service stays internal-only. The function
-    # validates the Discord OAuth access token against Discord's API before
-    # minting a Firebase Custom Token, providing its own authentication layer.
+    # firebase-auth-token is an internal token-exchange service invoked
+    # by cf-proxy via POST /auth/firebase-token. The full flow is:
+    # Client -> API Gateway -> cf-proxy -> firebase-auth-token.
+    # Cloud Run-to-Cloud Run calls via public .run.app URLs are treated
+    # as external traffic, so ingress must be "all". Access is still
+    # restricted by IAM (roles/run.invoker on proxy-svc). The function
+    # validates the Discord OAuth token before minting a Firebase token.
     firebase-auth-token = {
       image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/firebase-auth-token:latest"
       service_account_email = google_service_account.proxy.email
       max_instances         = 5
       memory                = "512Mi"
+      ingress               = "INGRESS_TRAFFIC_ALL"
       env_vars = {
         GCP_PROJECT_ID = var.project_id
       }

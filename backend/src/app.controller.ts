@@ -7,6 +7,10 @@ interface WritePixelDto {
   color: number;
 }
 
+interface FirebaseTokenDto {
+  discordAccessToken: string;
+}
+
 @Controller()
 export class AppController {
   private readonly maxX: number;
@@ -23,6 +27,25 @@ export class AppController {
   @Get('health')
   health() {
     return { status: 'ok', timestamp: new Date().toISOString() };
+  }
+
+  @Post('auth/firebase-token')
+  async getFirebaseToken(@Body() body: FirebaseTokenDto) {
+    if (!body.discordAccessToken || typeof body.discordAccessToken !== 'string') {
+      throw new HttpException('Missing discordAccessToken', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      return await this.appService.getFirebaseToken(body.discordAccessToken);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Internal error';
+      const status = message.includes('not configured')
+        ? HttpStatus.INTERNAL_SERVER_ERROR
+        : message.includes('401') || message.includes('verification failed')
+          ? HttpStatus.UNAUTHORIZED
+          : HttpStatus.BAD_GATEWAY;
+      throw new HttpException(message, status);
+    }
   }
 
   @Post('write')

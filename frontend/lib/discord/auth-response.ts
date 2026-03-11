@@ -57,12 +57,19 @@ export function generateAuthCallbackHTML(
         localStorage.setItem('discord_session', JSON.stringify(user));
         localStorage.setItem('discord_access_token', discordToken);
 
-        // 2. Exchange Discord token for Firebase Custom Token
+        // 2. Exchange Discord token for Firebase Custom Token via API Gateway
         statusEl.textContent = 'Setting up Firebase auth...';
 
-        const response = await fetch('/api/firebase-auth-token', {
+        const apiUrl = ${safeJsonStringify(process.env.NEXT_PUBLIC_API_URL || "")};
+        const apiKey = ${safeJsonStringify(process.env.NEXT_PUBLIC_API_GATEWAY_KEY || "")};
+        const tokenEndpoint = apiUrl ? apiUrl + '/auth/firebase-token' : '/auth/firebase-token';
+
+        const fetchHeaders = { 'Content-Type': 'application/json' };
+        if (apiKey) fetchHeaders['x-api-key'] = apiKey;
+
+        const response = await fetch(tokenEndpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: fetchHeaders,
           body: JSON.stringify({
             discordAccessToken: discordToken,
           }),

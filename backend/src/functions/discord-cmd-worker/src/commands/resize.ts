@@ -1,3 +1,4 @@
+import { PubSub } from '@google-cloud/pubsub';
 import { CONFIG } from '../config.js';
 import { DiscordService } from '../services/discord.service.js';
 import { FirestoreService } from '../services/firestore.service.js';
@@ -5,6 +6,7 @@ import type { DiscordCommandPayload } from '../types.js';
 
 const discord = new DiscordService();
 const firestore = new FirestoreService();
+const pubsub = new PubSub({ projectId: CONFIG.gcpProject });
 
 /**
  * Handle /resize command.
@@ -27,6 +29,18 @@ export async function handleResize(payload: DiscordCommandPayload): Promise<void
 
   try {
     await firestore.resizeCanvas(CONFIG.canvasId, width, height);
+
+    try {
+      await pubsub.topic('snapshot-requests').publishMessage({
+        data: Buffer.from(JSON.stringify({ canvasId: CONFIG.canvasId })),
+      });
+    } catch (err) {
+      console.log(JSON.stringify({
+        level: 'warn',
+        message: 'Could not trigger snapshot after resize',
+        error: err instanceof Error ? err.message : String(err),
+      }));
+    }
 
     await discord.sendSuccess(
       applicationId,

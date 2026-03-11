@@ -46,7 +46,7 @@ export async function handleCanvasInfo(payload: DiscordCommandPayload): Promise<
       `🎨 Pixels placed: **${pixelCount.toLocaleString()}** (${fillPercent}% filled)`,
       `📋 Version: **${canvas.version}**`,
       '',
-      `🖼️ [View latest snapshot](${CONFIG.snapshotUrl})`,
+      `🖼️ [View latest snapshot](${CONFIG.snapshotUrl}?t=${Date.now()})`,
     ];
 
     await discord.sendFollowUp(

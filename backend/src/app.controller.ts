@@ -28,17 +28,13 @@ export class AppController {
   @Post('write')
   async writePixel(
     @Body() body: WritePixelDto,
-    @Headers('authorization') auth?: string,
+    @Headers('x-discord-token') discordToken?: string,
   ) {
-    // Validate authorization header
-    if (!auth || !auth.toLowerCase().startsWith('bearer ')) {
+    if (!discordToken) {
       throw new HttpException('Missing Discord access token', HttpStatus.UNAUTHORIZED);
     }
 
-    const accessToken = auth.split(' ')[1];
-    if (!accessToken) {
-      throw new HttpException('Missing Discord access token', HttpStatus.UNAUTHORIZED);
-    }
+    const accessToken = discordToken;
 
     // Validate body
     if (typeof body.x !== 'number' || typeof body.y !== 'number' || typeof body.color !== 'number') {

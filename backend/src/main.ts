@@ -15,7 +15,7 @@ async function bootstrap() {
     const origin = configuredOrigin === '*' ? '*' : configuredOrigin;
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, x-api-key');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, x-api-key, X-Discord-Token');
 
     if (configuredOrigin !== '*') {
       res.header('Access-Control-Allow-Credentials', 'true');

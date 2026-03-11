@@ -60,7 +60,7 @@ export async function writePixel(params: WritePixelParams): Promise<WritePixelRe
   try {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
+      "X-Discord-Token": accessToken,
     };
     if (API_KEY) {
       headers["x-api-key"] = API_KEY;

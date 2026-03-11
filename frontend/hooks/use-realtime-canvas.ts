@@ -135,14 +135,9 @@ export function useRealtimeCanvas(options: UseRealtimeCanvasOptions = {}) {
             changes.forEach((change) => {
               if (change.type === 'added' || change.type === 'modified') {
                 const data = change.doc.data();
-                const pixelId = change.doc.id;
 
-                // Parse pixel coordinates from document ID (format: "canvasId_x_y")
-                const parts = pixelId.split('_');
-                const x = Number(parts[1]);
-                const y = Number(parts[2]);
-
-                // Convert color integer to hex string
+                const x = data.x as number;
+                const y = data.y as number;
                 const colorInt = data.color as number;
                 const colorHex = `#${colorInt.toString(16).padStart(6, '0')}` as `#${string}`;
 

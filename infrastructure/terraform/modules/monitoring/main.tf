@@ -135,7 +135,7 @@ resource "google_monitoring_dashboard" "operations" {
   dashboard_json = jsonencode({
     displayName = "Cervelet Operations"
     gridLayout = {
-      columns = 2
+      columns = 3
       widgets = [
         {
           title = "Firestore Document Reads"
@@ -205,6 +205,44 @@ resource "google_monitoring_dashboard" "operations" {
               }
             }]
             yAxis = { label = "messages" }
+          }
+        },
+        {
+          title = "Cloud Run Instance Count"
+          xyChart = {
+            dataSets = [{
+              timeSeriesQuery = {
+                timeSeriesFilter = {
+                  filter = "resource.type = \"cloud_run_revision\" AND metric.type = \"run.googleapis.com/container/instance_count\""
+                  aggregation = {
+                    alignmentPeriod    = "60s"
+                    perSeriesAligner   = "ALIGN_MEAN"
+                    crossSeriesReducer = "REDUCE_SUM"
+                    groupByFields      = ["resource.labels.service_name"]
+                  }
+                }
+              }
+            }]
+            yAxis = { label = "instances" }
+          }
+        },
+        {
+          title = "Cloud Storage Request Count"
+          xyChart = {
+            dataSets = [{
+              timeSeriesQuery = {
+                timeSeriesFilter = {
+                  filter = "resource.type = \"gcs_bucket\" AND metric.type = \"storage.googleapis.com/api/request_count\""
+                  aggregation = {
+                    alignmentPeriod    = "60s"
+                    perSeriesAligner   = "ALIGN_RATE"
+                    crossSeriesReducer = "REDUCE_SUM"
+                    groupByFields      = ["metric.labels.method"]
+                  }
+                }
+              }
+            }]
+            yAxis = { label = "requests/sec" }
           }
         }
       ]

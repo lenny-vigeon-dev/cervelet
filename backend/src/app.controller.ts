@@ -39,11 +39,10 @@ export class AppController {
       return await this.appService.getFirebaseToken(body.discordAccessToken);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Internal error';
-      const status = message.includes('not configured')
-        ? HttpStatus.INTERNAL_SERVER_ERROR
-        : message.includes('401') || message.includes('verification failed')
+      const status =
+        message.includes('Discord API error: 401') || message.includes('Failed to validate')
           ? HttpStatus.UNAUTHORIZED
-          : HttpStatus.BAD_GATEWAY;
+          : HttpStatus.INTERNAL_SERVER_ERROR;
       throw new HttpException(message, status);
     }
   }

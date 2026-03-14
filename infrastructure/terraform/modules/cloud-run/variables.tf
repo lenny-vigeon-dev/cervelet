@@ -21,6 +21,7 @@ variable "services" {
     timeout               = optional(string, "300s")
     concurrency           = optional(number, 80)
     ingress               = optional(string, "INGRESS_TRAFFIC_INTERNAL_ONLY")
+    deletion_protection   = optional(bool, false)
     allow_unauthenticated = optional(bool, false)
     env_vars              = optional(map(string), {})
     secret_env_vars = optional(map(object({

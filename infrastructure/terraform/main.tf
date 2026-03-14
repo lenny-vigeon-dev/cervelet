@@ -30,16 +30,6 @@ provider "google-beta" {
 }
 
 # ===========================================================================
-# Locals
-# ===========================================================================
-
-locals {
-  # Cloud Run URL for service-to-service calls. The new URL format uses the
-  # project number and is predictable without querying Cloud Run outputs.
-  firebase_auth_token_url = "https://firebase-auth-token-${data.google_project.project.number}.${var.region}.run.app"
-}
-
-# ===========================================================================
 # GCP API Enablement
 # ===========================================================================
 
@@ -98,8 +88,7 @@ module "cloud_run" {
       # Access is restricted by IAM (roles/run.invoker on the API Gateway SA).
       ingress = "INGRESS_TRAFFIC_ALL"
       env_vars = {
-        GCP_PROJECT_ID          = var.project_id
-        FIREBASE_AUTH_TOKEN_URL = local.firebase_auth_token_url
+        GCP_PROJECT_ID = var.project_id
       }
       secret_env_vars = {
         DISCORD_APP_ID     = { secret_name = "DISCORD_APP_ID" }
@@ -146,23 +135,6 @@ module "cloud_run" {
       }
     }
 
-    # firebase-auth-token is an internal token-exchange service invoked
-    # by cf-proxy via POST /auth/firebase-token. The full flow is:
-    # Client -> API Gateway -> cf-proxy -> firebase-auth-token.
-    # Cloud Run-to-Cloud Run calls via public .run.app URLs are treated
-    # as external traffic, so ingress must be "all". Access is still
-    # restricted by IAM (roles/run.invoker on proxy-svc). The function
-    # validates the Discord OAuth token before minting a Firebase token.
-    firebase-auth-token = {
-      image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/firebase-auth-token:latest"
-      service_account_email = google_service_account.proxy.email
-      max_instances         = 5
-      memory                = "512Mi"
-      ingress               = "INGRESS_TRAFFIC_ALL"
-      env_vars = {
-        GCP_PROJECT_ID = var.project_id
-      }
-    }
   }
 
   labels = {
@@ -178,7 +150,7 @@ module "cloud_run" {
 }
 
 # ===========================================================================
-# Frontend (separate module to resolve dependency on firebase-auth-token URL)
+# Frontend
 # ===========================================================================
 
 module "cloud_run_frontend" {
@@ -196,8 +168,10 @@ module "cloud_run_frontend" {
       ingress               = "INGRESS_TRAFFIC_ALL"
       allow_unauthenticated = true
       env_vars = {
-        NODE_ENV                = "production"
-        FIREBASE_AUTH_TOKEN_URL = module.cloud_run.service_urls["firebase-auth-token"]
+        NODE_ENV = "production"
+      }
+      secret_env_vars = {
+        DISCORD_CLIENT_SECRET = { secret_name = "DISCORD_CLIENT_SECRET" }
       }
     }
   }
@@ -211,6 +185,7 @@ module "cloud_run_frontend" {
   depends_on = [
     google_project_service.apis,
     module.cloud_run,
+    module.secrets,
   ]
 }
 
@@ -291,7 +266,7 @@ module "secrets" {
         "serviceAccount:${google_service_account.discord_cmd.email}",
       ]
     }
-    FIREBASE_PROJECT_ID = {
+    DISCORD_CLIENT_SECRET = {
       accessors = [
         "serviceAccount:${google_service_account.proxy.email}",
       ]

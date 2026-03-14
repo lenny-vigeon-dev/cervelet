@@ -66,7 +66,8 @@ resource "google_cloud_run_v2_service" "services" {
     }
   }
 
-  ingress = each.value.ingress
+  ingress             = each.value.ingress
+  deletion_protection = each.value.deletion_protection
 
   lifecycle {
     ignore_changes = [

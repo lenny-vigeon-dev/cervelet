@@ -3,7 +3,7 @@
  *
  * This module handles the bridge between Discord OAuth and Firebase Auth.
  * After Discord login, the Discord access token is exchanged for a
- * Firebase Custom Token via the firebase-auth-token Cloud Run service.
+ * Firebase Custom Token via the cf-proxy's /auth/firebase-token endpoint.
  */
 
 import {
@@ -25,9 +25,8 @@ const FIREBASE_TOKEN_ENDPOINT = API_URL
  * Flow:
  * 1. User completes Discord OAuth
  * 2. Frontend sends Discord access token to API Gateway /auth/firebase-token
- * 3. cf-proxy forwards to firebase-auth-token service (OIDC auth)
- * 4. Service verifies token with Discord, mints Firebase Custom Token
- * 5. Frontend signs into Firebase with the custom token
+ * 3. cf-proxy verifies token with Discord, mints Firebase Custom Token
+ * 4. Frontend signs into Firebase with the custom token
  *
  * @param discordAccessToken - Discord OAuth access token
  * @returns Firebase user object or null on error

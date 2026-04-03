@@ -23,11 +23,12 @@ This document explains how to set up Firebase Authentication using Discord OAuth
    - Stored in localStorage
    ↓
 4. Frontend requests Firebase Custom Token
-   POST /firebase-auth-token
-   Body: { discordUserId, username, email }
+   POST /auth/firebase-token (via API Gateway → cf-proxy)
+   Header: X-Discord-Token
    ↓
-5. Backend generates Firebase Custom Token
-   - Uses Firebase Admin SDK
+5. cf-proxy generates Firebase Custom Token
+   - Validates Discord token via GET /users/@me
+   - Uses Firebase Admin SDK (createCustomToken)
    - Creates token with Discord user ID as UID
    ↓
 6. Frontend signs in to Firebase
@@ -43,9 +44,9 @@ This document explains how to set up Firebase Authentication using Discord OAuth
 
 ### 1. Backend: Custom Token Generator
 
-**File**: `backend/src/functions/firebase-auth-token/index.ts`
+**Files**: `backend/src/app.controller.ts` (route) and `backend/src/app.service.ts` (logic)
 
-This Cloud Function generates Firebase Custom Tokens for Discord-authenticated users.
+This is a route inside the **cf-proxy** NestJS application (not a standalone function). It generates Firebase Custom Tokens for Discord-authenticated users.
 
 **Environment Variables Required**:
 ```bash
@@ -57,15 +58,9 @@ FRONTEND_URL=http://localhost:3000
 
 **API Contract**:
 ```typescript
-POST /firebase-auth-token
+POST /auth/firebase-token
+Headers: X-Discord-Token: <discord_access_token>
 Content-Type: application/json
-
-Request:
-{
-  "discordUserId": "123456789012345678",
-  "username": "user#1234",
-  "email": "user@example.com"
-}
 
 Response:
 {
@@ -124,26 +119,17 @@ match /users/{userId} {
 
 ## Deployment Steps
 
-### Step 1: Deploy Backend Function
+### Step 1: Deploy cf-proxy (includes auth route)
+
+The Firebase token endpoint is a route inside cf-proxy (`POST /auth/firebase-token`), so it is deployed as part of the main backend proxy — there is no separate function to deploy.
 
 ```bash
-cd backend/src/functions/firebase-auth-token
-
-# Install dependencies
-pnpm install
-
-# Deploy to Cloud Functions
-gcloud functions deploy createFirebaseToken \
-  --runtime nodejs20 \
-  --trigger-http \
-  --allow-unauthenticated \
-  --entry-point=createFirebaseToken \
-  --region=europe-west1 \
-  --set-env-vars FIREBASE_PROJECT_ID=serverless-488811,FRONTEND_URL=http://localhost:3000 \
-  --set-secrets FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest
+cd backend && pnpm install && pnpm build
+docker build -t cf-proxy .
+# Deploy via Cloud Build or Terraform (see docs/deploy_cf_proxy.md)
 ```
 
-**Note**: Add Firebase credentials to Google Cloud Secret Manager:
+**Note**: Firebase credentials must be in Google Cloud Secret Manager (mounted into cf-proxy at runtime via Terraform):
 ```bash
 # Add service account email
 echo -n "firebase-adminsdk@serverless-488811.iam.gserviceaccount.com" | \
@@ -174,8 +160,8 @@ firebase deploy --only firestore:rules
 # frontend/.env.local
 NEXT_PUBLIC_API_URL=https://cf-proxy-343984406897.europe-west1.run.app
 
-# The Custom Token endpoint will be:
-# https://cf-proxy-343984406897.europe-west1.run.app/firebase-auth-token
+# The Custom Token endpoint (via API Gateway):
+# https://cervelet-api-gateway-gateway-23cqg4ky.ew.gateway.dev/auth/firebase-token
 ```
 
 ### Step 4: Test the Integration
@@ -215,14 +201,14 @@ NEXT_PUBLIC_API_URL=https://cf-proxy-343984406897.europe-west1.run.app
 
 ### Error: "Failed to get Firebase token"
 
-**Cause**: Backend function not deployed or incorrect URL
+**Cause**: cf-proxy not deployed or incorrect API URL
 
 **Solution**:
-1. Check backend function is deployed:
+1. Check cf-proxy is deployed and running:
    ```bash
-   gcloud functions list | grep createFirebaseToken
+   gcloud run services describe cf-proxy --region=europe-west1
    ```
-2. Verify `NEXT_PUBLIC_API_URL` is correct
+2. Verify `NEXT_PUBLIC_API_URL` points to the API Gateway
 3. Check CORS headers allow your frontend domain
 
 ### Error: "Permission denied" when writing pixel
@@ -268,7 +254,7 @@ NEXT_PUBLIC_API_URL=https://cf-proxy-343984406897.europe-west1.run.app
 - Firebase Admin SDK private key never exposed to client
 
 ⚠️ **Potential Issues**:
-- `/firebase-auth-token` endpoint is unauthenticated
+- `/auth/firebase-token` endpoint is unauthenticated
 - Anyone with a Discord user ID can request a token
 - Need to add validation that requester owns the Discord account
 
@@ -381,7 +367,7 @@ test('authenticated user can place pixel', async ({ page }) => {
 
 ## Next Steps
 
-1. **Deploy backend function** to production
+1. **Deploy cf-proxy** to production (includes auth route)
 2. **Deploy Firestore rules** via console or CLI
 3. **Test authentication** flow end-to-end
 4. **Add Discord OAuth verification** to Custom Token endpoint (security improvement)

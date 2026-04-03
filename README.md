@@ -77,8 +77,7 @@ cervelet/
 │       └── functions/                # Independently deployable services
 │           ├── write-pixels-worker/  # Pub/Sub -> Firestore pixel writes
 │           ├── discord-cmd-worker/   # Discord command processor
-│           ├── canvas-snapshot-generator/ # Firestore -> PNG snapshots
-│           └── firebase-auth-token/  # Discord -> Firebase custom tokens (routed via API Gateway)
+│           └── canvas-snapshot-generator/ # Firestore -> PNG snapshots
 ├── frontend/                         # Next.js 16 (App Router, standalone)
 │   ├── app/                          # Pages, layouts, API routes
 │   ├── components/                   # React components
@@ -134,7 +133,6 @@ cd backend && pnpm build
 cd backend/src/functions/write-pixels-worker && pnpm install && pnpm build
 cd backend/src/functions/discord-cmd-worker && pnpm install && pnpm build
 cd backend/src/functions/canvas-snapshot-generator && pnpm install && pnpm build
-cd backend/src/functions/firebase-auth-token && pnpm install && pnpm build
 
 # Frontend
 cd frontend && pnpm build
@@ -153,12 +151,11 @@ terraform apply
 
 | Service          | Resource                    | Purpose                          |
 | ---------------- | --------------------------- | -------------------------------- |
-| Cloud Run        | `cf-proxy`                  | NestJS backend proxy             |
+| Cloud Run        | `cf-proxy`                  | NestJS backend proxy + Firebase auth token minting |
 | Cloud Run        | `write-pixels-worker`       | Pub/Sub pixel writer             |
 | Cloud Run        | `canvas-snapshot-generator` | PNG snapshot generator           |
 | Cloud Run        | `discord-cmd-worker`        | Discord command processor        |
 | Cloud Run        | `pixelhub-frontend`         | Next.js frontend                 |
-| Cloud Run        | `firebase-auth-token`       | Discord -> Firebase auth bridge  |
 | API Gateway      | `cervelet-api-gateway`      | Public entry point               |
 | Pub/Sub          | 4 topics + push subs + DLQs | Async event pipeline             |
 | Firestore        | `(default)`                 | Primary database                 |

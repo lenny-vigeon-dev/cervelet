@@ -104,12 +104,9 @@ docker build -t europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-d
 docker push europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/canvas-snapshot-generator:latest
 gcloud run deploy canvas-snapshot-generator --image=europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/canvas-snapshot-generator:latest --region=europe-west1
 
-# firebase-auth-token
-cd backend/src/functions/firebase-auth-token
-pnpm install && pnpm build
-docker build -t europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/firebase-auth-token:latest .
-docker push europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/firebase-auth-token:latest
-gcloud run deploy firebase-auth-token --image=europe-west1-docker.pkg.dev/serverless-488811/cloud-run-source-deploy/firebase-auth-token:latest --region=europe-west1
+# NOTE: firebase-auth-token is no longer a standalone service.
+# Auth token minting is handled by cf-proxy (POST /auth/firebase-token).
+# Deploy cf-proxy instead (see Step 2 above).
 ```
 
 ### 6. Build and Deploy Frontend
@@ -196,7 +193,7 @@ Discord / Web Client
                               +---> Pub/Sub [snapshot-requests]     ---> [canvas-snapshot-generator] ---> Cloud Storage
 
   [Frontend (Next.js on Cloud Run)] ---> Firestore (real-time onSnapshot)
-                                    ---> /api/firebase-auth-token ---> [firebase-auth-token (Cloud Run)]
+                                    ---> /auth/firebase-token ---> [cf-proxy (POST /auth/firebase-token)]
 ```
 
 ## Per-Service Documentation

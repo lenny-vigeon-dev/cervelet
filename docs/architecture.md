@@ -32,10 +32,6 @@ graph TB
             W3["canvas-snapshot-generator"]
         end
 
-        subgraph "Auth"
-            AuthToken["Cloud Run<br/>firebase-auth-token"]
-        end
-
         subgraph "Data & Storage"
             Firestore["Firestore<br/>(default database)"]
             GCS["Cloud Storage<br/>canvas-snapshots bucket"]
@@ -53,7 +49,6 @@ graph TB
     APIGW -->|"OIDC auth"| Proxy
     Proxy -->|"publish"| T1
     Proxy -->|"publish"| T2
-    Proxy -->|"HTTP + OIDC"| AuthToken
 
     T1 -->|"push subscription"| W1
     T2 -->|"push subscription"| W2
@@ -65,7 +60,7 @@ graph TB
     W3 -->|"read"| Firestore
     W3 -->|"upload PNG"| GCS
 
-    AuthToken -->|"mint custom token"| Firestore
+    Proxy -->|"mint Firebase token"| Firestore
 
     Scheduler -->|"publish"| T3
 
@@ -79,7 +74,6 @@ graph TB
     style W1 fill:#34A853,color:#fff
     style W2 fill:#34A853,color:#fff
     style W3 fill:#34A853,color:#fff
-    style AuthToken fill:#34A853,color:#fff
     style FrontendCR fill:#34A853,color:#fff
     style Firestore fill:#FBBC04,color:#000
     style GCS fill:#FBBC04,color:#000
@@ -166,8 +160,7 @@ sequenceDiagram
     participant Frontend as pixelhub-frontend
     participant Discord as Discord OAuth2
     participant APIGW as API Gateway
-    participant Proxy as cf-proxy
-    participant AuthSvc as firebase-auth-token
+    participant Proxy as cf-proxy (NestJS)
     participant Firebase as Firebase Auth
 
     User->>Frontend: Click "Login with Discord"
@@ -177,14 +170,12 @@ sequenceDiagram
     Discord-->>Frontend: Discord access token
 
     Frontend->>APIGW: POST /auth/firebase-token<br/>(X-Discord-Token header + API key)
-    APIGW->>Proxy: Forward request
-    Proxy->>AuthSvc: POST / (Discord token in body, OIDC auth)
-    AuthSvc->>Discord: GET /users/@me (validate token)
-    Discord-->>AuthSvc: User profile
-    AuthSvc->>Firebase: createCustomToken(discordUserId)
-    Firebase-->>AuthSvc: Firebase custom token
-    AuthSvc-->>Proxy: { firebaseToken }
-    Proxy-->>APIGW: Forward response
+    APIGW->>Proxy: Forward request (OIDC auth)
+    Proxy->>Discord: GET /users/@me (validate token)
+    Discord-->>Proxy: User profile
+    Proxy->>Firebase: createCustomToken(discordUserId)
+    Firebase-->>Proxy: Firebase custom token
+    Proxy-->>APIGW: { firebaseToken }
     APIGW-->>Frontend: { firebaseToken }
     Frontend->>Firebase: signInWithCustomToken()
     Firebase-->>User: Authenticated session
@@ -331,7 +322,6 @@ graph TB
         SA1 -->|"Pub/Sub Publisher"| PubSub["Pub/Sub Topics"]
         SA1 -->|"Firestore Read"| FS["Firestore"]
         SA1 -->|"Secret Accessor"| SM["Secret Manager"]
-        SA1 -->|"Run Invoker"| AuthSvc["firebase-auth-token"]
 
         SA2 -->|"Firestore Read/Write"| FS
         SA2 -->|"Pub/Sub Subscriber"| PubSub

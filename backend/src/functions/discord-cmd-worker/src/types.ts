@@ -36,7 +36,17 @@ export interface CanvasDoc {
   width: number;
   height: number;
   version: number;
-  status: 'active' | 'paused' | 'reset';
+  /**
+   * Canvas write-gate state.
+   *
+   * - 'active':    pixel writes accepted.
+   * - 'paused':    admin-paused via /lock. Writes rejected.
+   * - 'resetting': transient lock held by discord-cmd-worker during a
+   *                /reset or /clear operation. The write-pixels-worker
+   *                must reject writes while this is set. Flipped back to
+   *                'active' in Phase 3 of the reset/clear flow.
+   */
+  status: 'active' | 'paused' | 'resetting';
   totalPixels?: number;
   cooldownSeconds?: number;
   createdAt?: FirebaseFirestore.Timestamp;

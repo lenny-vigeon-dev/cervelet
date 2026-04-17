@@ -2,20 +2,19 @@ import express, { Request, Response } from 'express';
 import { SnapshotService } from './snapshot.service';
 
 /**
- * HTTP Cloud Run service to generate canvas snapshots
+ * Canvas snapshot generator — Cloud Run service.
  *
- * Can be triggered by:
- * - Cloud Scheduler (periodic snapshots)
- * - HTTP request (manual trigger)
- * - Pub/Sub (event-driven via write-pixels-worker)
+ * Single legitimate trigger path: Pub/Sub push on `snapshot-requests`.
+ * Upstream publishers:
+ *   - Cloud Scheduler (periodic snapshots every 5 min)
+ *   - discord-cmd-worker (Discord `/snapshot` slash command)
+ *   - write-pixels-worker (opportunistic post-write fan-out)
  *
- * Request body (POST):
- * - canvasId: ID of the canvas to snapshot (optional, defaults to 'main-canvas')
+ * Pub/Sub envelope `message.data` (base64 JSON):
+ *   { "canvasId": "main-canvas" }   // canvasId optional, defaults to 'main-canvas'
  *
- * Example:
- * curl -X POST https://REGION-PROJECT_ID.run.app/generate \
- *   -H "Content-Type: application/json" \
- *   -d '{"canvasId": "main-canvas"}'
+ * Per the C3 subject, there is intentionally no direct HTTP trigger route:
+ * all invocations flow through API Gateway -> proxy -> Pub/Sub -> here.
  */
 
 // Express application initialization
@@ -105,47 +104,6 @@ app.post('/', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
-
-/**
- * Generate snapshot endpoint (direct HTTP trigger)
- */
-app.post('/generate', async (req: Request, res: Response) => {
-  const startTime = Date.now();
-
-  try {
-    // CORS headers
-    res.set('Access-Control-Allow-Origin', '*');
-
-    // Get canvas ID from request body
-    const canvasId = req.body?.canvasId || 'main-canvas';
-
-    console.log(`Generating snapshot for canvas: ${canvasId}`);
-
-    // Generate snapshot
-    const metadata = await snapshotService.generateSnapshot(canvasId);
-
-    const duration = Date.now() - startTime;
-
-    // Return success response
-    res.status(200).json({
-      success: true,
-      message: 'Canvas snapshot generated successfully',
-      data: metadata,
-      duration: `${duration}ms`,
-    });
-  } catch (error) {
-    console.error('Error generating snapshot:', error);
-
-    const duration = Date.now() - startTime;
-
-    res.status(500).json({
-      success: false,
-      message: 'Failed to generate canvas snapshot',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      duration: `${duration}ms`,
     });
   }
 });

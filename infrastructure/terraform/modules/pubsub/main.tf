@@ -89,6 +89,12 @@ resource "google_pubsub_subscription" "write_pixel_requests_sub" {
     max_delivery_attempts = 10
   }
 
+  # Never expire (default would auto-delete the subscription after 31 days of inactivity).
+  # Empty string is the provider/API sentinel for "never expire".
+  expiration_policy {
+    ttl = ""
+  }
+
   depends_on = [google_pubsub_topic.write_pixel_requests_dlq]
 }
 
@@ -128,6 +134,10 @@ resource "google_pubsub_subscription" "discord_cmd_requests_sub" {
     max_delivery_attempts = 10
   }
 
+  expiration_policy {
+    ttl = ""
+  }
+
   depends_on = [google_pubsub_topic.discord_cmd_requests_dlq]
 }
 
@@ -165,6 +175,10 @@ resource "google_pubsub_subscription" "snapshot_requests_sub" {
   dead_letter_policy {
     dead_letter_topic     = google_pubsub_topic.snapshot_requests_dlq.id
     max_delivery_attempts = 5
+  }
+
+  expiration_policy {
+    ttl = ""
   }
 
   depends_on = [google_pubsub_topic.snapshot_requests_dlq]

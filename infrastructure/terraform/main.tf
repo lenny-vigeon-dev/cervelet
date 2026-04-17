@@ -171,7 +171,7 @@ module "cloud_run_frontend" {
   services = {
     pixelhub-frontend = {
       image                 = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/pixelhub-frontend:latest"
-      service_account_email = google_service_account.proxy.email
+      service_account_email = google_service_account.frontend.email
       max_instances         = 10
       memory                = "512Mi"
       ingress               = "INGRESS_TRAFFIC_ALL"
@@ -278,6 +278,7 @@ module "secrets" {
     DISCORD_CLIENT_SECRET = {
       accessors = [
         "serviceAccount:${google_service_account.proxy.email}",
+        "serviceAccount:${google_service_account.frontend.email}",
       ]
     }
   }

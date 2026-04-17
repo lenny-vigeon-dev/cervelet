@@ -9,7 +9,7 @@ This Cloud Function generates snapshots of the r/place canvas and uploads them t
 - Uploads the snapshot to Cloud Storage:
   - `canvas/latest.png` - Always contains the most recent snapshot
   - `canvas/historical/TIMESTAMP.png` - Timestamped historical snapshots
-- Can be triggered by Cloud Scheduler, HTTP requests, or Pub/Sub
+- Triggered exclusively via Pub/Sub push on the `snapshot-requests` topic (no direct HTTP entry point; subject compliance)
 
 ## Development
 
@@ -41,32 +41,26 @@ pnpm start:dev
 
 ### Deploy to GCP
 
-```bash
-# Deploy as HTTP-triggered Cloud Function (Gen 2)
-gcloud functions deploy canvas-snapshot-generator \
-  --gen2 \
-  --runtime=nodejs22 \
-  --region=europe-west1 \
-  --source=. \
-  --entry-point=generateSnapshot \
-  --trigger-http \
-  --service-account=SERVICE_ACCOUNT_EMAIL \
-  --set-env-vars GCP_PROJECT_ID=serverless-488811,CANVAS_SNAPSHOTS_BUCKET=serverless-488811-canvas-snapshots \
-  --memory=512MB \
-  --timeout=540s
+Deployment is Terraform-driven: the Cloud Run service is declared in
+`infrastructure/terraform/main.tf` under the `canvas-snapshot-generator`
+block. Push a new container image, then apply:
 
-# Or use the npm script
-pnpm deploy
+```bash
+docker build -t <region>-docker.pkg.dev/<project>/cloud-run-source-deploy/canvas-snapshot-generator:latest .
+docker push <region>-docker.pkg.dev/<project>/cloud-run-source-deploy/canvas-snapshot-generator:latest
+cd infrastructure/terraform && terraform apply
 ```
 
 ### Trigger manually
 
-```bash
-# Trigger via HTTP
-curl -X POST https://REGION-PROJECT_ID.cloudfunctions.net/canvas-snapshot-generator
+There is no direct HTTP trigger. The only invocation path is Pub/Sub push
+on the `snapshot-requests` topic. To trigger a one-off snapshot from the
+command line, publish a message to that topic (which Cloud Scheduler,
+Discord `/snapshot`, and `write-pixels-worker` already do automatically):
 
-# With specific canvas ID
-curl -X POST "https://REGION-PROJECT_ID.cloudfunctions.net/canvas-snapshot-generator?canvasId=main-canvas"
+```bash
+gcloud pubsub topics publish snapshot-requests \
+  --message='{"canvasId":"main-canvas"}'
 ```
 
 ## Environment Variables

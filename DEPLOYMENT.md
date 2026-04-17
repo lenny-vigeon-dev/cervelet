@@ -170,8 +170,8 @@ gcloud run services list --region=europe-west1
 # Verify Pub/Sub subscriptions
 gcloud pubsub subscriptions list
 
-# Test snapshot generation
-curl -X POST https://<snapshot-generator-url>/generate
+# Test snapshot generation (via Pub/Sub, not direct HTTP)
+gcloud pubsub topics publish snapshot-requests --message='{"canvasId":"main-canvas"}'
 
 # Check Cloud Storage for snapshots
 gsutil ls gs://serverless-488811-canvas-snapshots/canvas/

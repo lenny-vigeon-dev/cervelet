@@ -102,7 +102,10 @@ module "cloud_run" {
       service_account_email = google_service_account.write_pixels.email
       max_instances         = 20
       memory                = "512Mi"
-      ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+      # Pub/Sub push originates from Google's public edge, so ingress must
+      # be ALL. Access is still restricted: only the write-pixels SA has
+      # roles/run.invoker (service_accounts.tf::write_pixels_run_invoker).
+      ingress = "INGRESS_TRAFFIC_ALL"
       env_vars = {
         GCP_PROJECT_ID         = var.project_id
         SNAPSHOT_TRIGGER_TOPIC = "snapshot-requests"
@@ -115,7 +118,10 @@ module "cloud_run" {
       max_instances         = 5
       memory                = "1Gi"
       timeout               = "540s"
-      ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+      # Pub/Sub push originates from Google's public edge, so ingress must
+      # be ALL. Access is still restricted: only the snap SA has
+      # roles/run.invoker (service_accounts.tf::snap_run_invoker).
+      ingress = "INGRESS_TRAFFIC_ALL"
       env_vars = {
         GCP_PROJECT_ID = var.project_id
       }
@@ -126,7 +132,10 @@ module "cloud_run" {
       service_account_email = google_service_account.discord_cmd.email
       max_instances         = 10
       memory                = "512Mi"
-      ingress               = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+      # Pub/Sub push originates from Google's public edge, so ingress must
+      # be ALL. Access is still restricted: only the discord-cmd SA has
+      # roles/run.invoker (service_accounts.tf::discord_cmd_run_invoker).
+      ingress = "INGRESS_TRAFFIC_ALL"
       env_vars = {
         GCP_PROJECT_ID = var.project_id
       }

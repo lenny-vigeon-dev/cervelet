@@ -44,9 +44,22 @@ resource "google_storage_bucket" "canvas_snapshots" {
   labels = var.labels
 }
 
-# Public access is handled via IAM on the bucket level
-# The bucket uses uniform_bucket_level_access, so object ACLs are not supported
-# To make specific objects public, use signed URLs or a separate public bucket
+# Public read access for snapshot URLs.
+#
+# The canvas is public-by-design: every caller (cf-proxy /snapshot,
+# /canvas, the frontend loader) posts the naked
+# https://storage.googleapis.com/... URL of canvas/latest.png to Discord
+# or loads it directly in the browser. Signed URLs were considered and
+# rejected (Discord CDN caching + frontend rearchitecture cost).
+#
+# The bucket uses uniform_bucket_level_access, so this IAM member is the
+# only supported way to expose the bucket publicly. Writes remain
+# restricted to snap-svc (see service_accounts.tf::snap_storage_admin).
+resource "google_storage_bucket_iam_member" "public_viewer" {
+  bucket = google_storage_bucket.canvas_snapshots.name
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
+}
 
 # Service account for Cloud Functions to write snapshots
 resource "google_service_account" "snapshot_generator" {

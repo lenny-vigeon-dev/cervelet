@@ -62,6 +62,17 @@ resource "google_project_iam_member" "write_pixels_datastore" {
   member  = "serviceAccount:${google_service_account.write_pixels.email}"
 }
 
+// Allow write-pixels-worker to publish opportunistic snapshot triggers to
+// the snapshot-requests topic after a successful pixel write. Scoped to
+// that single topic (not project-wide) to stay least-privilege; see
+// backend/src/functions/write-pixels-worker/src/services/pubsub.service.ts.
+resource "google_pubsub_topic_iam_member" "write_pixels_snapshot_publisher" {
+  project = var.project_id
+  topic   = module.pubsub.snapshot_requests_topic_name
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.write_pixels.email}"
+}
+
 // --- snap-svc ---
 resource "google_project_iam_member" "snap_datastore_viewer" {
   project = var.project_id

@@ -6,7 +6,7 @@ import {
   PROJECT_ID,
   COOLDOWN_MS as DEFAULT_COOLDOWN_MS,
 } from '../config';
-import { UserDoc, PixelDoc, PixelHistoryDoc, PixelPayload } from '../types';
+import { UserDoc, PixelDoc, PixelHistoryDoc, PixelPayload, CanvasLockedError } from '../types';
 
 const CANVASES_COLLECTION = 'canvases';
 const PIXEL_HISTORY_COLLECTION = 'pixelHistory';
@@ -74,11 +74,15 @@ export class FirestoreService {
         throw new Error(`Canvas "${canvasId}" does not exist`);
       }
 
-      // Reject writes when the canvas is not active (e.g. paused or resetting)
+      // Reject writes when the canvas is not active. Lock is set by
+      // discord-cmd-worker during /reset, /clear, or /lock operations.
+      // Throw the typed CanvasLockedError so the worker responds to
+      // Pub/Sub with 204 (no retry) and sends a Discord follow-up,
+      // matching the CooldownError rejection path.
       const canvasData = canvasSnapshot.data();
       const canvasStatus = canvasData?.status as string | undefined;
       if (canvasStatus && canvasStatus !== 'active') {
-        throw new Error(`Canvas "${canvasId}" is not active (status: ${canvasStatus})`);
+        throw new CanvasLockedError(canvasStatus);
       }
 
       // Read per-canvas cooldown (set by /set_cooldown admin command).

@@ -16,6 +16,25 @@ export class CooldownError extends Error {
 }
 
 /**
+ * Thrown when a pixel write is rejected because the canvas is not active
+ * (status is 'paused' or 'resetting'). Like CooldownError, this is an
+ * expected user-facing rejection — the caller should respond to Pub/Sub
+ * with 204 (no retry) and send a Discord follow-up message.
+ *
+ * Use `instanceof CanvasLockedError` to distinguish from infrastructure
+ * failures.
+ */
+export class CanvasLockedError extends Error {
+  readonly canvasStatus: string;
+
+  constructor(canvasStatus: string) {
+    super(`Canvas is currently ${canvasStatus}. Pixel writes are temporarily disabled.`);
+    this.name = 'CanvasLockedError';
+    this.canvasStatus = canvasStatus;
+  }
+}
+
+/**
  * Pub/Sub Contract - Incoming message structure
  */
 export interface PixelPayload {

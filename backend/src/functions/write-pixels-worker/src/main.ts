@@ -3,7 +3,7 @@ import { FirestoreService } from './services/firestore.service';
 import { DiscordService } from './services/discord.service';
 import { PubSubService } from './services/pubsub.service';
 import { WritePixelService } from './write-pixel.service';
-import { CooldownError, PixelPayload, PubSubMessage } from './types';
+import { CanvasLockedError, CooldownError, PixelPayload, PubSubMessage } from './types';
 import { logger } from './utils/logger';
 
 /**
@@ -139,6 +139,25 @@ app.post('/', async (req: Request, res: Response) => {
                 logger.info('Cooldown prevented pixel placement', {
                     messageId,
                     cooldownMessage: errorMessage,
+                });
+            }
+            res.status(204).send();
+        } else if (error instanceof CanvasLockedError) {
+            // Canvas is paused or mid-reset. Expected rejection — ack
+            // Pub/Sub with 204 so the message is NOT retried. The
+            // WritePixelService has already sent a Discord follow-up.
+            logger.pubsubProcessed(messageId, durationMs, true);
+            if (payload) {
+                logger.info(`Canvas locked (${error.canvasStatus}); pixel placement rejected for user ${payload.userId}`, {
+                    messageId,
+                    userId: payload.userId,
+                    coordinates: { x: payload.x, y: payload.y },
+                    canvasStatus: error.canvasStatus,
+                });
+            } else {
+                logger.info(`Canvas locked (${error.canvasStatus}); pixel placement rejected`, {
+                    messageId,
+                    canvasStatus: error.canvasStatus,
                 });
             }
             res.status(204).send();

@@ -2,7 +2,7 @@ import { Timestamp } from '@google-cloud/firestore';
 import { FirestoreService } from './services/firestore.service';
 import { DiscordService } from './services/discord.service';
 import { PubSubService } from './services/pubsub.service';
-import { CooldownError, PixelPayload } from './types';
+import { CanvasLockedError, CooldownError, PixelPayload } from './types';
 import { logger } from './utils/logger';
 
 /**
@@ -90,8 +90,33 @@ export class WritePixelService {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             const isCooldownError = error instanceof CooldownError;
+            const isLockedError = error instanceof CanvasLockedError;
 
-            if (!isCooldownError) {
+            if (isLockedError) {
+                // Expected user-facing rejection; log at INFO, not ERROR.
+                // main.ts will catch the CanvasLockedError, respond 204
+                // to Pub/Sub (no retry), and not touch metrics.
+                logger.info(`Pixel placement rejected: canvas locked (${error.canvasStatus}) for user ${payload.userId}`, {
+                    userId: payload.userId,
+                    coordinates: { x: payload.x, y: payload.y },
+                    canvasStatus: error.canvasStatus,
+                    durationMs: Date.now() - startTime,
+                });
+
+                if (payload.interactionToken && payload.applicationId) {
+                    try {
+                        await this.discordService.sendErrorFollowUp(
+                            payload.interactionToken,
+                            payload.applicationId,
+                            `Canvas is currently ${error.canvasStatus}. Try again in a moment.`,
+                        );
+                        logger.discordWebhook('canvas_locked_error', payload.applicationId, true);
+                    } catch (discordError) {
+                        logger.discordWebhook('canvas_locked_error', payload.applicationId, false, undefined,
+                            discordError instanceof Error ? discordError.message : String(discordError));
+                    }
+                }
+            } else if (!isCooldownError) {
                 logger.error(`Pixel placement failed: ${payload.userId} at (${payload.x}, ${payload.y}) - ${errorMessage}`, {
                     userId: payload.userId,
                     coordinates: { x: payload.x, y: payload.y },
